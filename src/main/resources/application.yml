@@ -21,14 +21,6 @@ mybatis-plus:
 #  level:
 #    com.markerhub.mapper: debug
 
-markerhub:
-  jwt:
-    secret: g4e2e52034748f86p87cde581c0f1ea5
-#    secret: ji8n3439n439n43ld9ne9343fdfer49h
-#    七天
-    expire: 604800
-    header: token
-
 #logging:
 #  level:
 #    org.apache.catalina.core.ContainerBase: off

@@ -27,3 +27,9 @@ imgFoldName: img
 logging:
   config: classpath:logback-spring.xml
 
+markerhub:
+  jwt:
+    secret: ti8n3439n439t43ld9nv9343ddfer09h
+    #    七天
+    expire: 604800
+    header: token
