@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.markerhub.mapper.BlogMapper">
+
+    <insert id="recover" parameterType="com.markerhub.entity.Blog">
+        insert into vueblog.m_blog(id, user_id, title, description, content, created, status) values
+                                  (#{id}, #{userId}, #{title}, #{description}, #{content}, #{created}, #{status})
+    </insert>
+
+
+    <select id="getYearCount" resultType="java.lang.Integer">
+        select count(*) from vueblog.m_blog where DATE_FORMAT(created, '%Y') = #{year} group by DATE_FORMAT(created, '%Y');
+    </select>
+
+
+    <select id="queryAllBlogs" resultType="com.markerhub.entity.Blog">
+        select mb.id, username, title, description, content, mb.created, mb.status from vueblog.m_blog mb
+            left join vueblog.m_user mu on mb.user_id = mu.id order by created desc ;
+    </select>
+
+
+    <select id="queryBlogs" resultType="com.markerhub.entity.Blog">
+        select mb.id, username, title, description, content, mb.created, mb.status from vueblog.m_blog mb
+            left join vueblog.m_user mu on mb.user_id = mu.id where title like concat('%', #{title}, '%') order by created desc;
+    </select>
+
+
+</mapper>

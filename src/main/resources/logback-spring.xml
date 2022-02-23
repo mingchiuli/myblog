@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+    <!--rabbitmq配置读取-->
+    <springProperty name="rabbitmqHost" source="spring.rabbitmq.host"/>
+    <springProperty name="rabbitmqPort" source="spring.rabbitmq.port"/>
+    <springProperty name="rabbitmqUsername" source="spring.rabbitmq.username"/>
+    <springProperty name="rabbitmqPassword" source="spring.rabbitmq.password"/>
+
+    <!-- 控制台日志(颜色、编码) -->
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%yellow(%d{yyyy-MM-dd HH:mm:ss}) %green([%thread]) [%class:%line] %highlight(%-5level) - %cyan(%msg%n)
+            </pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+    </appender>
+
+<!--    amqp的相关配置，会自动发到队列里-->
+    <appender name="AMQP" class="org.springframework.amqp.rabbit.logback.AmqpAppender">
+
+        <!--Layout（纯文本）而不是格式化的JSON -->
+        <layout>
+            <pattern>
+                <![CDATA[%d{yyyy-MM-dd HH:mm:ss} [%thread] [%class:%line] %-5level %logger - %msg%n ]]>
+            </pattern>
+        </layout>
+        <host>${rabbitmqHost}</host>
+        <port>${rabbitmqPort}</port>
+        <username>${rabbitmqUsername}</username>
+        <password>${rabbitmqPassword}</password>
+
+        <declareExchange>false</declareExchange>
+        <exchangeType>direct</exchangeType>
+        <exchangeName>log_exchange</exchangeName>
+        <routingKeyPattern>log_exchange</routingKeyPattern>
+        <generateId>true</generateId>
+        <charset>UTF-8</charset>
+        <durable>false</durable>
+        <deliveryMode>NON_PERSISTENT</deliveryMode>
+    </appender>
+
+    <root level="INFO">
+        <appender-ref ref="STDOUT"/>
+        <appender-ref ref="AMQP"/>
+    </root>
+</configuration>
