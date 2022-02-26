@@ -2,4 +2,7 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.markerhub.mapper.UserMapper">
 
+    <select id="getNavMenuIds" resultType="java.lang.Long" parameterType="java.lang.String">
+        select menu_id from vueblog.m_role_menu rm left join vueblog.m_role r on r.id = rm.role_id where code = #{role}
+    </select>
 </mapper>

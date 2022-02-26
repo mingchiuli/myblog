@@ -20,6 +20,7 @@ import com.markerhub.util.JwtUtils;
 import com.markerhub.util.MyUtils;
 import com.markerhub.util.ShiroUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.shiro.authc.AuthenticationException;
 import org.apache.shiro.authz.annotation.Logical;
 import org.apache.shiro.authz.annotation.RequiresAuthentication;
 import org.apache.shiro.authz.annotation.RequiresRoles;
@@ -505,6 +506,13 @@ public class BackStageController {
     @RequiresRoles(Const.ADMIN)
     @PostMapping("/deleteUsers")
     public Result deleteUsers(@RequestBody Long[] ids) {
+
+        for (Long id : ids) {
+            String role = userService.getOne(new QueryWrapper<User>().eq("id", id)).getRole();
+            if (Const.ADMIN.equals(role)) {
+                throw new RuntimeException("不准删除管理员");
+            }
+        }
 
         ArrayList<Long> idList = new ArrayList<>(List.of(ids));
 

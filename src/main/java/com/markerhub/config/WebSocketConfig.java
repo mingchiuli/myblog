@@ -2,7 +2,7 @@ package com.markerhub.config;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.markerhub.common.lang.Const;
-import com.markerhub.entity.StompPrincipal;
+import com.markerhub.common.dto.StompPrincipal;
 import com.markerhub.entity.User;
 import com.markerhub.service.UserService;
 import com.markerhub.shiro.JwtToken;
@@ -24,8 +24,6 @@ import org.springframework.messaging.support.MessageHeaderAccessor;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
-
-import java.util.concurrent.TimeUnit;
 
 /**
  * @author mingchiuli

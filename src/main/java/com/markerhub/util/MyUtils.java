@@ -1,16 +1,20 @@
 package com.markerhub.util;
 
 import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.markerhub.common.lang.Const;
+import com.markerhub.common.lang.Result;
 import com.markerhub.config.RabbitConfig;
 import com.markerhub.entity.Blog;
 import com.markerhub.entity.User;
 import com.markerhub.search.model.BlogPostDocument;
 import com.markerhub.search.model.mq.PostMQIndexMessage;
 import com.markerhub.service.UserService;
+import io.jsonwebtoken.Claims;
+import org.apache.shiro.authc.AuthenticationException;
 import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.elasticsearch.core.SearchHit;
@@ -19,6 +23,9 @@ import org.springframework.data.redis.core.RedisOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.SessionCallback;
 import org.springframework.lang.NonNull;
+import org.springframework.util.StringUtils;
+
+import javax.servlet.http.HttpServletRequest;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.time.LocalDateTime;
@@ -31,6 +38,24 @@ import java.util.concurrent.TimeUnit;
  * @create 2021-11-02 8:55 PM
  */
 public class MyUtils {
+
+
+    public static Long reqToUserId(HttpServletRequest request) {
+        String token = request.getHeader("Authorization");
+
+        JwtUtils jwtUtils = SpringUtil.getBean(JwtUtils.class);
+
+        if(!StringUtils.hasLength(token)) {
+            return (long) -1;
+        } else {
+            // 教验jwt
+            Claims claim = jwtUtils.getClaimByToken(token);
+
+            String userId = Objects.requireNonNull(claim).getSubject();
+
+            return Long.valueOf(userId);
+        }
+    }
 
     /**
      * 设置文章阅读量数据

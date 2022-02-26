@@ -5,6 +5,8 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 /**
  * <p>
  *  Mapper 接口
@@ -15,4 +17,5 @@ import org.springframework.stereotype.Service;
  */
 public interface UserMapper extends BaseMapper<User> {
 
+    List<Long> getNavMenuIds(String role);
 }
