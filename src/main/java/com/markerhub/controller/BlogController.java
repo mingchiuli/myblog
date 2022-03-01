@@ -190,7 +190,7 @@ public class BlogController {
         String exist = (String) redisTemplate.opsForValue().get(Const.READ_TOKEN);
         if (StringUtils.hasLength(token) && StringUtils.hasLength(exist)) {
             if (!token.equals(exist)) {
-                throw new AuthenticationException("密钥错误");
+                return Result.fail("密钥错误");
             } else {
                 Blog blog = blogService.getById(blogId);
                 return Result.succ(blog);
