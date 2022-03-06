@@ -32,7 +32,6 @@ import org.springframework.data.elasticsearch.core.query.UpdateResponse;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import javax.servlet.http.HttpServletResponse;
 import java.time.LocalDateTime;
 
 /**
@@ -42,7 +41,7 @@ import java.time.LocalDateTime;
  */
 @RestController
 @Slf4j
-public class WebsiteCollectController {
+public class WebsController {
 
     UserService userService;
 

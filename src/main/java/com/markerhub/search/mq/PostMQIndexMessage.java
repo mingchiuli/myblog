@@ -1,4 +1,4 @@
-package com.markerhub.search.model.mq;
+package com.markerhub.search.mq;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

@@ -1,4 +1,4 @@
-package com.markerhub.search.model.mq;
+package com.markerhub.search.mq;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.markerhub.config.RabbitConfig;

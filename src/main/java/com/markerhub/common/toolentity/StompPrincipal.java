@@ -1,4 +1,4 @@
-package com.markerhub.common.dto;
+package com.markerhub.common.toolentity;
 
 import java.security.Principal;
 

@@ -12,6 +12,7 @@ import com.markerhub.util.MyUtils;
 import org.apache.shiro.authz.annotation.RequiresAuthentication;
 import org.apache.shiro.authz.annotation.RequiresRoles;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import javax.servlet.http.HttpServletRequest;
@@ -96,6 +97,8 @@ public class SysMenuController {
     }
 
     @PostMapping("/delete/{id}")
+    @RequiresRoles(Const.ADMIN)
+    @Transactional
     public Result delete(@PathVariable("id") Long id) {
 
         int count = menuService.count(new QueryWrapper<Menu>().eq("parent_id", id));
