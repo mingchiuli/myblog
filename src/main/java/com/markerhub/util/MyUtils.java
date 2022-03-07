@@ -274,5 +274,6 @@ public class MyUtils {
         blog.setTitle("每天都有好心情");
         blog.setDescription("");
         blog.setContent("");
+        blog.setLink("");
     }
 }

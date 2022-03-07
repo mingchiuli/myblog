@@ -17,6 +17,8 @@ server:
 mybatis-plus:
   mapper-locations: classpath*:/mapper/**Mapper.xml
 
+addResourceHandler: /upload/**
+
 #logging:
 #  level:
 #    com.markerhub.mapper: debug

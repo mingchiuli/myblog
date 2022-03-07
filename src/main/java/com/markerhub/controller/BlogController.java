@@ -128,7 +128,7 @@ public class BlogController {
         LocalDateTime start = LocalDateTime.of(year, 1, 1, 0, 0, 0);
         LocalDateTime end = LocalDateTime.of(year, 12, 31, 23, 59, 59);
 
-        QueryWrapper<Blog> wrapper = queryWrapper.select("id", "title", "description", "created").between("created", start, end).orderByAsc("created");
+        QueryWrapper<Blog> wrapper = queryWrapper.select("id", "title", "description", "link", "created").between("created", start, end).orderByAsc("created");
         IPage<Blog> pageData = blogService.page(page, wrapper);
 
         return Result.succ(pageData);
@@ -153,18 +153,18 @@ public class BlogController {
 
         if (currentPage > totalPage) {
             Page<Blog> page = new Page<>(totalPage, Const.PAGE_SIZE);
-            IPage<Blog> pageData = blogService.page(page, new QueryWrapper<Blog>().select("title", "description", "created").orderByDesc("created"));
+            IPage<Blog> pageData = blogService.page(page, new QueryWrapper<Blog>().select("title", "description", "link", "created").orderByDesc("created"));
             return Result.succ(pageData);
         }
 
         if (totalPage < 1) {
             Page<Blog> page = new Page<>(1, Const.PAGE_SIZE);
-            IPage<Blog> pageData = blogService.page(page, new QueryWrapper<Blog>().select("title", "description", "created").orderByDesc("created"));
+            IPage<Blog> pageData = blogService.page(page, new QueryWrapper<Blog>().select("title", "description", "link", "created").orderByDesc("created"));
             return Result.succ(pageData);
         }
 
         Page<Blog> page = new Page<>(currentPage, Const.PAGE_SIZE);
-        IPage<Blog> pageData = blogService.page(page, new QueryWrapper<Blog>().select("id", "title", "description", "created").orderByDesc("created"));
+        IPage<Blog> pageData = blogService.page(page, new QueryWrapper<Blog>().select("id", "title", "description", "link", "created").orderByDesc("created"));
 
         return Result.succ(pageData);
     }
@@ -234,7 +234,7 @@ public class BlogController {
     @GetMapping("/search/{currentPage}")
     public Result search(@PathVariable Integer currentPage, @RequestParam String keyword) {
 
-        MultiMatchQueryBuilder multiMatchQueryBuilder = QueryBuilders.multiMatchQuery(keyword, "title", "description", "content");
+        MultiMatchQueryBuilder multiMatchQueryBuilder = QueryBuilders.multiMatchQuery(keyword, "title", "description", "link", "content");
 
         NativeSearchQuery searchQueryCount = new NativeSearchQueryBuilder()
                 .withQuery(QueryBuilders.boolQuery()
@@ -272,7 +272,7 @@ public class BlogController {
     @GetMapping("/searchByYear/{currentPage}/{year}")
     public Result searchByYear(@PathVariable Integer currentPage, @RequestParam String keyword, @PathVariable Integer year) {
 
-        MultiMatchQueryBuilder multiMatchQueryBuilder = QueryBuilders.multiMatchQuery(keyword, "title", "description", "content");
+        MultiMatchQueryBuilder multiMatchQueryBuilder = QueryBuilders.multiMatchQuery(keyword, "title", "description", "link", "content");
 
         NativeSearchQuery searchQueryCount = new NativeSearchQueryBuilder()
                 .withQuery(QueryBuilders.boolQuery()

@@ -24,6 +24,9 @@ uploadPath: /users/mingchiuli/desktop/
 
 imgFoldName: img
 
+addResourceLocations: file:/users/mingchiuli/desktop/
+
+
 logging:
   config: classpath:logback-spring.xml
 

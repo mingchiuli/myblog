@@ -3,8 +3,8 @@
 <mapper namespace="com.markerhub.mapper.BlogMapper">
 
     <insert id="recover" parameterType="com.markerhub.entity.Blog">
-        insert into vueblog.m_blog(id, user_id, title, description, content, created, status) values
-                                  (#{id}, #{userId}, #{title}, #{description}, #{content}, #{created}, #{status})
+        insert into vueblog.m_blog(id, user_id, title, description, content, created, status, link) values
+                                  (#{id}, #{userId}, #{title}, #{description}, #{content}, #{created}, #{status}, #{link})
     </insert>
 
 

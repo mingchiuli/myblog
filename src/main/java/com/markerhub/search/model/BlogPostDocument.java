@@ -35,6 +35,8 @@ public class BlogPostDocument implements Serializable {
     private String description;
     @Field(type = FieldType.Text, searchAnalyzer = "ik_smart", analyzer = "ik_max_word")
     private String content;
+    @Field(type = FieldType.Text)
+    private String link;
 
     @JsonDeserialize(using = LocalDateTimeDeserializer.class)
     @JsonSerialize(using = LocalDateTimeSerializer.class)
