@@ -10,6 +10,7 @@ import com.markerhub.entity.RoleMenu;
 import com.markerhub.service.RoleMenuService;
 import com.markerhub.service.RoleService;
 import com.markerhub.service.UserService;
+import org.apache.shiro.authz.annotation.Logical;
 import org.apache.shiro.authz.annotation.RequiresRoles;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
@@ -66,7 +67,7 @@ public class SysRoleController {
     }
 
     @GetMapping("/list")
-    @RequiresRoles(Const.ADMIN)
+    @RequiresRoles(value = {Const.ADMIN, Const.GIRL, Const.BOY}, logical = Logical.OR)
     public Result list(String name, Integer current, Integer size) {
 
         Page<Role> pageData = roleService.page(new Page<>(current, size),
