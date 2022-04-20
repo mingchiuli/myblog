@@ -11,10 +11,22 @@ import com.markerhub.search.model.BlogPostDocument;
 import com.markerhub.service.BlogService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.shiro.authz.annotation.Logical;
+import org.apache.shiro.authz.annotation.RequiresAuthentication;
 import org.apache.shiro.authz.annotation.RequiresRoles;
+import org.elasticsearch.ResourceNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.util.FileCopyUtils;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import javax.servlet.http.HttpServletRequest;
+import java.io.File;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.UUID;
 
 /**
  * <p>
@@ -27,11 +39,109 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 public class BlogController {
 
+
     BlogService blogService;
 
     @Autowired
     private void setBlogServiceImpl(BlogService blogService) {
         this.blogService = blogService;
+    }
+
+
+    @Value("${uploadPath}")
+    private String baseFolderPath;
+
+    @Value("${imgFoldName}")
+    private String img;
+
+
+    /**
+     * 图片上传
+     * @param image
+     * @param request
+     * @param created
+     * @return
+     */
+    @RequiresRoles(value = {Const.ADMIN, Const.GIRL, Const.BOY}, logical = Logical.OR)
+    @PostMapping("/upload")
+    public Result upload(@RequestParam MultipartFile image, HttpServletRequest request, @RequestParam String created) {
+        if (image != null) {
+
+            String filePath;
+
+            filePath = created.replaceAll("-", "")
+                    .replaceAll(" ", "")
+                    .replaceAll(":", "")
+                    .replaceAll("T", "");
+
+            File baseFolder = new File(baseFolderPath + img + "/" + filePath);
+
+            if (!baseFolder.exists()) {
+                boolean b = baseFolder.mkdirs();
+
+                log.info("上传{}时间的图片结果:{}", created, b);
+            }
+
+            StringBuilder url = new StringBuilder();
+            String filename = image.getOriginalFilename();
+            //https://blog.csdn.net/Cheguangquan/article/details/104121923
+
+            if (filename == null) {
+                throw new ResourceNotFoundException("图片上传出错");
+            }
+
+            String imgName = UUID.randomUUID().toString()
+                    .replace("_", "")
+                    + "_"
+                    + filename
+                    .replaceAll(" ", "");
+
+
+            url.append(request.getScheme())
+                    .append("://")
+                    .append(request.getServerName())
+                    .append(":")
+                    .append(request.getServerPort())
+                    .append(request.getContextPath())
+                    .append(Const.UPLOAD_IMG_PATH)
+                    .append(filePath)
+                    .append("/")
+                    .append(imgName);
+            try {
+                File dest = new File(baseFolder, imgName);
+                FileCopyUtils.copy(image.getBytes(), dest);
+            } catch (IOException e) {
+                e.printStackTrace();
+                return Result.fail("上传失败");
+            }
+            return Result.succ(url.toString());
+        }
+        return Result.fail("上传失败");
+    }
+
+
+    /**
+     * 图片删除
+     * @param url
+     * @return
+     */
+    @RequiresRoles(value = {Const.ADMIN, Const.GIRL, Const.BOY}, logical = Logical.OR)
+    @DeleteMapping("/delfile")
+    public Result deleteFile(@RequestParam String url) {
+        //常量是有关url的
+        int index = url.indexOf(Const.UPLOAD_IMG_PATH) + Const.UPLOAD_IMG_PATH.length() - 1;
+        String dest = url.substring(index);
+        //配置文件里的是上传服务器的路径
+        String finalDest = baseFolderPath + img + dest;
+        File file = new File(finalDest);
+        if (file.exists()) {
+            boolean b = file.delete();
+
+            log.info("删除rui:{}上传图片的结果:{}", url, b);
+
+            return Result.succ("删除结果：" + b);
+        }
+        return Result.fail("文件不存在");
     }
 
 
@@ -83,8 +193,14 @@ public class BlogController {
         return Result.succ(blog);
     }
 
+    /**
+     * 经测试此处注解可以加，因为在没有密钥的时候访问这个接口，不会进入缓存流程，直接抛异常
+     * @param id
+     * @return
+     */
     @GetMapping("/blogAuthorized/{id}")
     @RequiresRoles(Const.ADMIN)
+    @Cache(name = Const.HOT_BLOG)
     public Result detailAuthorized(@PathVariable(name = "id") Long id) {
         Blog blog = blogService.getAuthorizedBlogDetail(id);
         return Result.succ(blog);

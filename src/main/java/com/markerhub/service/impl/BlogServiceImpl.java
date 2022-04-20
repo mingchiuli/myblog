@@ -43,6 +43,7 @@ import org.springframework.util.StringUtils;
 
 import java.io.File;
 import java.time.LocalDateTime;
+import java.time.Month;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -484,9 +485,6 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
         for (Long id : idList) {
             Blog blog = getById(id);
 
-            //删除时间的设置
-            blog.setCreated(LocalDateTime.now());
-
             redisTemplate.execute(new SessionCallback<>() {
                 @Override
                 public Object execute(@NonNull RedisOperations operations) throws DataAccessException {
@@ -502,6 +500,7 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
             /*
              * 直接删除对应的文件夹，提高效率
              */
+
             String createdTime = blog.getCreated().toString();
             String created = createdTime
                     .replaceAll("-", "")
