@@ -2,9 +2,9 @@ package com.markerhub.controller;
 
 import cn.hutool.core.map.MapUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.markerhub.common.toolentity.CoNumberList;
-import com.markerhub.common.toolentity.Content;
-import com.markerhub.common.toolentity.Message;
+import com.markerhub.common.vo.CoNumberList;
+import com.markerhub.common.vo.Content;
+import com.markerhub.common.vo.Message;
 import com.markerhub.common.lang.Const;
 import com.markerhub.common.lang.Result;
 import com.markerhub.entity.*;
@@ -44,7 +44,7 @@ import java.util.concurrent.TimeUnit;
  */
 @Controller
 @Slf4j
-public class CoWriteController {
+public class CooperateController {
 
     BlogService blogService;
 

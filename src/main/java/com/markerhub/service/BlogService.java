@@ -1,8 +1,10 @@
 package com.markerhub.service;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.markerhub.entity.Blog;
 import com.baomidou.mybatisplus.extension.service.IService;
-import java.util.ArrayList;
+import com.markerhub.search.model.BlogPostDocument;
 import java.util.List;
 
 /**
@@ -22,5 +24,40 @@ public interface BlogService extends IService<Blog> {
     List<Blog> queryBlogs(String title);
 
     boolean recover(Blog blog);
+
+    IPage<Blog> listByYear(Integer currentPage, Integer year);
+
+    IPage<Blog> listBlogsByPage(Integer currentPage);
+
+    Blog getBlogDetail(Long id);
+
+    Blog getAuthorizedBlogDetail(Long id);
+
+    Blog getLockedBlog(Long blogId, String token);
+
+    Page<BlogPostDocument> selectBlogsByES(Integer currentPage, String keyword);
+
+    Page<BlogPostDocument> selectYearBlogsByES(Integer currentPage, String keyword, Integer year);
+
+    void updateBlog(Blog blog);
+
+
+    Long initBlog();
+
+    Page<Blog> selectDeletedBlogs(String title, Integer currentPage, Integer size, Long userId);
+
+    void recoverBlog(Long id, Long userId);
+
+    void changeBlogStatus(Long id, Integer status);
+
+    Page<Blog> getAllBlogs(Integer currentPage, Integer size);
+
+    Page<Blog> queryBlogsAbstract(String keyword, Integer currentPage, Integer size);
+
+    void deleteBlogs(Long[] ids);
+
+    String getBlogToken();
+
+    void setBlogToken();
 
 }

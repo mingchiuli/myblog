@@ -10,4 +10,13 @@ import com.baomidou.mybatisplus.extension.service.IService;
 */
 public interface RoleService extends IService<Role> {
 
+    Role info(Long id);
+
+    void saveRole(Role role);
+
+    void updateRole(Role role);
+
+    void deleteRole(Long[] ids);
+
+    Long[] perm(Long roleId, Long[] menuIds);
 }

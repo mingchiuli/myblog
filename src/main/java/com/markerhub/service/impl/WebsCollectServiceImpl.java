@@ -1,20 +1,17 @@
-package com.markerhub.controller;
+package com.markerhub.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.markerhub.common.lang.Const;
-import com.markerhub.common.lang.Result;
 import com.markerhub.entity.User;
 import com.markerhub.search.model.CollectWebsiteDocument;
 import com.markerhub.service.UserService;
+import com.markerhub.service.WebsCollectService;
 import com.markerhub.util.JwtUtils;
 import com.markerhub.util.MyUtils;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.shiro.authz.annotation.Logical;
-import org.apache.shiro.authz.annotation.RequiresAuthentication;
-import org.apache.shiro.authz.annotation.RequiresRoles;
 import org.elasticsearch.index.query.MultiMatchQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.sort.SortBuilders;
@@ -29,19 +26,16 @@ import org.springframework.data.elasticsearch.core.query.NativeSearchQuery;
 import org.springframework.data.elasticsearch.core.query.NativeSearchQueryBuilder;
 import org.springframework.data.elasticsearch.core.query.UpdateQuery;
 import org.springframework.data.elasticsearch.core.query.UpdateResponse;
-import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.*;
-
+import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 
 /**
- * 收藏搜索，增删改查
  * @author mingchiuli
- * @create 2022-01-29 3:08 PM
+ * @create 2022-04-20 11:02 AM
  */
-@RestController
+@Service
 @Slf4j
-public class WebsController {
+public class WebsCollectServiceImpl implements WebsCollectService {
 
     UserService userService;
 
@@ -65,50 +59,26 @@ public class WebsController {
     }
 
 
-    @GetMapping("/getJWT")
-    public Result getJWT() {
-
+    @Override
+    public String getJWT() {
         Long id = userService.getOne(new QueryWrapper<User>().eq("username", "tokentooler")).getId();
 
-        String jwt = jwtUtils.generateToken(id);
-
-        return Result.succ(jwt);
-
+        return jwtUtils.generateToken(id);
     }
 
-    @PostMapping("/addWebsite")
-    @RequiresAuthentication
-    public Result addWebsite(@Validated @RequestBody CollectWebsiteDocument document) {
+    @Override
+    public void addWebsite(CollectWebsiteDocument document) {
 
         document.setCreated(LocalDateTime.now().minusHours(Const.GMT_PLUS_8));
 
         CollectWebsiteDocument res =  elasticsearchRestTemplate.save(document);
 
         log.info("新增网页搜藏结果:{}", res);
-
-        return Result.succ(null);
     }
-
-    @GetMapping("/getWebInfo/{id}")
-    @RequiresRoles(value = {Const.ADMIN, Const.GIRL, Const.BOY}, logical = Logical.OR)
-    public Result getWebInfo(@PathVariable String id) {
-        CollectWebsiteDocument document = elasticsearchRestTemplate.get(id, CollectWebsiteDocument.class);
-
-        if (document != null) {
-            document.setCreated(document.getCreated().plusHours(Const.GMT_PLUS_8));
-            return Result.succ(document);
-        } else {
-            return Result.fail("查询失败");
-        }
-
-    }
-
 
     @SneakyThrows
-    @PostMapping("/modifyWebsite")
-    @RequiresRoles(Const.ADMIN)
-    public Result modifyWebsite(@Validated @RequestBody CollectWebsiteDocument document) {
-
+    @Override
+    public void modifyWebsite(CollectWebsiteDocument document) {
         document.setCreated(document.getCreated().minusHours(Const.GMT_PLUS_8));
 
         ObjectMapper objectMapper = new ObjectMapper();
@@ -127,23 +97,10 @@ public class WebsController {
         String result = String.valueOf(update.getResult());
 
         log.info("修改网页搜藏结果:{}", result);
-
-        return Result.succ(null);
     }
 
-    @GetMapping("/deleteWebsite/{id}")
-    @RequiresRoles(Const.ADMIN)
-    public Result deleteWebsite(@PathVariable String id) {
-        String delete = elasticsearchRestTemplate.delete(id, CollectWebsiteDocument.class);
-
-        log.info("删除网页搜藏结果:{}", delete);
-
-        return Result.succ(null);
-    }
-
-    @GetMapping("searchWebsiteAuth/{currentPage}")
-    @RequiresRoles(Const.ADMIN)
-    public Result searchWebsiteAuth(@PathVariable Integer currentPage, @RequestParam String keyword) {
+    @Override
+    public Page<CollectWebsiteDocument> searchWebsiteAuth(Integer currentPage, String keyword) {
         MultiMatchQueryBuilder multiMatchQueryBuilder = QueryBuilders.multiMatchQuery(keyword, "title", "description");
 
         NativeSearchQuery searchQueryCount = new NativeSearchQueryBuilder()
@@ -171,12 +128,11 @@ public class WebsController {
 
         log.info("{} 关键词被链接搜索", keyword);
 
-        return Result.succ(page);
+        return page;
     }
 
-    @GetMapping("searchRecent/{currentPage}")
-    public Result searchRecent(@PathVariable Integer currentPage) {
-
+    @Override
+    public Page<CollectWebsiteDocument> searchRecent(Integer currentPage) {
         NativeSearchQuery searchQueryCount = new NativeSearchQueryBuilder()
                 .withQuery(QueryBuilders.matchQuery("status", 0))
                 .withSorts(SortBuilders.fieldSort("created").order(SortOrder.DESC))
@@ -199,14 +155,11 @@ public class WebsController {
         for (CollectWebsiteDocument record : page.getRecords()) {
             record.setCreated(record.getCreated().plusHours(Const.GMT_PLUS_8));
         }
-
-        return Result.succ(page);
-
+        return page;
     }
 
-
-    @GetMapping("searchWebsite/{currentPage}")
-    public Result searchWebsite(@PathVariable Integer currentPage, @RequestParam String keyword) {
+    @Override
+    public Page<CollectWebsiteDocument> searchWebsite(Integer currentPage, String keyword) {
         MultiMatchQueryBuilder multiMatchQueryBuilder = QueryBuilders.multiMatchQuery(keyword, "title", "description");
 
         NativeSearchQuery searchQueryCount = new NativeSearchQueryBuilder()
@@ -236,7 +189,7 @@ public class WebsController {
 
         log.info("{} 关键词被链接搜索", keyword);
 
-        return Result.succ(page);
+        return page;
     }
 
 

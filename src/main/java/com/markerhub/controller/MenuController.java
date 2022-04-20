@@ -1,18 +1,14 @@
 package com.markerhub.controller;
 
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.markerhub.common.lang.Const;
 import com.markerhub.common.lang.Result;
 import com.markerhub.entity.Menu;
-import com.markerhub.entity.RoleMenu;
 import com.markerhub.service.MenuService;
 import com.markerhub.service.RoleMenuService;
 import com.markerhub.service.UserService;
-import com.markerhub.util.MyUtils;
 import org.apache.shiro.authz.annotation.RequiresAuthentication;
 import org.apache.shiro.authz.annotation.RequiresRoles;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import javax.servlet.http.HttpServletRequest;
@@ -24,7 +20,7 @@ import java.util.List;
  */
 @RestController
 @RequestMapping("/sys/menu")
-public class SysMenuController {
+public class MenuController {
 
     RoleMenuService roleMenuService;
 
@@ -55,11 +51,7 @@ public class SysMenuController {
     @GetMapping("/nav")
     @RequiresAuthentication
     public Result nav(HttpServletRequest request) {
-
-        Long id = MyUtils.reqToUserId(request);
-
-        List<Menu> navs = menuService.getCurrentUserNav(id);
-
+        List<Menu> navs = menuService.nav(request);
         return Result.succ(navs);
     }
 
@@ -98,20 +90,8 @@ public class SysMenuController {
 
     @PostMapping("/delete/{id}")
     @RequiresRoles(Const.ADMIN)
-    @Transactional
     public Result delete(@PathVariable("id") Long id) {
-
-        int count = menuService.count(new QueryWrapper<Menu>().eq("parent_id", id));
-
-        if (count > 0) {
-            return Result.fail("请先删除子菜单");
-        }
-
-        menuService.removeById(id);
-
-        // 同步删除中间关联表
-        roleMenuService.remove(new QueryWrapper<RoleMenu>().eq("menu_id", id));
-
+        menuService.delete(id);
         return Result.succ(null);
     }
 

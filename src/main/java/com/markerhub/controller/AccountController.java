@@ -20,6 +20,7 @@ import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.authz.annotation.RequiresAuthentication;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -74,6 +75,7 @@ public class AccountController {
 
 
     @PostMapping("/login")
+    @Transactional
     public Result login(@Validated @RequestBody LoginDto loginDto, HttpServletResponse response) {
 
        String code = loginDto.getCode();

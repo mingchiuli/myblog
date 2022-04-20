@@ -2,15 +2,20 @@ package com.markerhub.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.markerhub.common.exception.InsertOrUpdateErrorException;
 import com.markerhub.entity.Menu;
+import com.markerhub.entity.RoleMenu;
 import com.markerhub.entity.User;
 import com.markerhub.mapper.UserMapper;
 import com.markerhub.service.MenuService;
 import com.markerhub.mapper.MenuMapper;
+import com.markerhub.service.RoleMenuService;
 import com.markerhub.service.UserService;
+import com.markerhub.util.MyUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
+import org.springframework.transaction.annotation.Transactional;
+import javax.servlet.http.HttpServletRequest;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
@@ -24,6 +29,13 @@ import java.util.stream.Collectors;
 @Service
 public class MenuServiceImpl extends ServiceImpl<MenuMapper, Menu>
     implements MenuService{
+
+    RoleMenuService roleMenuService;
+
+    @Autowired
+    public void setRoleMenuService(RoleMenuService roleMenuService) {
+        this.roleMenuService = roleMenuService;
+    }
 
     UserService userService;
 
@@ -60,6 +72,27 @@ public class MenuServiceImpl extends ServiceImpl<MenuMapper, Menu>
 
         // 转成树状结构
         return buildTreeMenu(menus);
+    }
+
+    @Override
+    public List<Menu> nav(HttpServletRequest request) {
+        Long id = MyUtils.reqToUserId(request);
+        return getCurrentUserNav(id);
+    }
+
+    @Override
+    @Transactional
+    public void delete(Long id) {
+        int count = count(new QueryWrapper<Menu>().eq("parent_id", id));
+
+        if (count > 0) {
+            throw new InsertOrUpdateErrorException("请先删除子菜单");
+        }
+
+        removeById(id);
+
+        // 同步删除中间关联表
+        roleMenuService.remove(new QueryWrapper<RoleMenu>().eq("menu_id", id));
     }
 
 

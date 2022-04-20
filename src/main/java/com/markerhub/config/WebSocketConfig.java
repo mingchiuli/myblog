@@ -2,7 +2,7 @@ package com.markerhub.config;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.markerhub.common.lang.Const;
-import com.markerhub.common.toolentity.StompPrincipal;
+import com.markerhub.common.vo.StompPrincipal;
 import com.markerhub.entity.User;
 import com.markerhub.service.UserService;
 import com.markerhub.shiro.JwtToken;
