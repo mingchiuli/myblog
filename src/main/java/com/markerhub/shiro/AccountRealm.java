@@ -61,8 +61,8 @@ public class AccountRealm extends AuthorizingRealm {
 
         AccountProfile accountProfile = (AccountProfile)principals.getPrimaryPrincipal();
         SimpleAuthorizationInfo info = new SimpleAuthorizationInfo();
-        Long id = accountProfile.getId();
 
+        Long id = accountProfile.getId();
         String role;
         if (Boolean.TRUE.equals(redisTemplate.hasKey(Const.ROLE_PREFIX + id))) {
             role = (String) redisTemplate.opsForValue().get(Const.ROLE_PREFIX + id);
@@ -86,9 +86,17 @@ public class AccountRealm extends AuthorizingRealm {
         Claims claim = jwtUtils.getClaimByToken((String) jwtToken.getCredentials());
         String userId = claim.getSubject();
 
-        LinkedHashMap<String, Object> userInfo = (LinkedHashMap<String, Object>) redisTemplate.opsForHash().get(Const.USER_PREFIX + userId, Const.USER_OBJECT);
+        User user;
+        if (Boolean.TRUE.equals(redisTemplate.hasKey(Const.USER_PREFIX + userId))) {
+            LinkedHashMap<String, Object> userInfo = (LinkedHashMap<String, Object>) redisTemplate.opsForHash().get(Const.USER_PREFIX + userId, Const.USER_OBJECT);
+            user = MyUtils.jsonToObj(userInfo, User.class);
+        } else {
+            user = userService.getById(Long.valueOf(userId));
+        }
 
-        User user = MyUtils.jsonToObj(userInfo, User.class);
+        if (user == null) {
+            throw new AuthenticationException("验证失败，请重新登录");
+        }
 
         String originToken = (String) redisTemplate.opsForHash().get(Const.USER_PREFIX + userId, Const.TOKEN);
 

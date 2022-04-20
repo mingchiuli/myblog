@@ -50,6 +50,7 @@ public class BlogController {
     }
 
     @GetMapping("/getCountByYear/{year}")
+    @Cache(name = Const.HOT_BLOGS)
     public Result getCountByYear(@PathVariable(name = "year") Integer year) {
         Integer count = blogService.getYearCount(year);
         return Result.succ(count);
@@ -76,6 +77,7 @@ public class BlogController {
      */
 
     @GetMapping("/blog/{id}")
+    @Cache(name = Const.HOT_BLOG)
     public Result detail(@PathVariable(name = "id") Long id) {
         Blog blog = blogService.getBlogDetail(id);
         return Result.succ(blog);
@@ -187,7 +189,6 @@ public class BlogController {
     public Result getAllBlogs(@RequestParam Integer currentPage, @RequestParam Integer size) {
         Page<Blog> page = blogService.getAllBlogs(currentPage, size);
         return Result.succ(page);
-
     }
 
 

@@ -3,7 +3,7 @@ package com.markerhub.controller;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.markerhub.common.lang.Const;
 import com.markerhub.common.lang.Result;
-import com.markerhub.search.model.CollectWebsiteDocument;
+import com.markerhub.search.model.WebsCollectDocument;
 import com.markerhub.service.UserService;
 import com.markerhub.service.WebsCollectService;
 import com.markerhub.util.JwtUtils;
@@ -63,7 +63,7 @@ public class WebsCollectController {
 
     @PostMapping("/addWebsite")
     @RequiresAuthentication
-    public Result addWebsite(@Validated @RequestBody CollectWebsiteDocument document) {
+    public Result addWebsite(@Validated @RequestBody WebsCollectDocument document) {
         websCollectService.addWebsite(document);
         return Result.succ(null);
     }
@@ -71,7 +71,7 @@ public class WebsCollectController {
     @GetMapping("/getWebInfo/{id}")
     @RequiresRoles(value = {Const.ADMIN, Const.GIRL, Const.BOY}, logical = Logical.OR)
     public Result getWebInfo(@PathVariable String id) {
-        CollectWebsiteDocument document = elasticsearchRestTemplate.get(id, CollectWebsiteDocument.class);
+        WebsCollectDocument document = elasticsearchRestTemplate.get(id, WebsCollectDocument.class);
 
         if (document != null) {
             document.setCreated(document.getCreated().plusHours(Const.GMT_PLUS_8));
@@ -86,7 +86,7 @@ public class WebsCollectController {
     @SneakyThrows
     @PostMapping("/modifyWebsite")
     @RequiresRoles(Const.ADMIN)
-    public Result modifyWebsite(@Validated @RequestBody CollectWebsiteDocument document) {
+    public Result modifyWebsite(@Validated @RequestBody WebsCollectDocument document) {
         websCollectService.modifyWebsite(document);
         return Result.succ(null);
     }
@@ -94,7 +94,7 @@ public class WebsCollectController {
     @GetMapping("/deleteWebsite/{id}")
     @RequiresRoles(Const.ADMIN)
     public Result deleteWebsite(@PathVariable String id) {
-        String delete = elasticsearchRestTemplate.delete(id, CollectWebsiteDocument.class);
+        String delete = elasticsearchRestTemplate.delete(id, WebsCollectDocument.class);
         log.info("删除网页搜藏结果:{}", delete);
         return Result.succ(null);
     }
@@ -102,20 +102,20 @@ public class WebsCollectController {
     @GetMapping("searchWebsiteAuth/{currentPage}")
     @RequiresRoles(Const.ADMIN)
     public Result searchWebsiteAuth(@PathVariable Integer currentPage, @RequestParam String keyword) {
-        Page<CollectWebsiteDocument> page = websCollectService.searchWebsiteAuth(currentPage, keyword);
+        Page<WebsCollectDocument> page = websCollectService.searchWebsiteAuth(currentPage, keyword);
         return Result.succ(page);
     }
 
     @GetMapping("searchRecent/{currentPage}")
     public Result searchRecent(@PathVariable Integer currentPage) {
-        Page<CollectWebsiteDocument> page = websCollectService.searchRecent(currentPage);
+        Page<WebsCollectDocument> page = websCollectService.searchRecent(currentPage);
         return Result.succ(page);
     }
 
 
     @GetMapping("searchWebsite/{currentPage}")
     public Result searchWebsite(@PathVariable Integer currentPage, @RequestParam String keyword) {
-        Page<CollectWebsiteDocument> page = websCollectService.searchWebsite(currentPage, keyword);
+        Page<WebsCollectDocument> page = websCollectService.searchWebsite(currentPage, keyword);
         return Result.succ(page);
     }
 

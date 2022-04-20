@@ -110,11 +110,12 @@ public class JwtFilter extends AuthenticatingFilter {
     protected boolean onLoginFailure(AuthenticationToken token, AuthenticationException e, ServletRequest request, ServletResponse response) {
         HttpServletResponse httpResponse = (HttpServletResponse) response;
         try {
-            //处理登录失败的异常
+            //处理登录失败的异常，在realm里抛异常会进入这里
+            httpResponse.setContentType("application/json;charset=utf-8");
             Throwable throwable = e.getCause() == null ? e : e.getCause();
             Result r = Result.fail(401, throwable.getMessage(), null);
             String json = JSONUtil.toJsonStr(r);
-            httpResponse.getWriter().print(json);
+            httpResponse.getWriter().write(json);
         } catch (IOException ignored) {
         }
         return false;

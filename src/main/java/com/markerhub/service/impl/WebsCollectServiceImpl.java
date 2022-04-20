@@ -5,7 +5,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.markerhub.common.lang.Const;
 import com.markerhub.entity.User;
-import com.markerhub.search.model.CollectWebsiteDocument;
+import com.markerhub.search.model.WebsCollectDocument;
 import com.markerhub.service.UserService;
 import com.markerhub.service.WebsCollectService;
 import com.markerhub.util.JwtUtils;
@@ -67,18 +67,18 @@ public class WebsCollectServiceImpl implements WebsCollectService {
     }
 
     @Override
-    public void addWebsite(CollectWebsiteDocument document) {
+    public void addWebsite(WebsCollectDocument document) {
 
         document.setCreated(LocalDateTime.now().minusHours(Const.GMT_PLUS_8));
 
-        CollectWebsiteDocument res =  elasticsearchRestTemplate.save(document);
+        WebsCollectDocument res =  elasticsearchRestTemplate.save(document);
 
         log.info("新增网页搜藏结果:{}", res);
     }
 
     @SneakyThrows
     @Override
-    public void modifyWebsite(CollectWebsiteDocument document) {
+    public void modifyWebsite(WebsCollectDocument document) {
         document.setCreated(document.getCreated().minusHours(Const.GMT_PLUS_8));
 
         ObjectMapper objectMapper = new ObjectMapper();
@@ -90,7 +90,7 @@ public class WebsCollectServiceImpl implements WebsCollectService {
                 .withDocument(doc)
                 .build();
 
-        IndexCoordinates indexCoordinates = elasticsearchRestTemplate.getIndexCoordinatesFor(CollectWebsiteDocument.class);
+        IndexCoordinates indexCoordinates = elasticsearchRestTemplate.getIndexCoordinatesFor(WebsCollectDocument.class);
 
         UpdateResponse update = elasticsearchRestTemplate.update(query, indexCoordinates);
 
@@ -100,7 +100,7 @@ public class WebsCollectServiceImpl implements WebsCollectService {
     }
 
     @Override
-    public Page<CollectWebsiteDocument> searchWebsiteAuth(Integer currentPage, String keyword) {
+    public Page<WebsCollectDocument> searchWebsiteAuth(Integer currentPage, String keyword) {
         MultiMatchQueryBuilder multiMatchQueryBuilder = QueryBuilders.multiMatchQuery(keyword, "title", "description");
 
         NativeSearchQuery searchQueryCount = new NativeSearchQueryBuilder()
@@ -109,7 +109,7 @@ public class WebsCollectServiceImpl implements WebsCollectService {
                 .withSorts(SortBuilders.fieldSort("created").order(SortOrder.DESC))
                 .build();
 
-        long count = elasticsearchRestTemplate.count(searchQueryCount, CollectWebsiteDocument.class);
+        long count = elasticsearchRestTemplate.count(searchQueryCount, WebsCollectDocument.class);
 
         NativeSearchQuery searchQueryHits = new NativeSearchQueryBuilder()
                 .withQuery(QueryBuilders.boolQuery()
@@ -118,11 +118,11 @@ public class WebsCollectServiceImpl implements WebsCollectService {
                 .withPageable(PageRequest.of(currentPage - 1, Const.WEB_SIZE))
                 .build();
 
-        SearchHits<CollectWebsiteDocument> search = elasticsearchRestTemplate.search(searchQueryHits, CollectWebsiteDocument.class);
+        SearchHits<WebsCollectDocument> search = elasticsearchRestTemplate.search(searchQueryHits, WebsCollectDocument.class);
 
-        Page<CollectWebsiteDocument> page = MyUtils.hitsToPage(search, currentPage, Const.WEB_SIZE, count);
+        Page<WebsCollectDocument> page = MyUtils.hitsToPage(search, currentPage, Const.WEB_SIZE, count);
 
-        for (CollectWebsiteDocument record : page.getRecords()) {
+        for (WebsCollectDocument record : page.getRecords()) {
             record.setCreated(record.getCreated().plusHours(Const.GMT_PLUS_8));
         }
 
@@ -132,14 +132,14 @@ public class WebsCollectServiceImpl implements WebsCollectService {
     }
 
     @Override
-    public Page<CollectWebsiteDocument> searchRecent(Integer currentPage) {
+    public Page<WebsCollectDocument> searchRecent(Integer currentPage) {
         NativeSearchQuery searchQueryCount = new NativeSearchQueryBuilder()
                 .withQuery(QueryBuilders.matchQuery("status", 0))
                 .withSorts(SortBuilders.fieldSort("created").order(SortOrder.DESC))
                 //页码从0开始
                 .build();
 
-        long count = elasticsearchRestTemplate.count(searchQueryCount, CollectWebsiteDocument.class);
+        long count = elasticsearchRestTemplate.count(searchQueryCount, WebsCollectDocument.class);
 
         NativeSearchQuery searchQueryHits = new NativeSearchQueryBuilder()
                 .withQuery(QueryBuilders.matchQuery("status", 0))
@@ -148,18 +148,18 @@ public class WebsCollectServiceImpl implements WebsCollectService {
                 //页码从0开始
                 .build();
 
-        SearchHits<CollectWebsiteDocument> search = elasticsearchRestTemplate.search(searchQueryHits, CollectWebsiteDocument.class);
+        SearchHits<WebsCollectDocument> search = elasticsearchRestTemplate.search(searchQueryHits, WebsCollectDocument.class);
 
-        Page<CollectWebsiteDocument> page = MyUtils.hitsToPage(search, currentPage, Const.WEB_SIZE, count);
+        Page<WebsCollectDocument> page = MyUtils.hitsToPage(search, currentPage, Const.WEB_SIZE, count);
 
-        for (CollectWebsiteDocument record : page.getRecords()) {
+        for (WebsCollectDocument record : page.getRecords()) {
             record.setCreated(record.getCreated().plusHours(Const.GMT_PLUS_8));
         }
         return page;
     }
 
     @Override
-    public Page<CollectWebsiteDocument> searchWebsite(Integer currentPage, String keyword) {
+    public Page<WebsCollectDocument> searchWebsite(Integer currentPage, String keyword) {
         MultiMatchQueryBuilder multiMatchQueryBuilder = QueryBuilders.multiMatchQuery(keyword, "title", "description");
 
         NativeSearchQuery searchQueryCount = new NativeSearchQueryBuilder()
@@ -169,7 +169,7 @@ public class WebsCollectServiceImpl implements WebsCollectService {
                 .withSorts(SortBuilders.fieldSort("created").order(SortOrder.DESC))
                 .build();
 
-        long count = elasticsearchRestTemplate.count(searchQueryCount, CollectWebsiteDocument.class);
+        long count = elasticsearchRestTemplate.count(searchQueryCount, WebsCollectDocument.class);
 
         NativeSearchQuery searchQueryHits = new NativeSearchQueryBuilder()
                 .withQuery(QueryBuilders.boolQuery()
@@ -179,11 +179,11 @@ public class WebsCollectServiceImpl implements WebsCollectService {
                 .withPageable(PageRequest.of(currentPage - 1, Const.WEB_SIZE))
                 .build();
 
-        SearchHits<CollectWebsiteDocument> search = elasticsearchRestTemplate.search(searchQueryHits, CollectWebsiteDocument.class);
+        SearchHits<WebsCollectDocument> search = elasticsearchRestTemplate.search(searchQueryHits, WebsCollectDocument.class);
 
-        Page<CollectWebsiteDocument> page = MyUtils.hitsToPage(search, currentPage, Const.WEB_SIZE, count);
+        Page<WebsCollectDocument> page = MyUtils.hitsToPage(search, currentPage, Const.WEB_SIZE, count);
 
-        for (CollectWebsiteDocument record : page.getRecords()) {
+        for (WebsCollectDocument record : page.getRecords()) {
             record.setCreated(record.getCreated().plusHours(Const.GMT_PLUS_8));
         }
 

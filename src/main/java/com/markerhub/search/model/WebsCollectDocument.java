@@ -21,7 +21,7 @@ import java.time.LocalDateTime;
  */
 @Data
 @Document(indexName = "websitecollect")
-public class CollectWebsiteDocument implements Serializable {
+public class WebsCollectDocument implements Serializable {
     @Id
     private String id;
     @Field(type = FieldType.Keyword)
