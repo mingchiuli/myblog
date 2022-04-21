@@ -6,12 +6,12 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.markerhub.common.cache.Cache;
 import com.markerhub.common.lang.Const;
 import com.markerhub.common.lang.Result;
+import com.markerhub.common.vo.BlogPostDocumentVo;
 import com.markerhub.entity.Blog;
 import com.markerhub.search.model.BlogPostDocument;
 import com.markerhub.service.BlogService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.shiro.authz.annotation.Logical;
-import org.apache.shiro.authz.annotation.RequiresAuthentication;
 import org.apache.shiro.authz.annotation.RequiresRoles;
 import org.elasticsearch.ResourceNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,12 +20,9 @@ import org.springframework.util.FileCopyUtils;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-
 import javax.servlet.http.HttpServletRequest;
 import java.io.File;
 import java.io.IOException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.UUID;
 
 /**
@@ -228,14 +225,14 @@ public class BlogController {
      */
     @GetMapping("/search/{currentPage}")
     public Result search(@PathVariable Integer currentPage, @RequestParam String keyword) {
-        Page<BlogPostDocument> page = blogService.selectBlogsByES(currentPage, keyword);
+        Page<BlogPostDocumentVo> page = blogService.selectBlogsByES(currentPage, keyword);
         return Result.succ(page);
     }
 
 
     @GetMapping("/searchByYear/{currentPage}/{year}")
     public Result searchByYear(@PathVariable Integer currentPage, @RequestParam String keyword, @PathVariable Integer year) {
-        Page<BlogPostDocument> page = blogService.selectYearBlogsByES(currentPage, keyword, year);
+        Page<BlogPostDocumentVo> page = blogService.selectYearBlogsByES(currentPage, keyword, year);
         return Result.succ(page);
     }
 

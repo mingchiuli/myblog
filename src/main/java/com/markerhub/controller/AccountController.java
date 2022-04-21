@@ -13,7 +13,7 @@ import com.markerhub.common.lang.Result;
 import com.markerhub.entity.User;
 import com.markerhub.service.UserService;
 import com.markerhub.util.JwtUtils;
-import com.markerhub.util.MyUtils;
+import com.markerhub.util.MyUtil;
 import io.jsonwebtoken.Claims;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.shiro.SecurityUtils;
@@ -112,7 +112,7 @@ public class AccountController {
         response.setHeader("Authorization", jwt);
         response.setHeader("Access-control-Expose-Headers", "Authorization");
 
-        MyUtils.setUserToCache(jwt, user, (long) (15 * 60));
+        MyUtil.setUserToCache(jwt, user, (long) (15 * 60));
 
         userService.update(new UpdateWrapper<User>().set("last_login", LocalDateTime.now()).eq("id", user.getId()));
 

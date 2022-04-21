@@ -3,6 +3,7 @@ package com.markerhub.controller;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.markerhub.common.lang.Const;
 import com.markerhub.common.lang.Result;
+import com.markerhub.common.vo.WebsCollectDocumentVo;
 import com.markerhub.search.model.WebsCollectDocument;
 import com.markerhub.service.UserService;
 import com.markerhub.service.WebsCollectService;
@@ -102,7 +103,7 @@ public class WebsCollectController {
     @GetMapping("searchWebsiteAuth/{currentPage}")
     @RequiresRoles(Const.ADMIN)
     public Result searchWebsiteAuth(@PathVariable Integer currentPage, @RequestParam String keyword) {
-        Page<WebsCollectDocument> page = websCollectService.searchWebsiteAuth(currentPage, keyword);
+        Page<WebsCollectDocumentVo> page = websCollectService.searchWebsiteAuth(currentPage, keyword);
         return Result.succ(page);
     }
 
@@ -115,9 +116,8 @@ public class WebsCollectController {
 
     @GetMapping("searchWebsite/{currentPage}")
     public Result searchWebsite(@PathVariable Integer currentPage, @RequestParam String keyword) {
-        Page<WebsCollectDocument> page = websCollectService.searchWebsite(currentPage, keyword);
+        Page<WebsCollectDocumentVo> page = websCollectService.searchWebsite(currentPage, keyword);
         return Result.succ(page);
     }
-
 
 }

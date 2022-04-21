@@ -12,7 +12,7 @@ import com.markerhub.mapper.UserMapper;
 import com.markerhub.service.UserService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.markerhub.util.JwtUtils;
-import com.markerhub.util.MyUtils;
+import com.markerhub.util.MyUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -58,7 +58,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
         Assert.isTrue(update, "删除失败");
 
-        MyUtils.deleteHot(Const.HOT_USERS_PREFIX, Const.HOT_BLOG_PREFIX);
+        MyUtil.deleteHot(Const.HOT_USERS_PREFIX, Const.HOT_BLOG_PREFIX);
     }
 
     @Override
@@ -109,7 +109,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             redisTemplate.delete(Const.ROLE_PREFIX + user.getId());
         }
 
-        MyUtils.deleteHot(Const.HOT_USERS_PREFIX);
+        MyUtil.deleteHot(Const.HOT_USERS_PREFIX);
     }
 
     @Override
@@ -129,7 +129,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
         Assert.isTrue(remove, "删除失败");
 
-        MyUtils.deleteHot(Const.HOT_USERS_PREFIX);
+        MyUtil.deleteHot(Const.HOT_USERS_PREFIX);
     }
 
     @Override
@@ -145,7 +145,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         String jwt = jwtUtils.generateToken(id);
 
         //替换掉原来的user会话
-        MyUtils.setUserToCache(jwt, user, (long) (6 * 10 * 60));
+        MyUtil.setUserToCache(jwt, user, (long) (6 * 10 * 60));
     }
 
     @Override

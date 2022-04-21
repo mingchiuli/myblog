@@ -2,6 +2,7 @@ package com.markerhub.service;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.markerhub.common.vo.BlogPostDocumentVo;
 import com.markerhub.entity.Blog;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.markerhub.search.model.BlogPostDocument;
@@ -35,12 +36,11 @@ public interface BlogService extends IService<Blog> {
 
     Blog getLockedBlog(Long blogId, String token);
 
-    Page<BlogPostDocument> selectBlogsByES(Integer currentPage, String keyword);
+    Page<BlogPostDocumentVo> selectBlogsByES(Integer currentPage, String keyword);
 
-    Page<BlogPostDocument> selectYearBlogsByES(Integer currentPage, String keyword, Integer year);
+    Page<BlogPostDocumentVo> selectYearBlogsByES(Integer currentPage, String keyword, Integer year);
 
     void updateBlog(Blog blog);
-
 
     Long initBlog();
 

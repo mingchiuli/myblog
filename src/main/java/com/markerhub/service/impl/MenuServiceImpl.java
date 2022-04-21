@@ -11,7 +11,7 @@ import com.markerhub.service.MenuService;
 import com.markerhub.mapper.MenuMapper;
 import com.markerhub.service.RoleMenuService;
 import com.markerhub.service.UserService;
-import com.markerhub.util.MyUtils;
+import com.markerhub.util.MyUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -76,7 +76,7 @@ public class MenuServiceImpl extends ServiceImpl<MenuMapper, Menu>
 
     @Override
     public List<Menu> nav(HttpServletRequest request) {
-        Long id = MyUtils.reqToUserId(request);
+        Long id = MyUtil.reqToUserId(request);
         return getCurrentUserNav(id);
     }
 

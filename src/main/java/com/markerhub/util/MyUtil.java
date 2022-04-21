@@ -12,6 +12,7 @@ import com.markerhub.search.model.BlogPostDocument;
 import com.markerhub.search.mq.PostMQIndexMessage;
 import com.markerhub.service.UserService;
 import io.jsonwebtoken.Claims;
+import lombok.SneakyThrows;
 import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.elasticsearch.core.SearchHit;
@@ -25,6 +26,8 @@ import org.springframework.util.StringUtils;
 import javax.servlet.http.HttpServletRequest;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -34,7 +37,7 @@ import java.util.concurrent.TimeUnit;
  * @author mingchiuli
  * @create 2021-11-02 8:55 PM
  */
-public class MyUtils {
+public class MyUtil {
 
 
     public static Long reqToUserId(HttpServletRequest request) {
@@ -117,6 +120,32 @@ public class MyUtils {
         }
 
         Page<T> page = new Page<>(currentPage, pageSize);
+
+        page.setRecords(list);
+        page.setTotal(total);
+
+        return page;
+    }
+
+    /**
+     * 针对ES对象的使用，把得分加进去
+     */
+    @SneakyThrows
+    public static <T, E> Page<E>  hitsToPage(SearchHits<T> hits, Class<E> kClass, Integer currentPage, Integer pageSize, long total) {
+        ArrayList<E> list = new ArrayList<>();
+
+        for (SearchHit<T> hit : hits.getSearchHits()) {
+            E instance = kClass.getDeclaredConstructor().newInstance();
+
+            BeanUtil.copyProperties(hit.getContent(), instance);
+
+            Method setMethod =  instance.getClass().getMethod("setScore", Float.class);
+            setMethod.invoke(instance, hit.getScore());
+
+            list.add(instance);
+        }
+
+        Page<E> page = new Page<>(currentPage, pageSize);
 
         page.setRecords(list);
         page.setTotal(total);

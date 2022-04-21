@@ -7,6 +7,7 @@ import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.markerhub.common.exception.InsertOrUpdateErrorException;
 import com.markerhub.common.lang.Const;
+import com.markerhub.common.vo.BlogPostDocumentVo;
 import com.markerhub.entity.Blog;
 import com.markerhub.entity.User;
 import com.markerhub.mapper.BlogMapper;
@@ -15,7 +16,7 @@ import com.markerhub.search.model.BlogPostDocument;
 import com.markerhub.search.mq.PostMQIndexMessage;
 import com.markerhub.service.BlogService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.markerhub.util.MyUtils;
+import com.markerhub.util.MyUtil;
 import com.markerhub.util.ShiroUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.shiro.authc.AuthenticationException;
@@ -43,7 +44,6 @@ import org.springframework.util.StringUtils;
 
 import java.io.File;
 import java.time.LocalDateTime;
-import java.time.Month;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -166,7 +166,7 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
 
         Assert.notNull(blog, "该博客不存在");
 
-        MyUtils.setReadCount(id);
+        MyUtil.setReadCount(id);
 
         return blog;
     }
@@ -178,7 +178,7 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
 
         Assert.notNull(blog, "该博客不存在");
 
-        MyUtils.setReadCount(id);
+        MyUtil.setReadCount(id);
 
         return blog;
     }
@@ -199,14 +199,14 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
     }
 
     @Override
-    public Page<BlogPostDocument> selectBlogsByES(Integer currentPage, String keyword) {
+    public Page<BlogPostDocumentVo> selectBlogsByES(Integer currentPage, String keyword) {
         MultiMatchQueryBuilder multiMatchQueryBuilder = QueryBuilders.multiMatchQuery(keyword, "title", "description", "link", "content");
 
         NativeSearchQuery searchQueryCount = new NativeSearchQueryBuilder()
                 .withQuery(QueryBuilders.boolQuery()
                         .must(QueryBuilders.termQuery("status", 0))
                         .must(multiMatchQueryBuilder))
-                .withSorts(SortBuilders.fieldSort("created").order(SortOrder.DESC))
+                .withSorts(SortBuilders.scoreSort())
                 .build();
 
         long count = elasticsearchRestTemplate.count(searchQueryCount, BlogPostDocument.class);
@@ -215,19 +215,18 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
                 .withQuery(QueryBuilders.boolQuery()
                         .must(QueryBuilders.termQuery("status", 0))
                         .must(multiMatchQueryBuilder))
-                .withSorts(SortBuilders.fieldSort("created").order(SortOrder.DESC))
+                .withSorts(SortBuilders.scoreSort())
                 .withPageable(PageRequest.of(currentPage - 1, Const.PAGE_SIZE))
                 .build();
 
         SearchHits<BlogPostDocument> search = elasticsearchRestTemplate.search(searchQueryHits, BlogPostDocument.class);
 
-        Page<BlogPostDocument> page = MyUtils.hitsToPage(search, currentPage, Const.PAGE_SIZE, count);
+        Page<BlogPostDocumentVo> page = MyUtil.hitsToPage(search, BlogPostDocumentVo.class, currentPage, Const.PAGE_SIZE, count);
 
-        for (BlogPostDocument record : page.getRecords()) {
+        for (BlogPostDocumentVo record : page.getRecords()) {
             record.setContent(null);
             record.setCreated(record.getCreated().plusHours(Const.GMT_PLUS_8));
         }
-
 
         log.info("{} 关键词被首页搜索", keyword);
 
@@ -235,7 +234,7 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
     }
 
     @Override
-    public Page<BlogPostDocument> selectYearBlogsByES(Integer currentPage, String keyword, Integer year) {
+    public Page<BlogPostDocumentVo> selectYearBlogsByES(Integer currentPage, String keyword, Integer year) {
         MultiMatchQueryBuilder multiMatchQueryBuilder = QueryBuilders.multiMatchQuery(keyword, "title", "description", "link", "content");
 
         NativeSearchQuery searchQueryCount = new NativeSearchQueryBuilder()
@@ -245,7 +244,7 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
                                 .includeLower(true))
                         .must(multiMatchQueryBuilder)
                         .must(QueryBuilders.termQuery("status", 0)))
-                .withSorts(SortBuilders.fieldSort("created").order(SortOrder.DESC))
+                .withSorts(SortBuilders.scoreSort())
                 .build();
 
         long count = elasticsearchRestTemplate.count(searchQueryCount, BlogPostDocument.class);
@@ -257,15 +256,15 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
                                 .includeLower(true))
                         .must(multiMatchQueryBuilder)
                         .must(QueryBuilders.termQuery("status", 0)))
-                .withSorts(SortBuilders.fieldSort("created").order(SortOrder.DESC))
+                .withSorts(SortBuilders.scoreSort())
                 .withPageable(PageRequest.of(currentPage - 1, Const.PAGE_SIZE))
                 .build();
 
         SearchHits<BlogPostDocument> search = elasticsearchRestTemplate.search(searchQueryHits, BlogPostDocument.class);
 
-        Page<BlogPostDocument> page = MyUtils.hitsToPage(search, currentPage, Const.PAGE_SIZE, count);
+        Page<BlogPostDocumentVo> page = MyUtil.hitsToPage(search, BlogPostDocumentVo.class, currentPage, Const.PAGE_SIZE, count);
 
-        for (BlogPostDocument record : page.getRecords()) {
+        for (BlogPostDocumentVo record : page.getRecords()) {
             record.setContent(null);
             record.setCreated(record.getCreated().plusHours(Const.GMT_PLUS_8));
         }
@@ -295,10 +294,10 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
         }
 
         //通知消息给mq,更新
-        MyUtils.sendBlogMessageToMQ(blog.getId(), PostMQIndexMessage.UPDATE);
+        MyUtil.sendBlogMessageToMQ(blog.getId(), PostMQIndexMessage.UPDATE);
 
         //删除缓存热点
-        MyUtils.deleteHot(Const.HOT_BLOGS_PREFIX, Const.HOT_BLOG_PREFIX);
+        MyUtil.deleteHot(Const.HOT_BLOGS_PREFIX, Const.HOT_BLOG_PREFIX);
 
     }
 
@@ -306,17 +305,17 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
     public Long initBlog() {
         Blog blog = new Blog();
 
-        MyUtils.initBlog(blog);
+        MyUtil.initBlog(blog);
 
         boolean add = saveOrUpdate(blog);
 
         log.info("初始化博客结果:{}", add);
 
         //通知消息给mq
-        MyUtils.sendBlogMessageToMQ(blog.getId(), PostMQIndexMessage.CREATE);
+        MyUtil.sendBlogMessageToMQ(blog.getId(), PostMQIndexMessage.CREATE);
 
         //删除缓存热点
-        MyUtils.deleteHot(Const.HOT_BLOGS_PREFIX, Const.HOT_BLOG_PREFIX);
+        MyUtil.deleteHot(Const.HOT_BLOGS_PREFIX, Const.HOT_BLOG_PREFIX);
 
         if (!add) {
             throw new InsertOrUpdateErrorException("初始化博客失败");
@@ -339,13 +338,13 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
             if (rawAllDeleted != null) {
                 ArrayList<Blog> allDeleted = new ArrayList<>();
                 for (Object value : rawAllDeleted) {
-                    Blog blog = MyUtils.jsonToObj(value, Blog.class);
+                    Blog blog = MyUtil.jsonToObj(value, Blog.class);
                     allDeleted.add(blog);
                 }
                 if (!StringUtils.hasLength(title)) {
                     //以创建时间排序，由晚到早
                     allDeleted.sort((o1, o2) -> -o1.getCreated().compareTo(o2.getCreated()));
-                    Page<Blog> page = MyUtils.listToPage(allDeleted, currentPage, size);
+                    Page<Blog> page = MyUtil.listToPage(allDeleted, currentPage, size);
                     List<Blog> records = page.getRecords();
                     for (Blog record : records) {
                         record.setUsername(username);
@@ -361,7 +360,7 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
                     }
                     blogs.sort((o1, o2) -> -o1.getCreated().compareTo(o2.getCreated()));
 
-                    Page<Blog> page = MyUtils.listToPage(blogs, currentPage, size);
+                    Page<Blog> page = MyUtil.listToPage(blogs, currentPage, size);
 
                     List<Blog> records = page.getRecords();
                     for (Blog record : records) {
@@ -380,7 +379,7 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
         String key = userId + Const.QUERY_DELETED + id;
         LinkedHashMap<String, Object> value = (LinkedHashMap<String, Object>) redisTemplate.opsForValue().get(key);
 
-        Blog blog = MyUtils.jsonToObj(value, Blog.class);
+        Blog blog = MyUtil.jsonToObj(value, Blog.class);
 
         //重新设置创建时间
         blog.setCreated(LocalDateTime.now());
@@ -397,10 +396,10 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
         redisTemplate.delete(key);
 
         //通知消息给mq
-        MyUtils.sendBlogMessageToMQ(id, PostMQIndexMessage.CREATE);
+        MyUtil.sendBlogMessageToMQ(id, PostMQIndexMessage.CREATE);
 
         //删除缓存热点
-        MyUtils.deleteHot(Const.HOT_BLOGS_PREFIX, Const.HOT_DELETED_PREFIX);
+        MyUtil.deleteHot(Const.HOT_BLOGS_PREFIX, Const.HOT_DELETED_PREFIX);
     }
 
     @Override
@@ -414,10 +413,10 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
         Assert.isTrue(update, "修改失败");
 
         //mq更新es
-        MyUtils.sendBlogMessageToMQ(id, PostMQIndexMessage.UPDATE);
+        MyUtil.sendBlogMessageToMQ(id, PostMQIndexMessage.UPDATE);
 
         //删除缓存热点
-        MyUtils.deleteHot(Const.HOT_BLOGS_PREFIX, Const.HOT_BLOG_PREFIX);
+        MyUtil.deleteHot(Const.HOT_BLOGS_PREFIX, Const.HOT_BLOG_PREFIX);
     }
 
     @Override
@@ -428,9 +427,9 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
             blog.setContent(blog.getContent().length() > 20 ? blog.getContent().substring(0, 20) : blog.getContent());
         }
 
-        Page<Blog> page = MyUtils.listToPage(blogsList, currentPage, size);
+        Page<Blog> page = MyUtil.listToPage(blogsList, currentPage, size);
 
-        MyUtils.setRead(page);
+        MyUtil.setRead(page);
 
         return page;
     }
@@ -459,7 +458,7 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
             for (SearchHit<BlogPostDocument> hit : search.getSearchHits()) {
                 Blog blog = new Blog();
 
-                MyUtils.documentToBlog(hit, blog);
+                MyUtil.documentToBlog(hit, blog);
 
                 blogsList.add(blog);
             }
@@ -471,9 +470,9 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
         }
 
         //将相关数据封装Page对象
-        Page<Blog> page = MyUtils.listToPage(blogsList, currentPage, size);
+        Page<Blog> page = MyUtil.listToPage(blogsList, currentPage, size);
 
-        MyUtils.setRead(page);
+        MyUtil.setRead(page);
 
         return page;
     }
@@ -509,7 +508,7 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
             String finalDest = baseFolderPath + img + "/" + created;
             File file = new File(finalDest);
 
-            MyUtils.deleteAllImg(file);
+            MyUtil.deleteAllImg(file);
 
             //删除文章
             boolean remove = removeById(id);
@@ -519,11 +518,11 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
             Assert.isTrue(remove, "删除失败");
 
             //通知消息给mq
-            MyUtils.sendBlogMessageToMQ(id, PostMQIndexMessage.REMOVE);
+            MyUtil.sendBlogMessageToMQ(id, PostMQIndexMessage.REMOVE);
         }
 
         //删除缓存热点
-        MyUtils.deleteHot(Const.HOT_DELETED_PREFIX, Const.HOT_BLOG_PREFIX);
+        MyUtil.deleteHot(Const.HOT_DELETED_PREFIX, Const.HOT_BLOG_PREFIX);
     }
 
     @Override

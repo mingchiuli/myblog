@@ -6,7 +6,7 @@ import com.markerhub.common.lang.Const;
 import com.markerhub.entity.User;
 import com.markerhub.service.UserService;
 import com.markerhub.util.JwtUtils;
-import com.markerhub.util.MyUtils;
+import com.markerhub.util.MyUtil;
 import io.jsonwebtoken.Claims;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.shiro.authc.*;
@@ -89,7 +89,7 @@ public class AccountRealm extends AuthorizingRealm {
         User user;
         if (Boolean.TRUE.equals(redisTemplate.hasKey(Const.USER_PREFIX + userId))) {
             LinkedHashMap<String, Object> userInfo = (LinkedHashMap<String, Object>) redisTemplate.opsForHash().get(Const.USER_PREFIX + userId, Const.USER_OBJECT);
-            user = MyUtils.jsonToObj(userInfo, User.class);
+            user = MyUtil.jsonToObj(userInfo, User.class);
         } else {
             user = userService.getById(Long.valueOf(userId));
         }

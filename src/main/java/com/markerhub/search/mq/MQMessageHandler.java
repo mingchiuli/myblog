@@ -5,7 +5,7 @@ import com.markerhub.config.RabbitConfig;
 import com.markerhub.entity.Blog;
 import com.markerhub.search.model.BlogPostDocument;
 import com.markerhub.service.BlogService;
-import com.markerhub.util.MyUtils;
+import com.markerhub.util.MyUtil;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.annotation.RabbitHandler;
@@ -49,7 +49,7 @@ public class MQMessageHandler {
 
                 Long updateId = message.getPostId();
                 Blog blogExisted = blogService.getById(updateId);
-                BlogPostDocument postDocument = MyUtils.blogToDocument(blogExisted);
+                BlogPostDocument postDocument = MyUtil.blogToDocument(blogExisted);
 
                 ObjectMapper objectMapper = new ObjectMapper();
                 String obj = objectMapper.writeValueAsString(postDocument);
@@ -84,7 +84,7 @@ public class MQMessageHandler {
 
                 Blog newBlog = blogService.getById(createId);
 
-                BlogPostDocument newDocument = MyUtils.blogToDocument(newBlog);
+                BlogPostDocument newDocument = MyUtil.blogToDocument(newBlog);
 
                 BlogPostDocument save = elasticsearchRestTemplate.save(newDocument);
 

@@ -5,7 +5,7 @@ import com.markerhub.common.lang.Result;
 import com.markerhub.entity.User;
 import com.markerhub.service.UserService;
 import com.markerhub.util.JwtUtils;
-import com.markerhub.util.MyUtils;
+import com.markerhub.util.MyUtil;
 import io.jsonwebtoken.Claims;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.shiro.authc.AuthenticationException;
@@ -98,7 +98,7 @@ public class JwtFilter extends AuthenticatingFilter {
 
             //判断是否要往缓存加，以及执行
 
-            MyUtils.setUserToCache(token, user, (long) (15 * 60));
+            MyUtil.setUserToCache(token, user, (long) (15 * 60));
 
         }
         // 执行自动登录

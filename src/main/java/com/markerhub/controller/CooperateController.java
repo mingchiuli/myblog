@@ -12,7 +12,7 @@ import com.markerhub.service.BlogService;
 import com.markerhub.service.UserService;
 import com.markerhub.shiro.JwtToken;
 import com.markerhub.util.JwtUtils;
-import com.markerhub.util.MyUtils;
+import com.markerhub.util.MyUtil;
 import io.jsonwebtoken.Claims;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.shiro.authc.AuthenticationException;
@@ -90,7 +90,7 @@ public class CooperateController {
 
         for (Map.Entry<Object, Object> entry : entries.entrySet()) {
 
-            User value = MyUtils.jsonToObj(entry.getValue(), User.class);
+            User value = MyUtil.jsonToObj(entry.getValue(), User.class);
             users.add(value);
         }
 
@@ -119,7 +119,7 @@ public class CooperateController {
 
             for (Map.Entry<Object, Object> entry : entries.entrySet()) {
 
-                User value = MyUtils.jsonToObj(entry.getValue(), User.class);
+                User value = MyUtil.jsonToObj(entry.getValue(), User.class);
                 users.add(value);
             }
 
@@ -178,7 +178,7 @@ public class CooperateController {
 
         for (Map.Entry<Object, Object> entry : entries.entrySet()) {
 
-            User user = MyUtils.jsonToObj(entry.getValue(), User.class);
+            User user = MyUtil.jsonToObj(entry.getValue(), User.class);
 
             if (user.getNumber() == 0) {
                 number.setIndex0(Boolean.TRUE);
@@ -236,7 +236,7 @@ public class CooperateController {
 
         for (Map.Entry<Object, Object> entry : entries.entrySet()) {
 
-            User value = MyUtils.jsonToObj(entry.getValue(), User.class);
+            User value = MyUtil.jsonToObj(entry.getValue(), User.class);
 
             users.add(value);
         }

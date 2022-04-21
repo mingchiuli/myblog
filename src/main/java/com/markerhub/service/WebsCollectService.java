@@ -1,6 +1,7 @@
 package com.markerhub.service;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.markerhub.common.vo.WebsCollectDocumentVo;
 import com.markerhub.search.model.WebsCollectDocument;
 
 /**
@@ -15,10 +16,9 @@ public interface WebsCollectService {
 
     void modifyWebsite(WebsCollectDocument document);
 
-    Page<WebsCollectDocument> searchWebsiteAuth(Integer currentPage, String keyword);
+    Page<WebsCollectDocumentVo> searchWebsiteAuth(Integer currentPage, String keyword);
 
     Page<WebsCollectDocument> searchRecent(Integer currentPage);
 
-
-    Page<WebsCollectDocument> searchWebsite(Integer currentPage, String keyword);
+    Page<WebsCollectDocumentVo> searchWebsite(Integer currentPage, String keyword);
 }
