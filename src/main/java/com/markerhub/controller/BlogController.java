@@ -197,7 +197,6 @@ public class BlogController {
      */
     @GetMapping("/blogAuthorized/{id}")
     @RequiresRoles(Const.ADMIN)
-    @Cache(name = Const.HOT_BLOG)
     public Result detailAuthorized(@PathVariable(name = "id") Long id) {
         Blog blog = blogService.getAuthorizedBlogDetail(id);
         return Result.succ(blog);
@@ -268,7 +267,6 @@ public class BlogController {
      * @return
      */
     @RequiresRoles(Const.ADMIN)
-    @Cache(name = Const.HOT_DELETED)
     @GetMapping("/queryDeletedBlogs")
     public Result listDeleted(@RequestParam String title, @RequestParam Integer currentPage, @RequestParam Integer size, @RequestParam Long userId) {
         Page<Blog> page = blogService.selectDeletedBlogs(title, currentPage, size, userId);
@@ -283,7 +281,6 @@ public class BlogController {
      */
     @RequiresRoles(Const.ADMIN)
     @GetMapping("/recoverBlogs/{id}/{userId}")
-    @DeleteCache(name = {Const.HOT_BLOGS_PREFIX, Const.HOT_DELETED_PREFIX})
     public Result recoverBlog(@PathVariable(name = "id") Long id, @PathVariable(name = "userId") Long userId) {
         blogService.recoverBlog(id, userId);
         return Result.succ(null);
@@ -305,7 +302,6 @@ public class BlogController {
      */
     @RequiresRoles(value = {Const.ADMIN, Const.BOY, Const.GIRL, Const.GUEST}, logical = Logical.OR)
     @GetMapping("/getAllBlogs")
-    @Cache(name = Const.HOT_BLOGS)
     public Result getAllBlogs(@RequestParam Integer currentPage, @RequestParam Integer size) {
         Page<Blog> page = blogService.getAllBlogs(currentPage, size);
         return Result.succ(page);
@@ -318,7 +314,6 @@ public class BlogController {
      * @return
      */
     @RequiresRoles(Const.ADMIN)
-    @Cache(name = Const.HOT_BLOGS)
     @GetMapping("/queryBlogs")
     public Result queryBlogs(@RequestParam String keyword, @RequestParam Integer currentPage, @RequestParam Integer size) {
         Page<Blog> page = blogService.queryBlogsAbstract(keyword, currentPage, size);

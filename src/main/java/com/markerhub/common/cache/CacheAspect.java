@@ -105,6 +105,10 @@ public class CacheAspect {
 
         Signature signature = pjp.getSignature();
         //调用的方法名
+
+//        MethodSignature methodSignature = (MethodSignature) signature;
+//        Method method = methodSignature.getMethod();
+
         String methodName = signature.getName();
 
         Class<?>[] parameterTypes = new Class[pjp.getArgs().length];
