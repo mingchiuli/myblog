@@ -55,6 +55,9 @@ public class Const {
     public static final String HOT_DELETED = "hot_deleted";
     public static final String HOT_BLOG = "hot_blog";
 
+    public static final String BLOG_STATUS = "blog_status";
+    public static final String BLOG_STATUS_PREFIX = "blog_status*";
+
 
 
 

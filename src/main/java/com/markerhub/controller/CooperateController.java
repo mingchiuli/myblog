@@ -11,7 +11,7 @@ import com.markerhub.entity.*;
 import com.markerhub.service.BlogService;
 import com.markerhub.service.UserService;
 import com.markerhub.shiro.JwtToken;
-import com.markerhub.util.JwtUtils;
+import com.markerhub.util.JwtUtil;
 import com.markerhub.util.MyUtil;
 import io.jsonwebtoken.Claims;
 import lombok.extern.slf4j.Slf4j;
@@ -74,11 +74,11 @@ public class CooperateController {
         this.simpMessagingTemplate = simpMessagingTemplate;
     }
 
-    JwtUtils jwtUtils;
+    JwtUtil jwtUtil;
 
     @Autowired
-    public void setJwtUtils(JwtUtils jwtUtils) {
-        this.jwtUtils = jwtUtils;
+    public void setJwtUtils(JwtUtil jwtUtil) {
+        this.jwtUtil = jwtUtil;
     }
 
     @MessageMapping("/pushUser/{blogId}")
@@ -106,7 +106,7 @@ public class CooperateController {
             String token = authorization.get(0);
 
             JwtToken jwtToken = new JwtToken(token);
-            Claims claim = jwtUtils.getClaimByToken((String) jwtToken.getCredentials());
+            Claims claim = jwtUtil.getClaimByToken((String) jwtToken.getCredentials());
             String userId = claim.getSubject();
 
             redisTemplate.opsForHash().delete(Const.CO_PREFIX + blogId, userId);
@@ -208,7 +208,7 @@ public class CooperateController {
         String jwt = request.getHeader("Authorization");
 
         JwtToken jwtToken = new JwtToken(jwt);
-        Claims claim = jwtUtils.getClaimByToken((String) jwtToken.getCredentials());
+        Claims claim = jwtUtil.getClaimByToken((String) jwtToken.getCredentials());
         String userId = claim.getSubject();
 
 

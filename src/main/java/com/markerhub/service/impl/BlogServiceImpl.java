@@ -8,6 +8,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.markerhub.common.exception.InsertOrUpdateErrorException;
 import com.markerhub.common.lang.Const;
 import com.markerhub.common.vo.BlogPostDocumentVo;
+import com.markerhub.config.RabbitConfig;
 import com.markerhub.entity.Blog;
 import com.markerhub.entity.User;
 import com.markerhub.mapper.BlogMapper;
@@ -24,6 +25,7 @@ import org.elasticsearch.index.query.MultiMatchQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.sort.SortBuilders;
 import org.elasticsearch.search.sort.SortOrder;
+import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataAccessException;
@@ -67,6 +69,13 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
 
     @Value("${imgFoldName}")
     private String img;
+
+    AmqpTemplate amqpTemplate;
+
+    @Autowired
+    public void setAmqpTemplate(AmqpTemplate amqpTemplate) {
+        this.amqpTemplate = amqpTemplate;
+    }
 
     ElasticsearchRestTemplate elasticsearchRestTemplate;
 
@@ -294,10 +303,10 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
         }
 
         //通知消息给mq,更新
-        MyUtil.sendBlogMessageToMQ(blog.getId(), PostMQIndexMessage.UPDATE);
-
-        //删除缓存热点
-        MyUtil.deleteHot(Const.HOT_BLOGS_PREFIX, Const.HOT_BLOG_PREFIX);
+        amqpTemplate.convertAndSend(
+                RabbitConfig.ES_EXCHANGE,
+                RabbitConfig.ES_BINDING_KEY,
+                new PostMQIndexMessage(blog.getId(), PostMQIndexMessage.UPDATE));
 
     }
 
@@ -311,17 +320,17 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
 
         log.info("初始化博客结果:{}", add);
 
-        //通知消息给mq
-        MyUtil.sendBlogMessageToMQ(blog.getId(), PostMQIndexMessage.CREATE);
-
-        //删除缓存热点
-        MyUtil.deleteHot(Const.HOT_BLOGS_PREFIX, Const.HOT_BLOG_PREFIX);
-
         if (!add) {
             throw new InsertOrUpdateErrorException("初始化博客失败");
-        } else {
-            return blog.getId();
         }
+
+        //通知消息给mq，创建
+        amqpTemplate.convertAndSend(
+                RabbitConfig.ES_EXCHANGE,
+                RabbitConfig.ES_BINDING_KEY,
+                new PostMQIndexMessage(blog.getId(), PostMQIndexMessage.CREATE));
+
+        return blog.getId();
     }
 
     @Override
@@ -395,11 +404,11 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
 
         redisTemplate.delete(key);
 
-        //通知消息给mq
-        MyUtil.sendBlogMessageToMQ(id, PostMQIndexMessage.CREATE);
+        amqpTemplate.convertAndSend(
+                RabbitConfig.ES_EXCHANGE,
+                RabbitConfig.ES_BINDING_KEY,
+                new PostMQIndexMessage(id, PostMQIndexMessage.CREATE));
 
-        //删除缓存热点
-        MyUtil.deleteHot(Const.HOT_BLOGS_PREFIX, Const.HOT_DELETED_PREFIX);
     }
 
     @Override
@@ -412,11 +421,10 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
 
         Assert.isTrue(update, "修改失败");
 
-        //mq更新es
-        MyUtil.sendBlogMessageToMQ(id, PostMQIndexMessage.UPDATE);
-
-        //删除缓存热点
-        MyUtil.deleteHot(Const.HOT_BLOGS_PREFIX, Const.HOT_BLOG_PREFIX);
+        amqpTemplate.convertAndSend(
+                RabbitConfig.ES_EXCHANGE,
+                RabbitConfig.ES_BINDING_KEY,
+                new PostMQIndexMessage(id, PostMQIndexMessage.UPDATE));
     }
 
     @Override
@@ -517,12 +525,13 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
 
             Assert.isTrue(remove, "删除失败");
 
-            //通知消息给mq
-            MyUtil.sendBlogMessageToMQ(id, PostMQIndexMessage.REMOVE);
-        }
 
-        //删除缓存热点
-        MyUtil.deleteHot(Const.HOT_DELETED_PREFIX, Const.HOT_BLOG_PREFIX);
+            amqpTemplate.convertAndSend(
+                    RabbitConfig.ES_EXCHANGE,
+                    RabbitConfig.ES_BINDING_KEY,
+                    new PostMQIndexMessage(id, PostMQIndexMessage.REMOVE));
+
+        }
     }
 
     @Override

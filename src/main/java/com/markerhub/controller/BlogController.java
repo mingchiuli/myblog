@@ -4,11 +4,11 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.markerhub.common.cache.Cache;
+import com.markerhub.common.cache.DeleteCache;
 import com.markerhub.common.lang.Const;
 import com.markerhub.common.lang.Result;
 import com.markerhub.common.vo.BlogPostDocumentVo;
 import com.markerhub.entity.Blog;
-import com.markerhub.search.model.BlogPostDocument;
 import com.markerhub.service.BlogService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.shiro.authz.annotation.Logical;
@@ -168,7 +168,7 @@ public class BlogController {
      * @param currentPage
      * @return
      */
-    @Cache(name = Const.HOT_BLOGS)//缓存页面信息一分钟
+    @Cache(name = Const.HOT_BLOGS)//缓存页面信息
     @GetMapping("/blogs/{currentPage}")
     public Result list(@PathVariable(name = "currentPage") Integer currentPage) {
 
@@ -191,7 +191,7 @@ public class BlogController {
     }
 
     /**
-     * 经测试此处注解可以加，因为在没有密钥的时候访问这个接口，不会进入缓存流程，直接抛异常
+     * 经测试此处缓存注解可以加，因为在没有密钥的时候访问这个接口，不会进入缓存流程，直接抛异常
      * @param id
      * @return
      */
@@ -242,6 +242,7 @@ public class BlogController {
      * @return
      */
     @RequiresRoles(value = {Const.ADMIN, Const.GIRL, Const.BOY}, logical = Logical.OR)
+    @DeleteCache(name = {Const.HOT_BLOG_PREFIX, Const.HOT_BLOGS_PREFIX})
     @PostMapping("/blog/edit")
     public Result edit(@Validated @RequestBody Blog blog) {
         blogService.updateBlog(blog);
@@ -254,6 +255,7 @@ public class BlogController {
      */
     @RequiresRoles(value = {Const.ADMIN, Const.GIRL, Const.BOY}, logical = Logical.OR)
     @GetMapping("/addNewBlog")
+    @DeleteCache(name = {Const.HOT_BLOGS_PREFIX, Const.HOT_BLOG_PREFIX})
     public Result addNewBlog() {
         Long id = blogService.initBlog();
         return Result.succ(id);
@@ -281,6 +283,7 @@ public class BlogController {
      */
     @RequiresRoles(Const.ADMIN)
     @GetMapping("/recoverBlogs/{id}/{userId}")
+    @DeleteCache(name = {Const.HOT_BLOGS_PREFIX, Const.HOT_DELETED_PREFIX})
     public Result recoverBlog(@PathVariable(name = "id") Long id, @PathVariable(name = "userId") Long userId) {
         blogService.recoverBlog(id, userId);
         return Result.succ(null);
@@ -291,14 +294,18 @@ public class BlogController {
      */
     @RequiresRoles(Const.ADMIN)
     @GetMapping("/modifyBlogStatus/{id}/{status}")
+    @DeleteCache(name = {Const.BLOG_STATUS_PREFIX, Const.HOT_BLOGS_PREFIX, Const.HOT_BLOG_PREFIX})
     public Result modifyBlogStatus(@PathVariable Long id, @PathVariable Integer status) {
         blogService.changeBlogStatus(id, status);
         return Result.succ(null);
     }
 
+    /**
+     * 后台获取博客信息
+     */
     @RequiresRoles(value = {Const.ADMIN, Const.BOY, Const.GIRL, Const.GUEST}, logical = Logical.OR)
     @GetMapping("/getAllBlogs")
-    @Cache(name = Const.HOT_BLOGS)//缓存页面信息一分钟
+    @Cache(name = Const.HOT_BLOGS)
     public Result getAllBlogs(@RequestParam Integer currentPage, @RequestParam Integer size) {
         Page<Blog> page = blogService.getAllBlogs(currentPage, size);
         return Result.succ(page);
@@ -325,6 +332,7 @@ public class BlogController {
      * @return
      */
     @RequiresRoles(Const.ADMIN)
+    @DeleteCache(name = {Const.HOT_BLOGS_PREFIX, Const.HOT_BLOG_PREFIX})
     @PostMapping("/deleteBlogs")
     public Result deleteBlogs(@RequestBody Long[] ids) {
         blogService.deleteBlogs(ids);
@@ -356,6 +364,7 @@ public class BlogController {
      * 获取文章状态
      */
     @GetMapping("/blogStatus/{blogId}")
+    @Cache(name = Const.BLOG_STATUS)
     public Result getBlogStatus(@PathVariable Long blogId) {
         Integer status = blogService.getOne(new QueryWrapper<Blog>().eq("id", blogId).select("status")).getStatus();
         return Result.succ(status);

@@ -5,7 +5,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.markerhub.common.lang.Const;
 import com.markerhub.entity.User;
 import com.markerhub.service.UserService;
-import com.markerhub.util.JwtUtils;
+import com.markerhub.util.JwtUtil;
 import com.markerhub.util.MyUtil;
 import io.jsonwebtoken.Claims;
 import lombok.extern.slf4j.Slf4j;
@@ -44,11 +44,11 @@ public class AccountRealm extends AuthorizingRealm {
         this.redisTemplate = redisTemplate;
     }
 
-    JwtUtils jwtUtils;
+    JwtUtil jwtUtil;
 
     @Autowired
-    private void setJwtUtils(JwtUtils jwtUtils) {
-        this.jwtUtils = jwtUtils;
+    private void setJwtUtils(JwtUtil jwtUtil) {
+        this.jwtUtil = jwtUtil;
     }
 
     @Override
@@ -83,7 +83,7 @@ public class AccountRealm extends AuthorizingRealm {
 
         JwtToken jwtToken = (JwtToken) token;
 
-        Claims claim = jwtUtils.getClaimByToken((String) jwtToken.getCredentials());
+        Claims claim = jwtUtil.getClaimByToken((String) jwtToken.getCredentials());
         String userId = claim.getSubject();
 
         User user;

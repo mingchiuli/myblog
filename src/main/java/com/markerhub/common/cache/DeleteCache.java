@@ -4,15 +4,12 @@ import java.lang.annotation.*;
 
 /**
  * @author mingchiuli
- * @create 2021-12-01 7:45 AM
+ * @create 2022-04-22 3:01 PM
  */
 @Target({ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
-public @interface Cache {
+public @interface DeleteCache {
 
-    long expire() default 120;
-
-    String name() default "";
-
+    String[] name() default "";
 }

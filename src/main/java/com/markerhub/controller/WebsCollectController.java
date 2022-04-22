@@ -7,7 +7,7 @@ import com.markerhub.common.vo.WebsCollectDocumentVo;
 import com.markerhub.search.model.WebsCollectDocument;
 import com.markerhub.service.UserService;
 import com.markerhub.service.WebsCollectService;
-import com.markerhub.util.JwtUtils;
+import com.markerhub.util.JwtUtil;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.shiro.authz.annotation.Logical;
@@ -35,11 +35,11 @@ public class WebsCollectController {
         this.userService = userService;
     }
 
-    JwtUtils jwtUtils;
+    JwtUtil jwtUtil;
 
     @Autowired
-    public void setJwtUtils(JwtUtils jwtUtils) {
-        this.jwtUtils = jwtUtils;
+    public void setJwtUtils(JwtUtil jwtUtil) {
+        this.jwtUtil = jwtUtil;
     }
 
     ElasticsearchRestTemplate elasticsearchRestTemplate;

@@ -4,7 +4,7 @@ import cn.hutool.json.JSONUtil;
 import com.markerhub.common.lang.Result;
 import com.markerhub.entity.User;
 import com.markerhub.service.UserService;
-import com.markerhub.util.JwtUtils;
+import com.markerhub.util.JwtUtil;
 import com.markerhub.util.MyUtil;
 import io.jsonwebtoken.Claims;
 import lombok.extern.slf4j.Slf4j;
@@ -32,11 +32,11 @@ import java.util.Objects;
 @Slf4j
 public class JwtFilter extends AuthenticatingFilter {
 
-    JwtUtils jwtUtils;
+    JwtUtil jwtUtil;
 
     @Autowired
-    private void setJwtUtils(JwtUtils jwtUtils) {
-        this.jwtUtils = jwtUtils;
+    private void setJwtUtils(JwtUtil jwtUtil) {
+        this.jwtUtil = jwtUtil;
     }
 
     RedisTemplate<String, Object> redisTemplate;
@@ -79,11 +79,11 @@ public class JwtFilter extends AuthenticatingFilter {
             return true;
         } else {
             // 教验jwt
-            Claims claim = jwtUtils.getClaimByToken(token);
+            Claims claim = jwtUtil.getClaimByToken(token);
             // 判断是否已过期
 
             try {
-                if (claim == null || jwtUtils.isTokenExpired(claim.getExpiration())) {
+                if (claim == null || jwtUtil.isTokenExpired(claim.getExpiration())) {
                     throw new AuthenticationException("登录信息已过期，请重新登录");
                 }
             } catch (Exception e) {

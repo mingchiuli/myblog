@@ -6,7 +6,7 @@ import com.markerhub.common.vo.StompPrincipal;
 import com.markerhub.entity.User;
 import com.markerhub.service.UserService;
 import com.markerhub.shiro.JwtToken;
-import com.markerhub.util.JwtUtils;
+import com.markerhub.util.JwtUtil;
 import io.jsonwebtoken.Claims;
 import lombok.NonNull;
 import org.apache.shiro.authc.AuthenticationException;
@@ -47,11 +47,11 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer{
         this.userService = userService;
     }
 
-    JwtUtils jwtUtils;
+    JwtUtil jwtUtil;
 
     @Autowired
-    public void setJwtUtils(JwtUtils jwtUtils) {
-        this.jwtUtils = jwtUtils;
+    public void setJwtUtils(JwtUtil jwtUtil) {
+        this.jwtUtil = jwtUtil;
     }
 
     @Override
@@ -83,8 +83,8 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer{
                         String token = accessor.getFirstNativeHeader("Authorization");
                         //验证token是否有效
                         JwtToken jwtToken = new JwtToken(token);
-                        Claims claim = jwtUtils.getClaimByToken((String) jwtToken.getCredentials());
-                        if (claim == null || jwtUtils.isTokenExpired(claim.getExpiration())) {
+                        Claims claim = jwtUtil.getClaimByToken((String) jwtToken.getCredentials());
+                        if (claim == null || jwtUtil.isTokenExpired(claim.getExpiration())) {
                             throw new AuthenticationException("token验证失败");
                         }
 

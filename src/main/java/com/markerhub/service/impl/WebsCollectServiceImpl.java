@@ -9,7 +9,7 @@ import com.markerhub.entity.User;
 import com.markerhub.search.model.WebsCollectDocument;
 import com.markerhub.service.UserService;
 import com.markerhub.service.WebsCollectService;
-import com.markerhub.util.JwtUtils;
+import com.markerhub.util.JwtUtil;
 import com.markerhub.util.MyUtil;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -45,11 +45,11 @@ public class WebsCollectServiceImpl implements WebsCollectService {
         this.userService = userService;
     }
 
-    JwtUtils jwtUtils;
+    JwtUtil jwtUtil;
 
     @Autowired
-    public void setJwtUtils(JwtUtils jwtUtils) {
-        this.jwtUtils = jwtUtils;
+    public void setJwtUtils(JwtUtil jwtUtil) {
+        this.jwtUtil = jwtUtil;
     }
 
     ElasticsearchRestTemplate elasticsearchRestTemplate;
@@ -64,7 +64,7 @@ public class WebsCollectServiceImpl implements WebsCollectService {
     public String getJWT() {
         Long id = userService.getOne(new QueryWrapper<User>().eq("username", "tokentooler")).getId();
 
-        return jwtUtils.generateToken(id);
+        return jwtUtil.generateToken(id);
     }
 
     @Override

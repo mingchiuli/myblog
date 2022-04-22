@@ -12,7 +12,7 @@ import com.markerhub.common.lang.Const;
 import com.markerhub.common.lang.Result;
 import com.markerhub.entity.User;
 import com.markerhub.service.UserService;
-import com.markerhub.util.JwtUtils;
+import com.markerhub.util.JwtUtil;
 import com.markerhub.util.MyUtil;
 import io.jsonwebtoken.Claims;
 import lombok.extern.slf4j.Slf4j;
@@ -59,11 +59,11 @@ public class AccountController {
         this.userService = userService;
     }
 
-    JwtUtils jwtUtils;
+    JwtUtil jwtUtil;
 
     @Autowired
-    private void setJwtUtils(JwtUtils jwtUtils) {
-        this.jwtUtils = jwtUtils;
+    private void setJwtUtils(JwtUtil jwtUtil) {
+        this.jwtUtil = jwtUtil;
     }
 
     RedisTemplate<String, Object> redisTemplate;
@@ -103,7 +103,7 @@ public class AccountController {
             return Result.fail("密码不正确");
         }
 
-        String jwt = jwtUtils.generateToken(user.getId());
+        String jwt = jwtUtil.generateToken(user.getId());
 
         if (Boolean.TRUE.equals(redisTemplate.hasKey(Const.USER_PREFIX + user.getId())) && user.getStatus() == 0) {
              return Result.fail("用户已登录");
@@ -136,7 +136,7 @@ public class AccountController {
         HttpServletRequest request = (HttpServletRequest) servletRequest;
         String token = request.getHeader("Authorization");
 
-        Claims claim = jwtUtils.getClaimByToken(token);
+        Claims claim = jwtUtil.getClaimByToken(token);
         String userId = claim.getSubject();
 
         Boolean delete = redisTemplate.delete(Const.USER_PREFIX + userId);

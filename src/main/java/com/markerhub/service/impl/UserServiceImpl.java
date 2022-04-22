@@ -11,7 +11,7 @@ import com.markerhub.entity.User;
 import com.markerhub.mapper.UserMapper;
 import com.markerhub.service.UserService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.markerhub.util.JwtUtils;
+import com.markerhub.util.JwtUtil;
 import com.markerhub.util.MyUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,8 +21,8 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * <p>
@@ -36,11 +36,11 @@ import java.util.List;
 @Slf4j
 public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements UserService {
 
-    JwtUtils jwtUtils;
+    JwtUtil jwtUtil;
 
     @Autowired
-    public void setJwtUtils(JwtUtils jwtUtils) {
-        this.jwtUtils = jwtUtils;
+    public void setJwtUtils(JwtUtil jwtUtil) {
+        this.jwtUtil = jwtUtil;
     }
 
     RedisTemplate<String, Object> redisTemplate;
@@ -58,7 +58,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
         Assert.isTrue(update, "删除失败");
 
-        MyUtil.deleteHot(Const.HOT_USERS_PREFIX, Const.HOT_BLOG_PREFIX);
     }
 
     @Override
@@ -105,11 +104,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             log.info("修改{}号账号结果:{}", userExist.getId(), update);
 
             Assert.isTrue(update, "修改失败");
-            //删除缓存角色授权信息
-            redisTemplate.delete(Const.ROLE_PREFIX + user.getId());
         }
 
-        MyUtil.deleteHot(Const.HOT_USERS_PREFIX);
     }
 
     @Override
@@ -119,17 +115,14 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             if (Const.ADMIN.equals(role)) {
                 throw new RuntimeException("不准删除管理员");
             }
+            User user = getById(id);
+            boolean b = removeById(id);
+            if (b) {
+                MyUtil.setUserToCache(UUID.randomUUID().toString(), user, 604800L);
+            }
+            Assert.isTrue(!b, "删除[" + id + "]失败");
         }
 
-        ArrayList<Long> idList = new ArrayList<>(List.of(ids));
-
-        boolean remove = removeByIds(idList);
-
-        log.info("删除账号{}结果:{}", ids, remove);
-
-        Assert.isTrue(remove, "删除失败");
-
-        MyUtil.deleteHot(Const.HOT_USERS_PREFIX);
     }
 
     @Override
@@ -142,10 +135,10 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         Assert.isTrue(update, "锁定失败");
         //再对缓存进行更新赋值操作
         User user = getById(id);
-        String jwt = jwtUtils.generateToken(id);
+        String jwt = jwtUtil.generateToken(id);
 
         //替换掉原来的user会话
-        MyUtil.setUserToCache(jwt, user, (long) (6 * 10 * 60));
+        MyUtil.setUserToCache(jwt, user, (long) (6 * 60 * 60));
     }
 
     @Override

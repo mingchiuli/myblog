@@ -17,7 +17,7 @@ import java.util.Date;
 @Data
 @Component
 @ConfigurationProperties(prefix = "markerhub.jwt")
-public class JwtUtils {
+public class JwtUtil {
 
     private String secret;
 

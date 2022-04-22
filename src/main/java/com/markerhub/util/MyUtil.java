@@ -5,15 +5,12 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.markerhub.common.lang.Const;
-import com.markerhub.config.RabbitConfig;
 import com.markerhub.entity.Blog;
 import com.markerhub.entity.User;
 import com.markerhub.search.model.BlogPostDocument;
-import com.markerhub.search.mq.PostMQIndexMessage;
 import com.markerhub.service.UserService;
 import io.jsonwebtoken.Claims;
 import lombok.SneakyThrows;
-import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.elasticsearch.core.SearchHit;
 import org.springframework.data.elasticsearch.core.SearchHits;
@@ -26,7 +23,6 @@ import org.springframework.util.StringUtils;
 import javax.servlet.http.HttpServletRequest;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -43,13 +39,13 @@ public class MyUtil {
     public static Long reqToUserId(HttpServletRequest request) {
         String token = request.getHeader("Authorization");
 
-        JwtUtils jwtUtils = SpringUtil.getBean(JwtUtils.class);
+        JwtUtil jwtUtil = SpringUtil.getBean(JwtUtil.class);
 
         if(!StringUtils.hasLength(token)) {
             return (long) -1;
         } else {
             // 教验jwt
-            Claims claim = jwtUtils.getClaimByToken(token);
+            Claims claim = jwtUtil.getClaimByToken(token);
 
             String userId = Objects.requireNonNull(claim).getSubject();
 
@@ -151,35 +147,6 @@ public class MyUtil {
         page.setTotal(total);
 
         return page;
-    }
-
-    /**
-     * 通知消息给MQ
-     * @param id
-     * @param message
-     */
-    public static void sendBlogMessageToMQ(Long id ,String message) {
-        AmqpTemplate amqpTemplate = SpringUtil.getBean(AmqpTemplate.class);
-
-        amqpTemplate.convertAndSend(
-                RabbitConfig.ES_EXCHANGE,
-                RabbitConfig.ES_BINDING_KEY,
-                new PostMQIndexMessage(id, message));
-    }
-
-    /**
-     * 删除缓存热点
-     */
-    public static void deleteHot(String... keys) {
-        RedisTemplate<String, Object> redisTemplate = (RedisTemplate<String, Object>) SpringUtil.getBean("redisTemplate");
-
-        for (String str : keys) {
-            Set<String> targets = redisTemplate.keys(str);
-            if (targets != null) {
-                redisTemplate.delete(targets);
-            }
-        }
-
     }
 
 

@@ -2,13 +2,12 @@ package com.markerhub.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.markerhub.common.cache.Cache;
 import com.markerhub.common.dto.PasswordDto;
 import com.markerhub.common.lang.Const;
 import com.markerhub.common.lang.Result;
 import com.markerhub.entity.User;
 import com.markerhub.service.UserService;
-import com.markerhub.util.JwtUtils;
+import com.markerhub.util.JwtUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.shiro.authz.annotation.Logical;
 import org.apache.shiro.authz.annotation.RequiresAuthentication;
@@ -33,11 +32,11 @@ public class UserController {
         this.userService = userService;
     }
 
-    JwtUtils jwtUtils;
+    JwtUtil jwtUtil;
 
     @Autowired
-    private void setJwtUtils(JwtUtils jwtUtils) {
-        this.jwtUtils = jwtUtils;
+    private void setJwtUtils(JwtUtil jwtUtil) {
+        this.jwtUtil = jwtUtil;
     }
 
     /**
@@ -54,7 +53,6 @@ public class UserController {
      * 查询账号
      */
     @RequiresRoles(value = {Const.ADMIN, Const.BOY, Const.GIRL, Const.GUEST}, logical = Logical.OR)
-    @Cache(name = Const.HOT_USERS)
     @GetMapping("/queryUsers")
     public Result queryUsers(@RequestParam String role, @RequestParam Integer currentPage, @RequestParam Integer size) {
 
