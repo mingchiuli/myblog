@@ -213,16 +213,18 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
 
         NativeSearchQuery searchQueryCount = new NativeSearchQueryBuilder()
                 .withQuery(QueryBuilders.boolQuery()
-                        .must(QueryBuilders.termQuery("status", 0))
+                        .filter(QueryBuilders.termQuery("status", 0))
                         .must(multiMatchQueryBuilder))
                 .withSorts(SortBuilders.scoreSort())
                 .build();
+
+
 
         long count = elasticsearchRestTemplate.count(searchQueryCount, BlogPostDocument.class);
 
         NativeSearchQuery searchQueryHits = new NativeSearchQueryBuilder()
                 .withQuery(QueryBuilders.boolQuery()
-                        .must(QueryBuilders.termQuery("status", 0))
+                        .filter(QueryBuilders.termQuery("status", 0))
                         .must(multiMatchQueryBuilder))
                 .withSorts(SortBuilders.scoreSort())
                 .withPageable(PageRequest.of(currentPage - 1, Const.PAGE_SIZE))
@@ -248,11 +250,11 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
 
         NativeSearchQuery searchQueryCount = new NativeSearchQueryBuilder()
                 .withQuery(QueryBuilders.boolQuery()
-                        .must(QueryBuilders.rangeQuery("created").gte(year + "-01-01T00:00:00").lte(year + "-12-31T23:59:59")
+                        .filter(QueryBuilders.rangeQuery("created").gte(year + "-01-01T00:00:00").lte(year + "-12-31T23:59:59")
                                 .includeUpper(true)
                                 .includeLower(true))
                         .must(multiMatchQueryBuilder)
-                        .must(QueryBuilders.termQuery("status", 0)))
+                        .filter(QueryBuilders.termQuery("status", 0)))
                 .withSorts(SortBuilders.scoreSort())
                 .build();
 
@@ -260,11 +262,11 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
 
         NativeSearchQuery searchQueryHits = new NativeSearchQueryBuilder()
                 .withQuery(QueryBuilders.boolQuery()
-                        .must(QueryBuilders.rangeQuery("created").gte(year + "-01-01T00:00:00").lte(year + "-12-31T23:59:59")
+                        .filter(QueryBuilders.rangeQuery("created").gte(year + "-01-01T00:00:00").lte(year + "-12-31T23:59:59")
                                 .includeUpper(true)
                                 .includeLower(true))
                         .must(multiMatchQueryBuilder)
-                        .must(QueryBuilders.termQuery("status", 0)))
+                        .filter(QueryBuilders.termQuery("status", 0)))
                 .withSorts(SortBuilders.scoreSort())
                 .withPageable(PageRequest.of(currentPage - 1, Const.PAGE_SIZE))
                 .build();

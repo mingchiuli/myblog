@@ -138,7 +138,7 @@ public class WebsCollectServiceImpl implements WebsCollectService {
     @Override
     public Page<WebsCollectDocument> searchRecent(Integer currentPage) {
         NativeSearchQuery searchQueryCount = new NativeSearchQueryBuilder()
-                .withQuery(QueryBuilders.matchQuery("status", 0))
+                .withQuery(QueryBuilders.termQuery("status", 0))
                 .withSorts(SortBuilders.fieldSort("created").order(SortOrder.DESC))
                 //页码从0开始
                 .build();
@@ -146,7 +146,7 @@ public class WebsCollectServiceImpl implements WebsCollectService {
         long count = elasticsearchRestTemplate.count(searchQueryCount, WebsCollectDocument.class);
 
         NativeSearchQuery searchQueryHits = new NativeSearchQueryBuilder()
-                .withQuery(QueryBuilders.matchQuery("status", 0))
+                .withQuery(QueryBuilders.termQuery("status", 0))
                 .withSorts(SortBuilders.fieldSort("created").order(SortOrder.DESC))
                 .withPageable(PageRequest.of(currentPage - 1, Const.WEB_SIZE))
                 //页码从0开始
@@ -169,7 +169,7 @@ public class WebsCollectServiceImpl implements WebsCollectService {
         NativeSearchQuery searchQueryCount = new NativeSearchQueryBuilder()
                 .withQuery(QueryBuilders.boolQuery()
                         .must(multiMatchQueryBuilder)
-                        .must(QueryBuilders.termQuery("status", 0)))
+                        .filter(QueryBuilders.termQuery("status", 0)))
                 .withSorts(SortBuilders.fieldSort("created").order(SortOrder.DESC))
                 .build();
 
@@ -178,7 +178,7 @@ public class WebsCollectServiceImpl implements WebsCollectService {
         NativeSearchQuery searchQueryHits = new NativeSearchQueryBuilder()
                 .withQuery(QueryBuilders.boolQuery()
                         .must(multiMatchQueryBuilder)
-                        .must(QueryBuilders.termQuery("status", 0)))
+                        .filter(QueryBuilders.termQuery("status", 0)))
                 .withSorts(SortBuilders.fieldSort("created").order(SortOrder.DESC))
                 .withPageable(PageRequest.of(currentPage - 1, Const.WEB_SIZE))
                 .build();
