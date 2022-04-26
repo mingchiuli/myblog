@@ -19,6 +19,7 @@ import com.markerhub.service.BlogService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.markerhub.util.MyUtil;
 import com.markerhub.util.ShiroUtil;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.shiro.authc.AuthenticationException;
 import org.elasticsearch.index.query.MultiMatchQueryBuilder;
@@ -50,6 +51,8 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -69,6 +72,13 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
 
     @Value("${imgFoldName}")
     private String img;
+
+    ThreadPoolExecutor executor;
+
+    @Autowired
+    public void setExecutor(ThreadPoolExecutor executor) {
+        this.executor = executor;
+    }
 
     AmqpTemplate amqpTemplate;
 
@@ -207,30 +217,44 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
         }
     }
 
+    @SneakyThrows
     @Override
     public Page<BlogPostDocumentVo> selectBlogsByES(Integer currentPage, String keyword) {
+
         MultiMatchQueryBuilder multiMatchQueryBuilder = QueryBuilders.multiMatchQuery(keyword, "title", "description", "link", "content");
 
-        NativeSearchQuery searchQueryCount = new NativeSearchQueryBuilder()
-                .withQuery(QueryBuilders.boolQuery()
-                        .filter(QueryBuilders.termQuery("status", 0))
-                        .must(multiMatchQueryBuilder))
-                .withSorts(SortBuilders.scoreSort())
-                .build();
+        //启动线程1
+        CompletableFuture<Long> countFuture = CompletableFuture.supplyAsync(() -> {
 
+            NativeSearchQuery searchQueryCount = new NativeSearchQueryBuilder()
+                    .withQuery(QueryBuilders.boolQuery()
+                            .filter(QueryBuilders.termQuery("status", 0))
+                            .must(multiMatchQueryBuilder))
+                    .build();
 
+            return elasticsearchRestTemplate.count(searchQueryCount, BlogPostDocument.class);
 
-        long count = elasticsearchRestTemplate.count(searchQueryCount, BlogPostDocument.class);
+        }, executor);
 
-        NativeSearchQuery searchQueryHits = new NativeSearchQueryBuilder()
-                .withQuery(QueryBuilders.boolQuery()
-                        .filter(QueryBuilders.termQuery("status", 0))
-                        .must(multiMatchQueryBuilder))
-                .withSorts(SortBuilders.scoreSort())
-                .withPageable(PageRequest.of(currentPage - 1, Const.PAGE_SIZE))
-                .build();
+        //启动线程2
+        CompletableFuture<SearchHits<BlogPostDocument>> searchHitsFuture = CompletableFuture.supplyAsync(() -> {
+            NativeSearchQuery searchQueryHits = new NativeSearchQueryBuilder()
+                    .withQuery(QueryBuilders.boolQuery()
+                            .filter(QueryBuilders.termQuery("status", 0))
+                            .must(multiMatchQueryBuilder))
+                    .withSorts(SortBuilders.scoreSort())
+                    .withPageable(PageRequest.of(currentPage - 1, Const.PAGE_SIZE))
+                    .build();
 
-        SearchHits<BlogPostDocument> search = elasticsearchRestTemplate.search(searchQueryHits, BlogPostDocument.class);
+            return elasticsearchRestTemplate.search(searchQueryHits, BlogPostDocument.class);
+        }, executor);
+
+        //主线程在这等着
+        CompletableFuture.allOf(countFuture, searchHitsFuture).get();
+
+        //拿到线程池两个线程的执行结果
+        SearchHits<BlogPostDocument> search = searchHitsFuture.get();
+        Long count = countFuture.get();
 
         Page<BlogPostDocumentVo> page = MyUtil.hitsToPage(search, BlogPostDocumentVo.class, currentPage, Const.PAGE_SIZE, count);
 
@@ -244,34 +268,44 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
         return page;
     }
 
+    @SneakyThrows
     @Override
     public Page<BlogPostDocumentVo> selectYearBlogsByES(Integer currentPage, String keyword, Integer year) {
         MultiMatchQueryBuilder multiMatchQueryBuilder = QueryBuilders.multiMatchQuery(keyword, "title", "description", "link", "content");
 
-        NativeSearchQuery searchQueryCount = new NativeSearchQueryBuilder()
-                .withQuery(QueryBuilders.boolQuery()
-                        .filter(QueryBuilders.rangeQuery("created").gte(year + "-01-01T00:00:00").lte(year + "-12-31T23:59:59")
-                                .includeUpper(true)
-                                .includeLower(true))
-                        .must(multiMatchQueryBuilder)
-                        .filter(QueryBuilders.termQuery("status", 0)))
-                .withSorts(SortBuilders.scoreSort())
-                .build();
+        CompletableFuture<Long> countFuture = CompletableFuture.supplyAsync(() -> {
+            NativeSearchQuery searchQueryCount = new NativeSearchQueryBuilder()
+                    .withQuery(QueryBuilders.boolQuery()
+                            .filter(QueryBuilders.rangeQuery("created").gte(year + "-01-01T00:00:00").lte(year + "-12-31T23:59:59")
+                                    .includeUpper(true)
+                                    .includeLower(true))
+                            .must(multiMatchQueryBuilder)
+                            .filter(QueryBuilders.termQuery("status", 0)))
+                    .build();
 
-        long count = elasticsearchRestTemplate.count(searchQueryCount, BlogPostDocument.class);
+            return elasticsearchRestTemplate.count(searchQueryCount, BlogPostDocument.class);
+        }, executor);
 
-        NativeSearchQuery searchQueryHits = new NativeSearchQueryBuilder()
-                .withQuery(QueryBuilders.boolQuery()
-                        .filter(QueryBuilders.rangeQuery("created").gte(year + "-01-01T00:00:00").lte(year + "-12-31T23:59:59")
-                                .includeUpper(true)
-                                .includeLower(true))
-                        .must(multiMatchQueryBuilder)
-                        .filter(QueryBuilders.termQuery("status", 0)))
-                .withSorts(SortBuilders.scoreSort())
-                .withPageable(PageRequest.of(currentPage - 1, Const.PAGE_SIZE))
-                .build();
 
-        SearchHits<BlogPostDocument> search = elasticsearchRestTemplate.search(searchQueryHits, BlogPostDocument.class);
+        CompletableFuture<SearchHits<BlogPostDocument>> searchHitsFuture = CompletableFuture.supplyAsync(() -> {
+            NativeSearchQuery searchQueryHits = new NativeSearchQueryBuilder()
+                    .withQuery(QueryBuilders.boolQuery()
+                            .filter(QueryBuilders.rangeQuery("created").gte(year + "-01-01T00:00:00").lte(year + "-12-31T23:59:59")
+                                    .includeUpper(true)
+                                    .includeLower(true))
+                            .must(multiMatchQueryBuilder)
+                            .filter(QueryBuilders.termQuery("status", 0)))
+                    .withSorts(SortBuilders.scoreSort())
+                    .withPageable(PageRequest.of(currentPage - 1, Const.PAGE_SIZE))
+                    .build();
+
+            return elasticsearchRestTemplate.search(searchQueryHits, BlogPostDocument.class);
+        }, executor);
+
+        CompletableFuture.allOf(countFuture, searchHitsFuture);
+
+        long count = countFuture.get();
+        SearchHits<BlogPostDocument> search = searchHitsFuture.get();
 
         Page<BlogPostDocumentVo> page = MyUtil.hitsToPage(search, BlogPostDocumentVo.class, currentPage, Const.PAGE_SIZE, count);
 
@@ -414,6 +448,7 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
     }
 
     @Override
+    @Transactional
     public void changeBlogStatus(Long id, Integer status) {
         LocalDateTime created = getById(id).getCreated();
 

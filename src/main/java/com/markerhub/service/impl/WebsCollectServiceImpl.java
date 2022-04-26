@@ -4,8 +4,10 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.markerhub.common.lang.Const;
+import com.markerhub.common.vo.BlogPostDocumentVo;
 import com.markerhub.common.vo.WebsCollectDocumentVo;
 import com.markerhub.entity.User;
+import com.markerhub.search.model.BlogPostDocument;
 import com.markerhub.search.model.WebsCollectDocument;
 import com.markerhub.service.UserService;
 import com.markerhub.service.WebsCollectService;
@@ -29,6 +31,8 @@ import org.springframework.data.elasticsearch.core.query.UpdateQuery;
 import org.springframework.data.elasticsearch.core.query.UpdateResponse;
 import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ThreadPoolExecutor;
 
 /**
  * @author mingchiuli
@@ -37,6 +41,13 @@ import java.time.LocalDateTime;
 @Service
 @Slf4j
 public class WebsCollectServiceImpl implements WebsCollectService {
+
+    ThreadPoolExecutor executor;
+
+    @Autowired
+    public void setExecutor(ThreadPoolExecutor executor) {
+        this.executor = executor;
+    }
 
     UserService userService;
 
@@ -100,29 +111,38 @@ public class WebsCollectServiceImpl implements WebsCollectService {
         log.info("修改网页搜藏结果:{}", result);
     }
 
+    @SneakyThrows
     @Override
     public Page<WebsCollectDocumentVo> searchWebsiteAuth(Integer currentPage, String keyword) {
         MultiMatchQueryBuilder multiMatchQueryBuilder = QueryBuilders.multiMatchQuery(keyword, "title", "description");
 
-        NativeSearchQuery searchQueryCount = new NativeSearchQueryBuilder()
-                .withQuery(QueryBuilders.boolQuery()
-                        .must(multiMatchQueryBuilder))
-                .withSorts(SortBuilders.scoreSort())
-                .build();
+        CompletableFuture<Long> countFuture = CompletableFuture.supplyAsync(() -> {
+            NativeSearchQuery searchQueryCount = new NativeSearchQueryBuilder()
+                    .withQuery(QueryBuilders.boolQuery()
+                            .must(multiMatchQueryBuilder))
+                    .build();
+
+            return elasticsearchRestTemplate.count(searchQueryCount, WebsCollectDocument.class);
+        }, executor);
+
+
+        CompletableFuture<SearchHits<WebsCollectDocument>> searchHitsFuture = CompletableFuture.supplyAsync(() -> {
+            NativeSearchQuery searchQueryHits = new NativeSearchQueryBuilder()
+                    .withQuery(QueryBuilders.boolQuery()
+                            .must(multiMatchQueryBuilder))
+                    .withSorts(SortBuilders.scoreSort())
+                    .withPageable(PageRequest.of(currentPage - 1, Const.WEB_SIZE))
+                    .build();
+
+            return elasticsearchRestTemplate.search(searchQueryHits, WebsCollectDocument.class);
+        }, executor);
+
+        CompletableFuture.allOf(countFuture, searchHitsFuture);
+
+        long count = countFuture.get();
+        SearchHits<WebsCollectDocument> search = searchHitsFuture.get();
 
         //withSorts(SortBuilders.fieldSort("created").order(SortOrder.DESC))
-
-
-        long count = elasticsearchRestTemplate.count(searchQueryCount, WebsCollectDocument.class);
-
-        NativeSearchQuery searchQueryHits = new NativeSearchQueryBuilder()
-                .withQuery(QueryBuilders.boolQuery()
-                        .must(multiMatchQueryBuilder))
-                .withSorts(SortBuilders.scoreSort())
-                .withPageable(PageRequest.of(currentPage - 1, Const.WEB_SIZE))
-                .build();
-
-        SearchHits<WebsCollectDocument> search = elasticsearchRestTemplate.search(searchQueryHits, WebsCollectDocument.class);
 
         Page<WebsCollectDocumentVo> page = MyUtil.hitsToPage(search, WebsCollectDocumentVo.class, currentPage, Const.WEB_SIZE, count);
 
@@ -135,24 +155,34 @@ public class WebsCollectServiceImpl implements WebsCollectService {
         return page;
     }
 
+    @SneakyThrows
     @Override
     public Page<WebsCollectDocument> searchRecent(Integer currentPage) {
-        NativeSearchQuery searchQueryCount = new NativeSearchQueryBuilder()
-                .withQuery(QueryBuilders.termQuery("status", 0))
-                .withSorts(SortBuilders.fieldSort("created").order(SortOrder.DESC))
-                //页码从0开始
-                .build();
 
-        long count = elasticsearchRestTemplate.count(searchQueryCount, WebsCollectDocument.class);
+        CompletableFuture<Long> countFuture = CompletableFuture.supplyAsync(() -> {
+            NativeSearchQuery searchQueryCount = new NativeSearchQueryBuilder()
+                    .withQuery(QueryBuilders.termQuery("status", 0))
+                    //页码从0开始
+                    .build();
 
-        NativeSearchQuery searchQueryHits = new NativeSearchQueryBuilder()
-                .withQuery(QueryBuilders.termQuery("status", 0))
-                .withSorts(SortBuilders.fieldSort("created").order(SortOrder.DESC))
-                .withPageable(PageRequest.of(currentPage - 1, Const.WEB_SIZE))
-                //页码从0开始
-                .build();
+            return elasticsearchRestTemplate.count(searchQueryCount, WebsCollectDocument.class);
+        }, executor);
 
-        SearchHits<WebsCollectDocument> search = elasticsearchRestTemplate.search(searchQueryHits, WebsCollectDocument.class);
+        CompletableFuture<SearchHits<WebsCollectDocument>> searchHitsFuture = CompletableFuture.supplyAsync(() -> {
+            NativeSearchQuery searchQueryHits = new NativeSearchQueryBuilder()
+                    .withQuery(QueryBuilders.termQuery("status", 0))
+                    .withSorts(SortBuilders.fieldSort("created").order(SortOrder.DESC))
+                    .withPageable(PageRequest.of(currentPage - 1, Const.WEB_SIZE))
+                    //页码从0开始
+                    .build();
+
+            return elasticsearchRestTemplate.search(searchQueryHits, WebsCollectDocument.class);
+        }, executor);
+
+        CompletableFuture.allOf(countFuture, searchHitsFuture);
+
+        long count = countFuture.get();
+        SearchHits<WebsCollectDocument> search = searchHitsFuture.get();
 
         Page<WebsCollectDocument> page = MyUtil.hitsToPage(search, currentPage, Const.WEB_SIZE, count);
 
@@ -162,28 +192,43 @@ public class WebsCollectServiceImpl implements WebsCollectService {
         return page;
     }
 
+    @SneakyThrows
     @Override
     public Page<WebsCollectDocumentVo> searchWebsite(Integer currentPage, String keyword) {
         MultiMatchQueryBuilder multiMatchQueryBuilder = QueryBuilders.multiMatchQuery(keyword, "title", "description");
 
-        NativeSearchQuery searchQueryCount = new NativeSearchQueryBuilder()
-                .withQuery(QueryBuilders.boolQuery()
-                        .must(multiMatchQueryBuilder)
-                        .filter(QueryBuilders.termQuery("status", 0)))
-                .withSorts(SortBuilders.fieldSort("created").order(SortOrder.DESC))
-                .build();
 
-        long count = elasticsearchRestTemplate.count(searchQueryCount, WebsCollectDocument.class);
+        CompletableFuture<Long> countFuture = CompletableFuture.supplyAsync(() -> {
 
-        NativeSearchQuery searchQueryHits = new NativeSearchQueryBuilder()
-                .withQuery(QueryBuilders.boolQuery()
-                        .must(multiMatchQueryBuilder)
-                        .filter(QueryBuilders.termQuery("status", 0)))
-                .withSorts(SortBuilders.fieldSort("created").order(SortOrder.DESC))
-                .withPageable(PageRequest.of(currentPage - 1, Const.WEB_SIZE))
-                .build();
+            NativeSearchQuery searchQueryCount = new NativeSearchQueryBuilder()
+                    .withQuery(QueryBuilders.boolQuery()
+                            .must(multiMatchQueryBuilder)
+                            .filter(QueryBuilders.termQuery("status", 0)))
+                    .build();
 
-        SearchHits<WebsCollectDocument> search = elasticsearchRestTemplate.search(searchQueryHits, WebsCollectDocument.class);
+
+
+
+            return elasticsearchRestTemplate.count(searchQueryCount, WebsCollectDocument.class);
+        }, executor);
+
+        CompletableFuture<SearchHits<WebsCollectDocument>> searchHitsFuture = CompletableFuture.supplyAsync(() -> {
+            NativeSearchQuery searchQueryHits = new NativeSearchQueryBuilder()
+                    .withQuery(QueryBuilders.boolQuery()
+                            .must(multiMatchQueryBuilder)
+                            .filter(QueryBuilders.termQuery("status", 0)))
+                    .withSorts(SortBuilders.scoreSort())
+                    .withPageable(PageRequest.of(currentPage - 1, Const.WEB_SIZE))
+                    .build();
+
+            return elasticsearchRestTemplate.search(searchQueryHits, WebsCollectDocument.class);
+        }, executor);
+
+        CompletableFuture.allOf(countFuture, searchHitsFuture);
+
+        long count = countFuture.get();
+        SearchHits<WebsCollectDocument> search = searchHitsFuture.get();
+
 
         Page<WebsCollectDocumentVo> page = MyUtil.hitsToPage(search, WebsCollectDocumentVo.class, currentPage, Const.WEB_SIZE, count);
 

@@ -19,6 +19,14 @@ mybatis-plus:
 
 addResourceHandler: /upload/**
 
+#配置自定义的线程池
+vueblog:
+  thread:
+    core-size: 20
+    max-size: 100
+    keep-alive-time: 10
+
+
 #logging:
 #  level:
 #    com.markerhub.mapper: debug
