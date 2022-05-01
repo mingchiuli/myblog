@@ -1,5 +1,19 @@
 # DataSource Config
 spring:
+  rabbitmq:
+#    开启发送端确认
+    publisher-confirm-type: correlated
+#  开去发送端抵达队列的确认
+    publisher-returns: true
+#    只要抵达队列，以异步方式优先回调这个returnsConfirm
+    template:
+      mandatory: true
+#    手动ack消息
+#    只要没有手动确认，队列重的消息就不会在被消费后删除，下一次消费者进来再发给他
+    listener:
+      simple:
+        acknowledge-mode: manual
+
   mvc:
     static-path-pattern: /**
   web:

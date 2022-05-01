@@ -8,12 +8,19 @@ import com.markerhub.common.lang.Const;
 import com.markerhub.entity.Blog;
 import com.markerhub.entity.User;
 import com.markerhub.search.model.BlogPostDocument;
+import com.markerhub.search.mq.PostMQIndexMessage;
 import com.markerhub.service.UserService;
+import com.rabbitmq.client.Channel;
 import io.jsonwebtoken.Claims;
 import lombok.SneakyThrows;
+import org.springframework.amqp.core.Message;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.elasticsearch.core.SearchHit;
 import org.springframework.data.elasticsearch.core.SearchHits;
+import org.springframework.data.elasticsearch.core.document.Document;
+import org.springframework.data.elasticsearch.core.mapping.IndexCoordinates;
+import org.springframework.data.elasticsearch.core.query.UpdateQuery;
+import org.springframework.data.elasticsearch.core.query.UpdateResponse;
 import org.springframework.data.redis.core.RedisOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.SessionCallback;
@@ -23,6 +30,7 @@ import org.springframework.util.StringUtils;
 import javax.servlet.http.HttpServletRequest;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.lang.reflect.Method;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -34,7 +42,6 @@ import java.util.concurrent.TimeUnit;
  * @create 2021-11-02 8:55 PM
  */
 public class MyUtil {
-
 
     public static Long reqToUserId(HttpServletRequest request) {
         String token = request.getHeader("Authorization");

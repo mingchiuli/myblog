@@ -20,6 +20,7 @@ spring:
     port: 5672
 
 
+
 uploadPath: /users/mingchiuli/desktop/
 
 imgFoldName: img

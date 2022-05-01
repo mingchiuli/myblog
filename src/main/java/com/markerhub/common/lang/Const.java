@@ -58,7 +58,7 @@ public class Const {
     public static final String BLOG_STATUS = "blog_status";
     public static final String BLOG_STATUS_PREFIX = "blog_status*";
 
-
+    public static final String CONSUME_MONITOR = "consume:";
 
 
 

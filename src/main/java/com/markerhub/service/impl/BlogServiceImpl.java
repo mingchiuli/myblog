@@ -26,7 +26,8 @@ import org.elasticsearch.index.query.MultiMatchQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.sort.SortBuilders;
 import org.elasticsearch.search.sort.SortOrder;
-import org.springframework.amqp.core.AmqpTemplate;
+import org.springframework.amqp.rabbit.connection.CorrelationData;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataAccessException;
@@ -80,11 +81,11 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
         this.executor = executor;
     }
 
-    AmqpTemplate amqpTemplate;
+    RabbitTemplate rabbitTemplate;
 
     @Autowired
-    public void setAmqpTemplate(AmqpTemplate amqpTemplate) {
-        this.amqpTemplate = amqpTemplate;
+    public void setRabbitTemplate(RabbitTemplate RabbitTemplate) {
+        this.rabbitTemplate = RabbitTemplate;
     }
 
     ElasticsearchRestTemplate elasticsearchRestTemplate;
@@ -339,10 +340,15 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
         }
 
         //通知消息给mq,更新
-        amqpTemplate.convertAndSend(
+        CorrelationData correlationData = new CorrelationData();
+        //防止重复消费
+        redisTemplate.opsForValue().set(Const.CONSUME_MONITOR + correlationData.getId(), PostMQIndexMessage.UPDATE + "_" + blog.getId());
+
+        rabbitTemplate.convertAndSend(
                 RabbitConfig.ES_EXCHANGE,
                 RabbitConfig.ES_BINDING_KEY,
-                new PostMQIndexMessage(blog.getId(), PostMQIndexMessage.UPDATE));
+                new PostMQIndexMessage(blog.getId(), PostMQIndexMessage.UPDATE), correlationData);
+
 
     }
 
@@ -361,10 +367,15 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
         }
 
         //通知消息给mq，创建
-        amqpTemplate.convertAndSend(
+        //防止重复消费
+        CorrelationData correlationData = new CorrelationData();
+        redisTemplate.opsForValue().set(Const.CONSUME_MONITOR + correlationData.getId(), PostMQIndexMessage.CREATE + "_" + blog.getId());
+
+        rabbitTemplate.convertAndSend(
                 RabbitConfig.ES_EXCHANGE,
                 RabbitConfig.ES_BINDING_KEY,
                 new PostMQIndexMessage(blog.getId(), PostMQIndexMessage.CREATE));
+
 
         return blog.getId();
     }
@@ -440,7 +451,12 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
 
         redisTemplate.delete(key);
 
-        amqpTemplate.convertAndSend(
+        //通知消息给mq,更新
+        CorrelationData correlationData = new CorrelationData();
+        //防止重复消费
+        redisTemplate.opsForValue().set(Const.CONSUME_MONITOR + correlationData.getId(), PostMQIndexMessage.CREATE + "_" + id);
+
+        rabbitTemplate.convertAndSend(
                 RabbitConfig.ES_EXCHANGE,
                 RabbitConfig.ES_BINDING_KEY,
                 new PostMQIndexMessage(id, PostMQIndexMessage.CREATE));
@@ -458,7 +474,12 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
 
         Assert.isTrue(update, "修改失败");
 
-        amqpTemplate.convertAndSend(
+        //通知消息给mq,更新
+        CorrelationData correlationData = new CorrelationData();
+        //防止重复消费
+        redisTemplate.opsForValue().set(Const.CONSUME_MONITOR + correlationData.getId(), PostMQIndexMessage.UPDATE + "_" + id);
+
+        rabbitTemplate.convertAndSend(
                 RabbitConfig.ES_EXCHANGE,
                 RabbitConfig.ES_BINDING_KEY,
                 new PostMQIndexMessage(id, PostMQIndexMessage.UPDATE));
@@ -563,7 +584,12 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
             Assert.isTrue(remove, "删除失败");
 
 
-            amqpTemplate.convertAndSend(
+            //通知消息给mq,更新
+            CorrelationData correlationData = new CorrelationData();
+            //防止重复消费
+            redisTemplate.opsForValue().set(Const.CONSUME_MONITOR + correlationData.getId(), PostMQIndexMessage.REMOVE + "_" + id);
+
+            rabbitTemplate.convertAndSend(
                     RabbitConfig.ES_EXCHANGE,
                     RabbitConfig.ES_BINDING_KEY,
                     new PostMQIndexMessage(id, PostMQIndexMessage.REMOVE));
