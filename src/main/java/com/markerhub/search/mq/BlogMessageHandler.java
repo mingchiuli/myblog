@@ -1,6 +1,5 @@
 package com.markerhub.search.mq;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.markerhub.common.lang.Const;
 import com.markerhub.config.RabbitConfig;
@@ -30,7 +29,7 @@ import java.io.IOException;
  */
 @Slf4j
 @Component
-@RabbitListener(queues = RabbitConfig.ES_QUEUE)
+@RabbitListener(queues = RabbitConfig.ES_QUEUE, concurrency = "1-2")
 public class BlogMessageHandler {
 
     RedisTemplate<String, Object> redisTemplate;
@@ -60,6 +59,7 @@ public class BlogMessageHandler {
         switch (message.getType()) {
             case PostMQIndexMessage.UPDATE:
 
+//                String updateUUID = msg.getMessageProperties().getHeader("spring_returned_message_correlation");
                 String updateUUID = msg.getMessageProperties().getHeader("spring_returned_message_correlation");
 
                 if (Boolean.TRUE.equals(redisTemplate.hasKey(Const.CONSUME_MONITOR + updateUUID))) {
@@ -98,7 +98,6 @@ public class BlogMessageHandler {
                     long deliveryTag = msg.getMessageProperties().getDeliveryTag();
                     channel.basicNack(deliveryTag, false, false);
                 }
-
                 break;
 
             case PostMQIndexMessage.REMOVE:

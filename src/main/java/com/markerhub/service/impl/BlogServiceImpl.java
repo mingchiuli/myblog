@@ -45,7 +45,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
-
 import java.io.File;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -374,7 +373,7 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
         rabbitTemplate.convertAndSend(
                 RabbitConfig.ES_EXCHANGE,
                 RabbitConfig.ES_BINDING_KEY,
-                new PostMQIndexMessage(blog.getId(), PostMQIndexMessage.CREATE));
+                new PostMQIndexMessage(blog.getId(), PostMQIndexMessage.CREATE), correlationData);
 
 
         return blog.getId();
@@ -459,7 +458,7 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
         rabbitTemplate.convertAndSend(
                 RabbitConfig.ES_EXCHANGE,
                 RabbitConfig.ES_BINDING_KEY,
-                new PostMQIndexMessage(id, PostMQIndexMessage.CREATE));
+                new PostMQIndexMessage(id, PostMQIndexMessage.CREATE), correlationData);
 
     }
 
@@ -482,7 +481,7 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
         rabbitTemplate.convertAndSend(
                 RabbitConfig.ES_EXCHANGE,
                 RabbitConfig.ES_BINDING_KEY,
-                new PostMQIndexMessage(id, PostMQIndexMessage.UPDATE));
+                new PostMQIndexMessage(id, PostMQIndexMessage.UPDATE), correlationData);
     }
 
     @Override
@@ -592,7 +591,7 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
             rabbitTemplate.convertAndSend(
                     RabbitConfig.ES_EXCHANGE,
                     RabbitConfig.ES_BINDING_KEY,
-                    new PostMQIndexMessage(id, PostMQIndexMessage.REMOVE));
+                    new PostMQIndexMessage(id, PostMQIndexMessage.REMOVE), correlationData);
 
         }
     }
