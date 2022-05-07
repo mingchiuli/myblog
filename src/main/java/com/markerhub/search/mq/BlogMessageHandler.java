@@ -59,7 +59,6 @@ public class BlogMessageHandler {
         switch (message.getType()) {
             case PostMQIndexMessage.UPDATE:
 
-//                String updateUUID = msg.getMessageProperties().getHeader("spring_returned_message_correlation");
                 String updateUUID = msg.getMessageProperties().getHeader("spring_returned_message_correlation");
 
                 if (Boolean.TRUE.equals(redisTemplate.hasKey(Const.CONSUME_MONITOR + updateUUID))) {
@@ -91,7 +90,6 @@ public class BlogMessageHandler {
                         redisTemplate.delete(Const.CONSUME_MONITOR + updateUUID);
                     } catch (IOException e) {
                         log.info("rabbitmq处理ES更新消息确认出现异常", e);
-                        redisTemplate.delete(Const.CONSUME_MONITOR + updateUUID);
                     }
                 } else {
                     //如果redis里没有保存，说明已经消费了，就直接将这个消息丢弃掉，且不入队
@@ -117,7 +115,6 @@ public class BlogMessageHandler {
                         redisTemplate.delete(Const.CONSUME_MONITOR + removeUUID);
                     } catch (IOException e) {
                         log.info("rabbitmq处理ES删除消息确认出现异常", e);
-                        redisTemplate.delete(Const.CONSUME_MONITOR + removeUUID);
                     }
                 } else {
                     long deliveryTag = msg.getMessageProperties().getDeliveryTag();
@@ -143,7 +140,6 @@ public class BlogMessageHandler {
                         redisTemplate.delete(Const.CONSUME_MONITOR + createUUID);
                     } catch (IOException e) {
                         log.info("rabbitmq处理ES创建消息确认出现异常", e);
-                        redisTemplate.delete(Const.CONSUME_MONITOR + createUUID);
                     }
                 } else {
                     long deliveryTag = msg.getMessageProperties().getDeliveryTag();

@@ -27,6 +27,9 @@ INSERT INTO vueblog.m_menu (menu_id, parent_id, title, name, url, component, typ
 INSERT INTO vueblog.m_menu (menu_id, parent_id, title, name, url, component, type, icon, order_num, status) VALUES (9, 8, '系统日志', 'SystemLogs', '/sys/logs', 'sys/SystemLogs', 1, 'el-icon-s-management', 1, 0);
 INSERT INTO vueblog.m_menu (menu_id, parent_id, title, name, url, component, type, icon, order_num, status) VALUES (10, 8, '收藏检索', 'SystemWebs', '/sys/webs', 'sys/SystemWebs', 1, 'el-icon-link', 2, 0);
 INSERT INTO vueblog.m_menu (menu_id, parent_id, title, name, url, component, type, icon, order_num, status) VALUES (11, 8, '书籍下载', 'SystemBooks', '/sys/books', 'sys/SystemBooks', 1, 'el-icon-download', 3, 0);
+INSERT INTO vueblog.m_menu (menu_id, parent_id, title, name, url, component, type, icon, order_num, status) VALUES (12, 0, '编辑博客', 'BlogEdit', '/blog/:blogId/edit', 'BlogEdit', 1, '', 1, 0);
+INSERT INTO vueblog.m_menu (menu_id, parent_id, title, name, url, component, type, icon, order_num, status) VALUES (13, 0, '添加博客', 'BlogAdd', '/blogAdd', 'BlogEdit', 1, '', 1, 0);
+INSERT INTO vueblog.m_menu (menu_id, parent_id, title, name, url, component, type, icon, order_num, status) VALUES (14, 0, '合作编辑', 'Cooperate', '/cooperate/:blogId/:coNumber', 'Cooperate', 1, '', 1, 0);
 
 -- auto-generated definition
 -- auto-generated definition
@@ -92,3 +95,14 @@ INSERT INTO vueblog.m_role_menu (id, role_id, menu_id) VALUES (53, 2, 6);
 INSERT INTO vueblog.m_role_menu (id, role_id, menu_id) VALUES (54, 2, 8);
 INSERT INTO vueblog.m_role_menu (id, role_id, menu_id) VALUES (55, 2, 10);
 INSERT INTO vueblog.m_role_menu (id, role_id, menu_id) VALUES (56, 2, 11);
+INSERT INTO vueblog.m_role_menu (id, role_id, menu_id) VALUES (57, 1, 12);
+INSERT INTO vueblog.m_role_menu (id, role_id, menu_id) VALUES (58, 2, 12);
+INSERT INTO vueblog.m_role_menu (id, role_id, menu_id) VALUES (59, 3, 12);
+INSERT INTO vueblog.m_role_menu (id, role_id, menu_id) VALUES (60, 1, 13);
+INSERT INTO vueblog.m_role_menu (id, role_id, menu_id) VALUES (61, 2, 13);
+INSERT INTO vueblog.m_role_menu (id, role_id, menu_id) VALUES (62, 3, 13);
+INSERT INTO vueblog.m_role_menu (id, role_id, menu_id) VALUES (63, 1, 14);
+INSERT INTO vueblog.m_role_menu (id, role_id, menu_id) VALUES (64, 2, 14);
+INSERT INTO vueblog.m_role_menu (id, role_id, menu_id) VALUES (65, 3, 14);
+
+

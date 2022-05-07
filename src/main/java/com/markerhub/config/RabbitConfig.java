@@ -92,11 +92,6 @@ public class RabbitConfig {
     }
 
     //绑定LOG队列和LOG交换机
-    @Bean
-    public Binding LogBinding(@Qualifier("LOG_QUEUE") Queue logQueue, @Qualifier("LOG_EXCHANGE") DirectExchange logExchange) {
-        return BindingBuilder.bind(logQueue).to(logExchange).with(LOG_BINDING_KEY);
-    }
-
     @PostConstruct
     public void initRabbitTemplate() {
         //设置抵达broker服务器的回掉
@@ -104,22 +99,28 @@ public class RabbitConfig {
         //当前消息的唯一关联数据、服务器对消息是否成功收到、失败的原因
         rabbitTemplate.setConfirmCallback((correlationData, ack, cause) -> {
             if (!ack) {
-                log.info("抵达broker服务器失败的回掉{}, {}", correlationData, cause);
-                if (correlationData != null) {
-                    String uuid = correlationData.getId();
-                    String str = (String) redisTemplate.opsForValue().get(Const.CONSUME_MONITOR + uuid);
-                    if (str != null) {
-                        //说明是日志消息的失败发送
-                        String[] s = str.split("_");
-                        String method = s[0];
-                        String id = s[1];
-                        //如果服务器没有收到，就重发
-                        rabbitTemplate.convertAndSend(
-                                RabbitConfig.ES_EXCHANGE,
-                                RabbitConfig.ES_BINDING_KEY,
-                                new PostMQIndexMessage(Long.valueOf(id), method));
+                log.info("存在消息抵达broker服务器失败的回掉{}, {}", correlationData, cause);
+            }
 
-                    }
+            if (!ack && correlationData != null && Boolean.TRUE.equals(redisTemplate.hasKey(Const.CONSUME_MONITOR + correlationData.getId()))) {
+                log.info("抵达broker服务器失败的回掉{}, {}", correlationData, cause);
+                String uuid = correlationData.getId();
+                String str = (String) redisTemplate.opsForValue().get(Const.CONSUME_MONITOR + uuid);
+                if (str != null) {
+                    //说明是日志消息的失败发送
+                    String[] s = str.split("_");
+                    String method = s[0];
+                    String id = s[1];
+                    //如果服务器没有收到，就重发
+                    CorrelationData newCorrelationData = new CorrelationData();
+
+                    redisTemplate.opsForValue().set(Const.CONSUME_MONITOR + newCorrelationData.getId(), method + "_" + id);
+                    rabbitTemplate.convertAndSend(
+                            RabbitConfig.ES_EXCHANGE,
+                            RabbitConfig.ES_BINDING_KEY,
+                            new PostMQIndexMessage(Long.valueOf(id), method), newCorrelationData);
+                    //删除之前的键
+                    redisTemplate.delete(Const.CONSUME_MONITOR + uuid);
                 }
             }
         });
@@ -129,7 +130,7 @@ public class RabbitConfig {
         //returned属于ReturnedMessage类
 //        public class ReturnedMessage {
 //
-              //投递失败的详细信息
+        //投递失败的详细信息
 //            private final Message message;
 //            //回复的状态码
 //            private final int replyCode;
@@ -144,5 +145,10 @@ public class RabbitConfig {
         });
 
 
+    }
+
+    @Bean
+    public Binding LogBinding(@Qualifier("LOG_QUEUE") Queue logQueue, @Qualifier("LOG_EXCHANGE") DirectExchange logExchange) {
+        return BindingBuilder.bind(logQueue).to(logExchange).with(LOG_BINDING_KEY);
     }
 }
