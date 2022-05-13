@@ -63,17 +63,17 @@ public class AccountRealm extends AuthorizingRealm {
         SimpleAuthorizationInfo info = new SimpleAuthorizationInfo();
 
         Long id = accountProfile.getId();
-        String role;
-        if (Boolean.TRUE.equals(redisTemplate.hasKey(Const.ROLE_PREFIX + id))) {
-            role = (String) redisTemplate.opsForValue().get(Const.ROLE_PREFIX + id);
-        } else {
+
+
+        String role = (String) redisTemplate.opsForValue().get(Const.ROLE_PREFIX + id);
+
+        if (role == null) {
             role = (String) userService.getBaseMapper().selectObjs(new QueryWrapper<User>().select("role").eq("id", id)).get(0);
             redisTemplate.opsForValue().set(Const.ROLE_PREFIX + id, role, 10, TimeUnit.MINUTES);
+
         }
 
-        if (role != null) {
-            info.addRole(role);
-        }
+        info.addRole(role);
 
         return info;
     }
@@ -87,18 +87,25 @@ public class AccountRealm extends AuthorizingRealm {
         String userId = claim.getSubject();
 
         User user;
-        if (Boolean.TRUE.equals(redisTemplate.hasKey(Const.USER_PREFIX + userId))) {
-            LinkedHashMap<String, Object> userInfo = (LinkedHashMap<String, Object>) redisTemplate.opsForHash().get(Const.USER_PREFIX + userId, Const.USER_OBJECT);
+
+        LinkedHashMap<String, Object> userInfo = (LinkedHashMap<String, Object>) redisTemplate.opsForHash().get(Const.USER_PREFIX + userId, Const.USER_OBJECT);
+        if (userInfo != null) {
             user = MyUtil.jsonToObj(userInfo, User.class);
         } else {
             user = userService.getById(Long.valueOf(userId));
         }
+
 
         if (user == null) {
             throw new AuthenticationException("验证失败，请重新登录");
         }
 
         String originToken = (String) redisTemplate.opsForHash().get(Const.USER_PREFIX + userId, Const.TOKEN);
+
+        if (originToken == null) {
+            throw new AuthenticationException("密钥异常，请重新登录");
+        }
+
 
         AccountProfile profile = new AccountProfile();
 

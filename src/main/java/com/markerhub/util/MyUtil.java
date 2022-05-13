@@ -70,11 +70,14 @@ public class MyUtil {
 
         redisTemplate.opsForHash().increment(Const.READ_SUM, "" + id , 1);
 
-        if (redisTemplate.opsForValue().get(Const.READ_RECENT + id) == null) {
+        Object recentRead = redisTemplate.opsForValue().get(Const.READ_RECENT + id);
+
+        if (recentRead == null) {
             redisTemplate.opsForValue().set(Const.READ_RECENT + id, 1, 7, TimeUnit.DAYS);
         } else {
             redisTemplate.opsForValue().increment(Const.READ_RECENT + id, 1);
         }
+
     }
 
 

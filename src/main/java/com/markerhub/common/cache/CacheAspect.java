@@ -16,7 +16,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import java.lang.reflect.Method;
 import java.util.Arrays;
-import java.util.LinkedHashMap;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
@@ -73,8 +72,9 @@ public class CacheAspect {
         String name = annotation.name();
 
         String redisKey = name + "::" + className + "::" + methodName + "::" + params;
-        LinkedHashMap<String, Object> redisValue = (LinkedHashMap<String, Object>) redisTemplate.opsForValue().get(redisKey);
-        Result result = objectMapper.convertValue(redisValue, Result.class);
+
+        Result result = objectMapper.convertValue(redisTemplate.opsForValue().get(redisKey), Result.class);
+
         if (result != null) {
             return result;
         }
@@ -82,9 +82,10 @@ public class CacheAspect {
         //防止缓存击穿
         synchronized (this) {
             //双重检查
-            if (Boolean.TRUE.equals(redisTemplate.hasKey(redisKey))) {
-                LinkedHashMap<String, Object> rv = (LinkedHashMap<String, Object>) redisTemplate.opsForValue().get(redisKey);
-                return objectMapper.convertValue(rv, Result.class);
+            Result r = objectMapper.convertValue(redisTemplate.opsForValue().get(redisKey), Result.class);
+
+            if (r != null) {
+                return  r;
             }
 
             Object proceed = pjp.proceed();

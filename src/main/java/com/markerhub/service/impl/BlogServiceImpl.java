@@ -598,17 +598,14 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
 
     @Override
     public String getBlogToken() {
-        String token;
-        if (Boolean.TRUE.equals(redisTemplate.hasKey(Const.READ_TOKEN))) {
-            token = (String) redisTemplate.opsForValue().get(Const.READ_TOKEN);
-        } else {
-            token = "阅读密钥目前没有设置";
-        }
+        String token = (String) redisTemplate.opsForValue().get(Const.READ_TOKEN);
 
-        if (token != null) {
-            redisTemplate.opsForValue().set(Const.READ_TOKEN, token, 24, TimeUnit.HOURS);
-        }
-        return token;
+       if (token == null) {
+           token = "阅读密钥目前没有设置";
+       }
+
+       redisTemplate.opsForValue().set(Const.READ_TOKEN, token, 24, TimeUnit.HOURS);
+       return token;
     }
 
     @Override
