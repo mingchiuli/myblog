@@ -4,10 +4,8 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.markerhub.common.lang.Const;
-import com.markerhub.common.vo.BlogPostDocumentVo;
 import com.markerhub.common.vo.WebsCollectDocumentVo;
 import com.markerhub.entity.User;
-import com.markerhub.search.model.BlogPostDocument;
 import com.markerhub.search.model.WebsCollectDocument;
 import com.markerhub.service.UserService;
 import com.markerhub.service.WebsCollectService;
@@ -17,6 +15,7 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.elasticsearch.index.query.MultiMatchQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.search.fetch.subphase.highlight.HighlightBuilder;
 import org.elasticsearch.search.sort.SortBuilders;
 import org.elasticsearch.search.sort.SortOrder;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -132,6 +131,8 @@ public class WebsCollectServiceImpl implements WebsCollectService {
                             .must(multiMatchQueryBuilder))
                     .withSorts(SortBuilders.scoreSort())
                     .withPageable(PageRequest.of(currentPage - 1, Const.WEB_SIZE))
+                    .withHighlightBuilder(new HighlightBuilder()
+                            .field("title").field("description").preTags("<b style='color:red'>").postTags("</b>"))
                     .build();
 
             return elasticsearchRestTemplate.search(searchQueryHits, WebsCollectDocument.class);
@@ -219,6 +220,8 @@ public class WebsCollectServiceImpl implements WebsCollectService {
                             .filter(QueryBuilders.termQuery("status", 0)))
                     .withSorts(SortBuilders.scoreSort())
                     .withPageable(PageRequest.of(currentPage - 1, Const.WEB_SIZE))
+                    .withHighlightBuilder(new HighlightBuilder()
+                            .field("title").field("description").preTags("<b style='color:red'>").postTags("</b>"))
                     .build();
 
             return elasticsearchRestTemplate.search(searchQueryHits, WebsCollectDocument.class);

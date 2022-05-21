@@ -1,7 +1,6 @@
 package com.markerhub.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.markerhub.common.cache.Cache;
 import com.markerhub.common.cache.DeleteCache;
@@ -152,7 +151,7 @@ public class BlogController {
     @GetMapping("/blogsByYear/{year}/{currentPage}")
     @Cache(name = Const.HOT_BLOGS)//缓存页面信息一分钟
     public Result listByYear(@PathVariable(name = "currentPage") Integer currentPage, @PathVariable(name = "year") Integer year) {
-        IPage<Blog> pageData = blogService.listByYear(currentPage, year);
+        Page<Blog> pageData = blogService.listByYear(currentPage, year);
         return Result.succ(pageData);
     }
 
@@ -172,7 +171,7 @@ public class BlogController {
     @GetMapping("/blogs/{currentPage}")
     public Result list(@PathVariable(name = "currentPage") Integer currentPage) {
 
-        IPage<Blog> pageData = blogService.listBlogsByPage(currentPage);
+        Page<Blog> pageData = blogService.listBlogsByPage(currentPage);
         return Result.succ(pageData);
     }
 

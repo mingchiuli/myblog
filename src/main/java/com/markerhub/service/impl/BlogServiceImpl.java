@@ -24,6 +24,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.shiro.authc.AuthenticationException;
 import org.elasticsearch.index.query.MultiMatchQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.search.fetch.subphase.highlight.HighlightBuilder;
 import org.elasticsearch.search.sort.SortBuilders;
 import org.elasticsearch.search.sort.SortOrder;
 import org.springframework.amqp.rabbit.connection.CorrelationData;
@@ -130,12 +131,6 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
 
     @Override
     @Transactional
-    public List<Blog> queryBlogs(String title) {
-        return blogMapper.queryBlogs(title);
-    }
-
-    @Override
-    @Transactional
     public boolean recover(Blog blog) {
         return blogMapper.recover(blog);
     }
@@ -221,7 +216,7 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
     @Override
     public Page<BlogPostDocumentVo> selectBlogsByES(Integer currentPage, String keyword) {
 
-        MultiMatchQueryBuilder multiMatchQueryBuilder = QueryBuilders.multiMatchQuery(keyword, "title", "description", "link", "content");
+        MultiMatchQueryBuilder multiMatchQueryBuilder = QueryBuilders.multiMatchQuery(keyword, "title", "description", "content");
 
         //启动线程1
         CompletableFuture<Long> countFuture = CompletableFuture.supplyAsync(() -> {
@@ -244,6 +239,8 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
                             .must(multiMatchQueryBuilder))
                     .withSorts(SortBuilders.scoreSort())
                     .withPageable(PageRequest.of(currentPage - 1, Const.PAGE_SIZE))
+                    .withHighlightBuilder(new HighlightBuilder()
+                            .field("title").field("description").field("content").preTags("<b style='color:red'>").postTags("</b>"))
                     .build();
 
             return elasticsearchRestTemplate.search(searchQueryHits, BlogPostDocument.class);
@@ -271,7 +268,7 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
     @SneakyThrows
     @Override
     public Page<BlogPostDocumentVo> selectYearBlogsByES(Integer currentPage, String keyword, Integer year) {
-        MultiMatchQueryBuilder multiMatchQueryBuilder = QueryBuilders.multiMatchQuery(keyword, "title", "description", "link", "content");
+        MultiMatchQueryBuilder multiMatchQueryBuilder = QueryBuilders.multiMatchQuery(keyword, "title", "description", "content");
 
         CompletableFuture<Long> countFuture = CompletableFuture.supplyAsync(() -> {
             NativeSearchQuery searchQueryCount = new NativeSearchQueryBuilder()
@@ -297,6 +294,8 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
                             .filter(QueryBuilders.termQuery("status", 0)))
                     .withSorts(SortBuilders.scoreSort())
                     .withPageable(PageRequest.of(currentPage - 1, Const.PAGE_SIZE))
+                    .withHighlightBuilder(new HighlightBuilder()
+                            .field("title").field("description").field("content").preTags("<b style='color:red'>").postTags("</b>"))
                     .build();
 
             return elasticsearchRestTemplate.search(searchQueryHits, BlogPostDocument.class);

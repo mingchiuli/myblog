@@ -22,13 +22,11 @@ public interface BlogService extends IService<Blog> {
 
     List<Blog> queryAllBlogs();
 
-    List<Blog> queryBlogs(String title);
-
     boolean recover(Blog blog);
 
-    IPage<Blog> listByYear(Integer currentPage, Integer year);
+    Page<Blog> listByYear(Integer currentPage, Integer year);
 
-    IPage<Blog> listBlogsByPage(Integer currentPage);
+    Page<Blog> listBlogsByPage(Integer currentPage);
 
     Blog getBlogDetail(Long id);
 

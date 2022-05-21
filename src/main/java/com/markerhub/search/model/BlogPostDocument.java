@@ -13,6 +13,7 @@ import org.springframework.data.elasticsearch.annotations.Field;
 import org.springframework.data.elasticsearch.annotations.FieldType;
 import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.util.Date;
 
 /**
  * @author mingchiuli
@@ -39,7 +40,7 @@ public class BlogPostDocument implements Serializable {
 
     @JsonDeserialize(using = LocalDateTimeDeserializer.class)
     @JsonSerialize(using = LocalDateTimeSerializer.class)
-    @JsonFormat(pattern = "uuuu-MM-dd'T'HH:mm:ss")
-    @Field(type = FieldType.Date, format = DateFormat.date_hour_minute_second)
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
+    @Field(type = FieldType.Date, pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime created;
 }

@@ -20,5 +20,6 @@ public class BlogPostDocumentVo implements Serializable {
     private String link;
     private LocalDateTime created;
     private Float score;
+    private String highlight;
 
 }

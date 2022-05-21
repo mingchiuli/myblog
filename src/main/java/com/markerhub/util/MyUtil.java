@@ -145,8 +145,16 @@ public class MyUtil {
 
             BeanUtil.copyProperties(hit.getContent(), instance);
 
+            Map<String, List<String>> highlightFields = hit.getHighlightFields();
+
+            StringBuilder sb = new StringBuilder();
+
+            highlightFields.forEach((key, value) -> sb.append(value));
+
             Method setMethod =  instance.getClass().getMethod("setScore", Float.class);
             setMethod.invoke(instance, hit.getScore());
+            Method setHighlight =  instance.getClass().getMethod("setHighlight", String.class);
+            setHighlight.invoke(instance, sb.toString());
 
             list.add(instance);
         }

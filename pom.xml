@@ -138,6 +138,11 @@
             <artifactId>spring-boot-starter-websocket</artifactId>
         </dependency>
 
+<!--        <dependency>-->
+<!--            <groupId>com.fasterxml.jackson.datatype</groupId>-->
+<!--            <artifactId>jackson-datatype-jsr310</artifactId>-->
+<!--        </dependency>-->
+
         <!--        jar包冲突添加这个，建议使用shiro-redis-spring-boot-starter jar包，因为shiro版本不能过高-->
 <!--        <dependency>-->
 <!--            <groupId>javax.xml.bind</groupId>-->

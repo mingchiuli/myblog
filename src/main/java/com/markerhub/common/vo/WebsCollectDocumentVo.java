@@ -17,5 +17,7 @@ public class WebsCollectDocumentVo implements Serializable {
     private String link;
     private LocalDateTime created;
     private Float score;
+    private String highlight;
+
 
 }
