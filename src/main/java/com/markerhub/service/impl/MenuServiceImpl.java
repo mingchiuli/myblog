@@ -83,7 +83,7 @@ public class MenuServiceImpl extends ServiceImpl<MenuMapper, Menu>
     @Override
     @Transactional
     public void delete(Long id) {
-        int count = count(new QueryWrapper<Menu>().eq("parent_id", id));
+        long count = count(new QueryWrapper<Menu>().eq("parent_id", id));
 
         if (count > 0) {
             throw new InsertOrUpdateErrorException("请先删除子菜单");

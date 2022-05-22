@@ -7,8 +7,10 @@ import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.markerhub.common.dto.PasswordDto;
 import com.markerhub.common.lang.Const;
+import com.markerhub.entity.Role;
 import com.markerhub.entity.User;
 import com.markerhub.mapper.UserMapper;
+import com.markerhub.service.RoleService;
 import com.markerhub.service.UserService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.markerhub.util.JwtUtil;
@@ -35,6 +37,13 @@ import java.util.UUID;
 @Service
 @Slf4j
 public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements UserService {
+
+    RoleService roleService;
+
+    @Autowired
+    public void setRoleService(RoleService roleService) {
+        this.roleService = roleService;
+    }
 
     JwtUtil jwtUtil;
 
@@ -78,6 +87,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             } else {
                 record.setMonitor(0);
             }
+            String name = roleService.getOne(new QueryWrapper<Role>().eq("code", record.getRole())).getName();
+            record.setRole(name);
         }
         page.setRecords(records);
         return page;

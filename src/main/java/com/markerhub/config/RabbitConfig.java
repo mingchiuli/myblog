@@ -1,13 +1,7 @@
 package com.markerhub.config;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.markerhub.common.lang.Const;
-import com.markerhub.entity.Blog;
-import com.markerhub.search.model.BlogPostDocument;
 import com.markerhub.search.mq.PostMQIndexMessage;
-import com.markerhub.util.MyUtil;
-import com.markerhub.util.SpringUtil;
-import com.rabbitmq.client.Channel;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.*;
 import org.springframework.amqp.rabbit.connection.CorrelationData;
@@ -16,15 +10,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.elasticsearch.core.document.Document;
-import org.springframework.data.elasticsearch.core.mapping.IndexCoordinates;
-import org.springframework.data.elasticsearch.core.query.UpdateQuery;
-import org.springframework.data.elasticsearch.core.query.UpdateResponse;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.web.bind.annotation.PostMapping;
-
 import javax.annotation.PostConstruct;
-import java.io.IOException;
 
 /**
  * RabbitMQ
