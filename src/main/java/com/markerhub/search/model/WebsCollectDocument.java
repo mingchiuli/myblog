@@ -39,7 +39,7 @@ public class WebsCollectDocument implements Serializable {
     @JsonDeserialize(using = LocalDateTimeDeserializer.class)
     @JsonSerialize(using = LocalDateTimeSerializer.class)
     @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
-    @Field(type = FieldType.Date, pattern = "yyyy-MM-dd'T'HH:mm:ss")
+    @Field(type = FieldType.Date, format = DateFormat.date_hour_minute_second)
     private LocalDateTime created;
 
 
