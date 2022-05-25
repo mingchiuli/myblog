@@ -210,7 +210,7 @@ public class MyUtil {
      * @return
      */
     public static <T> T jsonToObj(Object json, Class<T> clazz) {
-        ObjectMapper objectMapper = new ObjectMapper();
+        ObjectMapper objectMapper = SpringUtil.getBean(ObjectMapper.class);
         return objectMapper.convertValue(json, clazz);
     }
 

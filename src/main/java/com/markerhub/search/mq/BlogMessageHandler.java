@@ -32,6 +32,13 @@ import java.io.IOException;
 @RabbitListener(queues = RabbitConfig.ES_QUEUE, concurrency = "1-2")
 public class BlogMessageHandler {
 
+    ObjectMapper objectMapper;
+
+    @Autowired
+    public void setObjectMapper(ObjectMapper objectMapper) {
+        this.objectMapper = objectMapper;
+    }
+
     RedisTemplate<String, Object> redisTemplate;
 
     @Autowired
@@ -66,7 +73,6 @@ public class BlogMessageHandler {
                     Blog blogExisted = blogService.getById(updateId);
                     BlogPostDocument postDocument = MyUtil.blogToDocument(blogExisted);
 
-                    ObjectMapper objectMapper = new ObjectMapper();
                     String obj = objectMapper.writeValueAsString(postDocument);
                     Document document = Document.parse(obj);
 
