@@ -43,6 +43,13 @@ import java.util.concurrent.ThreadPoolExecutor;
 @Slf4j
 public class WebsCollectServiceImpl implements WebsCollectService {
 
+    ObjectMapper objectMapper;
+
+    @Autowired
+    public void setObjectMapper(ObjectMapper objectMapper) {
+        this.objectMapper = objectMapper;
+    }
+
     ThreadPoolExecutor executor;
 
     @Autowired
@@ -94,7 +101,6 @@ public class WebsCollectServiceImpl implements WebsCollectService {
     public void modifyWebsite(WebsCollectDocument document) {
         document.setCreated(document.getCreated().minusHours(Const.GMT_PLUS_8));
 
-        ObjectMapper objectMapper = new ObjectMapper();
         String obj = objectMapper.writeValueAsString(document);
         Document doc = Document.parse(obj);
 

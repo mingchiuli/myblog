@@ -36,6 +36,14 @@ public class CacheAspect {
         this.redisTemplate = redisTemplate;
     }
 
+
+    ObjectMapper objectMapper;
+
+    @Autowired
+    public void setObjectMapper(ObjectMapper objectMapper) {
+        this.objectMapper = objectMapper;
+    }
+
     @Pointcut("@annotation(com.markerhub.common.cache.Cache)")
     public void pt() {}
 
@@ -52,7 +60,7 @@ public class CacheAspect {
         Object[] args = pjp.getArgs();
         //参数
         StringBuilder params = new StringBuilder();
-        ObjectMapper objectMapper = new ObjectMapper();
+
         for (int i = 0; i < args.length; i++) {
             if (args[i] != null) {
                 //方法的参数必须是能够json化的
