@@ -91,10 +91,14 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer{
                         String id = claim.getSubject();
 
                         String role;
-                        if (Boolean.TRUE.equals(redisTemplate.hasKey(Const.ROLE_PREFIX + id))) {
-                            role = (String) redisTemplate.opsForValue().get(Const.ROLE_PREFIX + id);
+
+                        String profileRole =  (String) redisTemplate.opsForValue().get(Const.ROLE_PREFIX + id);
+
+                        if (profileRole != null) {
+                            role = profileRole;
                         } else {
-                            role = (String) userService.getBaseMapper().selectObjs(new QueryWrapper<User>().select("role").eq("id", id)).get(0);
+                            role = userService.getOne(new QueryWrapper<User>().select("role").eq("id", id)).getRole();
+//                            role = (String) userService.getBaseMapper().selectObjs(new QueryWrapper<User>().select("role").eq("id", id)).get(0);
                         }
 
                         if (!(Const.ADMIN.equals(role) || Const.BOY.equals(role) || Const.GIRL.equals(role))) {
