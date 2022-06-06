@@ -1,12 +1,15 @@
 package com.markerhub.controller;
 
+import cn.hutool.crypto.digest.DigestUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.markerhub.common.cache.Cache;
-import com.markerhub.common.cache.DeleteCache;
 import com.markerhub.common.lang.Const;
 import com.markerhub.common.lang.Result;
 import com.markerhub.common.vo.BlogPostDocumentVo;
+import com.markerhub.common.vo.BlogVo;
 import com.markerhub.entity.Blog;
 import com.markerhub.service.BlogService;
 import lombok.extern.slf4j.Slf4j;
@@ -15,6 +18,9 @@ import org.apache.shiro.authz.annotation.RequiresRoles;
 import org.elasticsearch.ResourceNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.script.DefaultRedisScript;
+import org.springframework.data.redis.core.script.RedisScript;
 import org.springframework.util.FileCopyUtils;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -22,7 +28,7 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.servlet.http.HttpServletRequest;
 import java.io.File;
 import java.io.IOException;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * <p>
@@ -35,6 +41,13 @@ import java.util.UUID;
 @RestController
 public class BlogController {
 
+
+    RedisTemplate<String, Object> redisTemplate;
+
+    @Autowired
+    public void setRedisTemplate(RedisTemplate<String, Object> redisTemplate) {
+        this.redisTemplate = redisTemplate;
+    }
 
     BlogService blogService;
 
@@ -240,10 +253,12 @@ public class BlogController {
      * @return
      */
     @RequiresRoles(value = {Const.ADMIN, Const.GIRL, Const.BOY}, logical = Logical.OR)
-    @DeleteCache(name = {Const.HOT_BLOG_PREFIX, Const.HOT_BLOGS_PREFIX})
     @PostMapping("/blog/edit")
-    public Result edit(@Validated @RequestBody Blog blog) {
+    //@DeleteCache(name = {Const.HOT_BLOG_PREFIX, Const.HOT_BLOGS_PREFIX, Const.BLOG_STATUS_PREFIX})
+    public Result edit(@Validated @RequestBody BlogVo blog) {
+
         blogService.updateBlog(blog);
+
         return Result.succ(null);
     }
 
@@ -253,7 +268,7 @@ public class BlogController {
      */
     @RequiresRoles(value = {Const.ADMIN, Const.GIRL, Const.BOY}, logical = Logical.OR)
     @GetMapping("/addNewBlog")
-    @DeleteCache(name = {Const.HOT_BLOGS_PREFIX, Const.HOT_BLOG_PREFIX})
+//    @DeleteCache(name = {Const.HOT_BLOGS_PREFIX})
     public Result addNewBlog() {
         Long id = blogService.initBlog();
         return Result.succ(id);
@@ -268,7 +283,7 @@ public class BlogController {
     @RequiresRoles(Const.ADMIN)
     @GetMapping("/queryDeletedBlogs")
     public Result listDeleted(@RequestParam String title, @RequestParam Integer currentPage, @RequestParam Integer size, @RequestParam Long userId) {
-        Page<Blog> page = blogService.selectDeletedBlogs(title, currentPage, size, userId);
+        Page<BlogVo> page = blogService.selectDeletedBlogs(title, currentPage, size, userId);
         return Result.succ(page);
 
     }
@@ -290,7 +305,7 @@ public class BlogController {
      */
     @RequiresRoles(Const.ADMIN)
     @GetMapping("/modifyBlogStatus/{id}/{status}")
-    @DeleteCache(name = {Const.BLOG_STATUS_PREFIX, Const.HOT_BLOGS_PREFIX, Const.HOT_BLOG_PREFIX})
+//    @DeleteCache(name = {Const.BLOG_STATUS_PREFIX, Const.HOT_BLOGS_PREFIX, Const.HOT_BLOG_PREFIX})
     public Result modifyBlogStatus(@PathVariable Long id, @PathVariable Integer status) {
         blogService.changeBlogStatus(id, status);
         return Result.succ(null);
@@ -302,7 +317,7 @@ public class BlogController {
     @RequiresRoles(value = {Const.ADMIN, Const.BOY, Const.GIRL, Const.GUEST}, logical = Logical.OR)
     @GetMapping("/getAllBlogs")
     public Result getAllBlogs(@RequestParam Integer currentPage, @RequestParam Integer size) {
-        Page<Blog> page = blogService.getAllBlogs(currentPage, size);
+        Page<BlogVo> page = blogService.getAllBlogs(currentPage, size);
         return Result.succ(page);
     }
 
@@ -315,7 +330,7 @@ public class BlogController {
     @RequiresRoles(Const.ADMIN)
     @GetMapping("/queryBlogs")
     public Result queryBlogs(@RequestParam String keyword, @RequestParam Integer currentPage, @RequestParam Integer size) {
-        Page<Blog> page = blogService.queryBlogsAbstract(keyword, currentPage, size);
+        Page<BlogVo> page = blogService.queryBlogsAbstract(keyword, currentPage, size);
         return Result.succ(page);
     }
 
@@ -326,11 +341,11 @@ public class BlogController {
      * @return
      */
     @RequiresRoles(Const.ADMIN)
-    @DeleteCache(name = {Const.HOT_BLOGS_PREFIX, Const.HOT_BLOG_PREFIX})
+//    @DeleteCache(name = {Const.HOT_BLOGS_PREFIX, Const.HOT_BLOG_PREFIX, Const.BLOG_STATUS_PREFIX})
     @PostMapping("/deleteBlogs")
     public Result deleteBlogs(@RequestBody Long[] ids) {
         blogService.deleteBlogs(ids);
-        return Result.succ("删除成功");
+        return Result.succ(null);
     }
 
 
@@ -360,7 +375,7 @@ public class BlogController {
     @GetMapping("/blogStatus/{blogId}")
     @Cache(name = Const.BLOG_STATUS)
     public Result getBlogStatus(@PathVariable Long blogId) {
-        Integer status = blogService.getOne(new QueryWrapper<Blog>().eq("id", blogId).select("status")).getStatus();
+        Integer status = blogService.getOne(new QueryWrapper<Blog>().select("status").eq("id", blogId)).getStatus();
         return Result.succ(status);
     }
 

@@ -16,7 +16,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import java.lang.reflect.Method;
 import java.util.Arrays;
-import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -35,7 +34,6 @@ public class CacheAspect {
     private void setRedisTemplateImpl(RedisTemplate<String, Object> redisTemplate) {
         this.redisTemplate = redisTemplate;
     }
-
 
     ObjectMapper objectMapper;
 
@@ -65,6 +63,7 @@ public class CacheAspect {
             if (args[i] != null) {
                 //方法的参数必须是能够json化的
                 params.append(objectMapper.writeValueAsString(args[i]));
+//                params.append(args[i]);
                 parameterTypes[i] = args[i].getClass();
             } else {
                 parameterTypes[i] = null;
@@ -72,14 +71,19 @@ public class CacheAspect {
         }
         if (StringUtils.hasLength(params.toString())) {
             params = new StringBuilder(Arrays.toString(DigestUtil.md5(params.toString())));
+//            params = new StringBuilder(params.toString());
         }
         Method method = pjp.getSignature().getDeclaringType().getMethod(methodName, parameterTypes);
+
+//        MethodSignature methodSignature = (MethodSignature) signature;
+//        Method method = methodSignature.getMethod();
 
         Cache annotation = method.getAnnotation(Cache.class);
         long expire = annotation.expire();
         String name = annotation.name();
 
         String redisKey = name + "::" + className + "::" + methodName + "::" + params;
+//        String redisKey = name + "::" + params;
 
         Result result = objectMapper.convertValue(redisTemplate.opsForValue().get(redisKey), Result.class);
 
@@ -100,50 +104,6 @@ public class CacheAspect {
             redisTemplate.opsForValue().set(redisKey, proceed, expire, TimeUnit.MINUTES);
             return proceed;
         }
-
-    }
-
-    @Pointcut("@annotation(com.markerhub.common.cache.DeleteCache)")
-    public void dpt() {}
-
-    @SneakyThrows
-    @Around("dpt()")
-    public Object dptAround(ProceedingJoinPoint pjp) {
-
-        Object proceed = pjp.proceed();
-
-        Signature signature = pjp.getSignature();
-        //调用的方法名
-
-//        MethodSignature methodSignature = (MethodSignature) signature;
-//        Method method = methodSignature.getMethod();
-
-        String methodName = signature.getName();
-
-        Class<?>[] parameterTypes = new Class[pjp.getArgs().length];
-        Object[] args = pjp.getArgs();
-        for (int i = 0; i < args.length; i++) {
-            if (args[i] != null) {
-                parameterTypes[i] = args[i].getClass();
-            } else {
-                parameterTypes[i] = null;
-            }
-        }
-
-
-        Method method = pjp.getSignature().getDeclaringType().getMethod(methodName, parameterTypes);
-
-        DeleteCache annotation = method.getAnnotation(DeleteCache.class);
-        String[] keys = annotation.name();
-
-        for (String str : keys) {
-            Set<String> targets = redisTemplate.keys(str);
-            if (targets != null) {
-                redisTemplate.delete(targets);
-            }
-        }
-
-        return proceed;
 
     }
 }

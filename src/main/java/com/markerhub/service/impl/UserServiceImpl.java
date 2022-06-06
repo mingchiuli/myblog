@@ -7,6 +7,7 @@ import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.markerhub.common.dto.PasswordDto;
 import com.markerhub.common.lang.Const;
+import com.markerhub.common.vo.UserVo;
 import com.markerhub.entity.Role;
 import com.markerhub.entity.User;
 import com.markerhub.mapper.UserMapper;
@@ -23,6 +24,7 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -70,7 +72,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     }
 
     @Override
-    public Page<User> queryUsers(String role, Integer currentPage, Integer size) {
+    public Page<UserVo> queryUsers(String role, Integer currentPage, Integer size) {
         Page<User> userPage = new Page<>(currentPage, size);
         Page<User> page;
         if (StringUtils.hasLength(role)) {//搜索
@@ -80,22 +82,39 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             page = page(userPage, new QueryWrapper<User>().select("id", "username", "avatar", "email", "status", "created", "last_login", "role").orderByAsc("created"));
         }
         List<User> records = page.getRecords();
-        for (User record : records) {
+
+        List<UserVo> userVos = new ArrayList<>();
+
+        records.forEach(user -> {
+            UserVo userVo = new UserVo();
+            BeanUtil.copyProperties(user, userVo);
+            userVos.add(userVo);
+        });
+
+        for (UserVo record : userVos) {
             //是否在线
             if (Boolean.TRUE.equals(redisTemplate.hasKey(Const.USER_PREFIX + record.getId())) && record.getStatus() == 0) {
                 record.setMonitor(1);
             } else {
                 record.setMonitor(0);
             }
-            String name = roleService.getOne(new QueryWrapper<Role>().eq("code", record.getRole())).getName();
+            String name = roleService.getOne(new QueryWrapper<Role>().select("name").eq("code", record.getRole())).getName();
             record.setRole(name);
         }
-        page.setRecords(records);
-        return page;
+
+
+        Page<UserVo> userVoPage = new Page<>();
+
+        userVoPage.setRecords(userVos);
+        userVoPage.setTotal(page.getTotal());
+        userVoPage.setCurrent(page.getCurrent());
+        userVoPage.setSize(page.getSize());
+
+        return userVoPage;
     }
 
     @Override
-    public void addUser(User user) {
+    public void addUser(UserVo user) {
         User userExist = getBaseMapper().selectOne(new QueryWrapper<User>().eq("id", user.getId()));
 
         if (userExist == null) {//添加

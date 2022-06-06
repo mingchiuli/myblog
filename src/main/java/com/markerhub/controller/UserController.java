@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.markerhub.common.dto.PasswordDto;
 import com.markerhub.common.lang.Const;
 import com.markerhub.common.lang.Result;
+import com.markerhub.common.vo.UserVo;
 import com.markerhub.entity.User;
 import com.markerhub.service.UserService;
 import com.markerhub.util.JwtUtil;
@@ -56,7 +57,7 @@ public class UserController {
     @GetMapping("/queryUsers")
     public Result queryUsers(@RequestParam String role, @RequestParam Integer currentPage, @RequestParam Integer size) {
 
-        Page<User> page = userService.queryUsers(role, currentPage, size);
+        Page<UserVo> page = userService.queryUsers(role, currentPage, size);
         return Result.succ(page);
     }
 
@@ -66,7 +67,7 @@ public class UserController {
      */
     @RequiresRoles(Const.ADMIN)
     @PostMapping("/addUser")
-    public Result addUser(@Validated @RequestBody User user) {
+    public Result addUser(@Validated @RequestBody UserVo user) {
         userService.addUser(user);
         return Result.succ(null);
     }

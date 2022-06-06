@@ -2,12 +2,15 @@ package com.markerhub.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.lang.UUID;
+import cn.hutool.crypto.digest.DigestUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.markerhub.common.exception.InsertOrUpdateErrorException;
 import com.markerhub.common.lang.Const;
 import com.markerhub.common.vo.BlogPostDocumentVo;
+import com.markerhub.common.vo.BlogVo;
 import com.markerhub.config.RabbitConfig;
 import com.markerhub.entity.Blog;
 import com.markerhub.entity.User;
@@ -41,6 +44,7 @@ import org.springframework.data.elasticsearch.core.query.NativeSearchQueryBuilde
 import org.springframework.data.redis.core.RedisOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.SessionCallback;
+import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -48,10 +52,7 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import java.io.File;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -73,6 +74,13 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
 
     @Value("${imgFoldName}")
     private String img;
+
+    ObjectMapper objectMapper;
+
+    @Autowired
+    public void setObjectMapper(ObjectMapper objectMapper) {
+        this.objectMapper = objectMapper;
+    }
 
     ThreadPoolExecutor executor;
 
@@ -125,7 +133,7 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
 
     @Override
     @Transactional
-    public List<Blog> queryAllBlogs() {
+    public List<BlogVo> queryAllBlogs() {
         return blogMapper.queryAllBlogs();
     }
 
@@ -318,9 +326,9 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
         return page;
     }
 
+    @SneakyThrows
     @Override
-    public void updateBlog(Blog blog) {
-
+    public void updateBlog(BlogVo blog) {
 
         //都是更新，之前初始化过了
 
@@ -337,6 +345,11 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
             throw new InsertOrUpdateErrorException("更新失败");
         }
 
+        /*
+        删除缓存
+         */
+        deleteCache(blog.getId());
+
         //通知消息给mq,更新
         CorrelationData correlationData = new CorrelationData();
         //防止重复消费
@@ -346,7 +359,6 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
                 RabbitConfig.ES_EXCHANGE,
                 RabbitConfig.ES_BINDING_KEY,
                 new PostMQIndexMessage(blog.getId(), PostMQIndexMessage.UPDATE), correlationData);
-
 
     }
 
@@ -364,6 +376,13 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
             throw new InsertOrUpdateErrorException("初始化博客失败");
         }
 
+        //删除缓存
+        Set<String> keys = redisTemplate.keys(Const.HOT_BLOGS_PREFIX);
+
+        if (keys != null) {
+            redisTemplate.delete(keys);
+        }
+
         //通知消息给mq，创建
         //防止重复消费
         CorrelationData correlationData = new CorrelationData();
@@ -379,9 +398,9 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
     }
 
     @Override
-    public Page<Blog> selectDeletedBlogs(String title, Integer currentPage, Integer size, Long userId) {
+    public Page<BlogVo> selectDeletedBlogs(String title, Integer currentPage, Integer size, Long userId) {
 
-        User one = userMapper.selectOne(new QueryWrapper<User>().eq("id", userId).last("LIMIT 1"));
+        User one = userMapper.selectOne(new QueryWrapper<User>().eq("id", userId));
         String username = one.getUsername();
 
         String prefix = userId + Const.QUERY_ALL_DELETED;
@@ -390,34 +409,34 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
         if (keys != null) {
             List<Object> rawAllDeleted = redisTemplate.opsForValue().multiGet(keys);
             if (rawAllDeleted != null) {
-                ArrayList<Blog> allDeleted = new ArrayList<>();
+                ArrayList<BlogVo> allDeleted = new ArrayList<>();
                 for (Object value : rawAllDeleted) {
-                    Blog blog = MyUtil.jsonToObj(value, Blog.class);
+                    BlogVo blog = MyUtil.jsonToObj(value, BlogVo.class);
                     allDeleted.add(blog);
                 }
                 if (!StringUtils.hasLength(title)) {
                     //以创建时间排序，由晚到早
                     allDeleted.sort((o1, o2) -> -o1.getCreated().compareTo(o2.getCreated()));
-                    Page<Blog> page = MyUtil.listToPage(allDeleted, currentPage, size);
-                    List<Blog> records = page.getRecords();
-                    for (Blog record : records) {
+                    Page<BlogVo> page = MyUtil.listToPage(allDeleted, currentPage, size);
+                    List<BlogVo> records = page.getRecords();
+                    for (BlogVo record : records) {
                         record.setUsername(username);
                     }
                     page.setRecords(records);
                     return page;
                 } else {
-                    ArrayList<Blog> blogs = new ArrayList<>();
-                    for (Blog blog : allDeleted) {
+                    ArrayList<BlogVo> blogs = new ArrayList<>();
+                    for (BlogVo blog : allDeleted) {
                         if (blog.getTitle().contains(title)) {
                             blogs.add(blog);
                         }
                     }
                     blogs.sort((o1, o2) -> -o1.getCreated().compareTo(o2.getCreated()));
 
-                    Page<Blog> page = MyUtil.listToPage(blogs, currentPage, size);
+                    Page<BlogVo> page = MyUtil.listToPage(blogs, currentPage, size);
 
-                    List<Blog> records = page.getRecords();
-                    for (Blog record : records) {
+                    List<BlogVo> records = page.getRecords();
+                    for (BlogVo record : records) {
                         record.setUsername(username);
                     }
                     page.setRecords(records);
@@ -435,10 +454,10 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
 
         Blog blog = MyUtil.jsonToObj(value, Blog.class);
 
+        Assert.notNull(blog, "恢复异常");
+
         //重新设置创建时间
         blog.setCreated(LocalDateTime.now());
-
-        Assert.notNull(blog, "恢复异常");
 
         //用saveOrUpdate(blog)会导致id自增，这里要恢复原来的id
         boolean recover = recover(blog);
@@ -472,6 +491,9 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
 
         Assert.isTrue(update, "修改失败");
 
+        //删除缓存
+        deleteCache(id);
+
         //通知消息给mq,更新
         CorrelationData correlationData = new CorrelationData();
         //防止重复消费
@@ -484,14 +506,14 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
     }
 
     @Override
-    public Page<Blog> getAllBlogs(Integer currentPage, Integer size) {
-        List<Blog> blogsList = queryAllBlogs();
+    public Page<BlogVo> getAllBlogs(Integer currentPage, Integer size) {
+        List<BlogVo> blogsList = queryAllBlogs();
 
         for (Blog blog : blogsList) {
             blog.setContent(blog.getContent().length() > 20 ? blog.getContent().substring(0, 20) : blog.getContent());
         }
 
-        Page<Blog> page = MyUtil.listToPage(blogsList, currentPage, size);
+        Page<BlogVo> page = MyUtil.listToPage(blogsList, currentPage, size);
 
         MyUtil.setRead(page);
 
@@ -499,8 +521,8 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
     }
 
     @Override
-    public Page<Blog> queryBlogsAbstract(String keyword, Integer currentPage, Integer size) {
-        List<Blog> blogsList;
+    public Page<BlogVo> queryBlogsAbstract(String keyword, Integer currentPage, Integer size) {
+        List<BlogVo> blogsList;
 
         //查询相关数据
         if (!StringUtils.hasLength(keyword)) {
@@ -520,7 +542,7 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
             blogsList = new ArrayList<>();
 
             for (SearchHit<BlogPostDocument> hit : search.getSearchHits()) {
-                Blog blog = new Blog();
+                BlogVo blog = new BlogVo();
 
                 MyUtil.documentToBlog(hit, blog);
 
@@ -529,12 +551,12 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
         }
 
         //只获取部分博客信息
-        for (Blog blog : blogsList) {
+        for (BlogVo blog : blogsList) {
             blog.setContent(blog.getContent().length() > 20 ? blog.getContent().substring(0, 20) : blog.getContent());
         }
 
         //将相关数据封装Page对象
-        Page<Blog> page = MyUtil.listToPage(blogsList, currentPage, size);
+        Page<BlogVo> page = MyUtil.listToPage(blogsList, currentPage, size);
 
         MyUtil.setRead(page);
 
@@ -581,6 +603,8 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
 
             Assert.isTrue(remove, "删除失败");
 
+            //删除缓存
+            deleteCache(id);
 
             //通知消息给mq,更新
             CorrelationData correlationData = new CorrelationData();
@@ -611,6 +635,49 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
     public void setBlogToken() {
         String token = UUID.randomUUID().toString();
         redisTemplate.opsForValue().set(Const.READ_TOKEN, token, 24, TimeUnit.HOURS);
+    }
+
+
+    /**
+     *
+     * @param id 文章id
+     */
+    @SneakyThrows
+    private void deleteCache(Long id) {
+        /*
+        删除缓存
+         */
+        StringBuilder builder = new StringBuilder();
+        builder.append(objectMapper.writeValueAsString(id));
+        builder = new StringBuilder(Arrays.toString(DigestUtil.md5(builder.toString())));
+
+        String contentPrefix = Const.HOT_BLOG + "::BlogController::detail::" + builder;
+        String statusPrefix = Const.BLOG_STATUS + "::BlogController::getBlogStatus::" + builder;
+
+        ArrayList<String> list = new ArrayList<>();
+        list.add(contentPrefix);
+        list.add(statusPrefix);
+
+        String luaContentScript = "local current = redis.call('get', KEYS[1]);" +
+                "if current == false then " +
+                "    return nil;" +
+                "end " +
+                "return redis.call('del', KEYS[1]);";
+
+        String luaStatusScript = "local current = redis.call('get', KEYS[2]);" +
+                "if current == false then " +
+                "    return nil;" +
+                "end " +
+                "return redis.call('del', KEYS[2]);";
+
+        redisTemplate.execute(new DefaultRedisScript<>(luaContentScript, Long.class), list);
+        redisTemplate.execute(new DefaultRedisScript<>(luaStatusScript, Long.class), list);
+
+        Set<String> keys = redisTemplate.keys(Const.HOT_BLOGS_PREFIX);
+
+        if (keys != null) {
+            redisTemplate.delete(keys);
+        }
     }
 
 

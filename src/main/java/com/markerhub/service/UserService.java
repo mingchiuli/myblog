@@ -2,6 +2,7 @@ package com.markerhub.service;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.markerhub.common.dto.PasswordDto;
+import com.markerhub.common.vo.UserVo;
 import com.markerhub.entity.User;
 import com.baomidou.mybatisplus.extension.service.IService;
 
@@ -17,9 +18,9 @@ public interface UserService extends IService<User> {
 
     void modifyUser(Integer id, Integer status);
 
-    Page<User> queryUsers(String role, Integer currentPage, Integer size);
+    Page<UserVo> queryUsers(String role, Integer currentPage, Integer size);
 
-    void addUser(User user);
+    void addUser(UserVo user);
 
     void deleteUsers(Long[] ids);
 

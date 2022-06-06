@@ -1,5 +1,6 @@
 package com.markerhub.controller;
 
+import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.map.MapUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.markerhub.common.vo.CoNumberList;
@@ -7,6 +8,7 @@ import com.markerhub.common.vo.Content;
 import com.markerhub.common.vo.Message;
 import com.markerhub.common.lang.Const;
 import com.markerhub.common.lang.Result;
+import com.markerhub.common.vo.UserVo;
 import com.markerhub.entity.*;
 import com.markerhub.service.BlogService;
 import com.markerhub.service.UserService;
@@ -178,7 +180,7 @@ public class CooperateController {
 
         for (Map.Entry<Object, Object> entry : entries.entrySet()) {
 
-            User user = MyUtil.jsonToObj(entry.getValue(), User.class);
+            UserVo user = MyUtil.jsonToObj(entry.getValue(), UserVo.class);
 
             if (user.getNumber() == 0) {
                 number.setIndex0(Boolean.TRUE);
@@ -221,27 +223,29 @@ public class CooperateController {
         }
 
         User user = userService.getBaseMapper().selectOne(new QueryWrapper<User>().eq("id", userId).select("id", "username", "avatar", "role"));
+        UserVo userVo = new UserVo();
+        BeanUtil.copyProperties(user, userVo);
 
-        user.setNumber(coNumber);
+        userVo.setNumber(coNumber);
 
         if (!redisTemplate.opsForHash().hasKey(Const.CO_PREFIX + blogId, userId)) {
-            redisTemplate.opsForHash().put(Const.CO_PREFIX + blogId, userId, user);
+            redisTemplate.opsForHash().put(Const.CO_PREFIX + blogId, userId, userVo);
         }
 
         redisTemplate.expire(Const.CO_PREFIX + blogId, 6 * 60, TimeUnit.MINUTES);
 
         Map<Object, Object> entries = redisTemplate.opsForHash().entries(Const.CO_PREFIX + blogId);
 
-        ArrayList<User> users = new ArrayList<>();
+        ArrayList<UserVo> users = new ArrayList<>();
 
         for (Map.Entry<Object, Object> entry : entries.entrySet()) {
 
-            User value = MyUtil.jsonToObj(entry.getValue(), User.class);
+            UserVo value = MyUtil.jsonToObj(entry.getValue(), UserVo.class);
 
             users.add(value);
         }
 
-        users.sort(Comparator.comparingInt(User::getNumber));
+        users.sort(Comparator.comparingInt(UserVo::getNumber));
 
         simpMessagingTemplate.convertAndSendToUser(blogId.toString(),"/topic/users", users);
 

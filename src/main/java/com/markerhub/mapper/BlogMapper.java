@@ -1,5 +1,6 @@
 package com.markerhub.mapper;
 
+import com.markerhub.common.vo.BlogVo;
 import com.markerhub.entity.Blog;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import org.springframework.stereotype.Service;
@@ -18,7 +19,7 @@ public interface BlogMapper extends BaseMapper<Blog> {
 
     Integer getYearCount(Integer year);
 
-    List<Blog> queryAllBlogs();
+    List<BlogVo> queryAllBlogs();
 
     List<Blog> queryBlogs(String title);
 

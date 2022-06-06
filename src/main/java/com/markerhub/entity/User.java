@@ -19,7 +19,7 @@ import java.time.LocalDateTime;
 
 /**
  * <p>
- * 
+ *
  * </p>
  *
  * @author Li MingChiu
@@ -59,12 +59,4 @@ public class User implements Serializable {
     private LocalDateTime lastLogin;
 
     private String role;
-
-    @TableField(exist = false)
-    private Integer monitor;
-
-    @TableField(exist = false)
-    private Integer number;
-
-
 }

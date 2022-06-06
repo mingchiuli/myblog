@@ -13,7 +13,7 @@
     </select>
 
 
-    <select id="queryAllBlogs" resultType="com.markerhub.entity.Blog">
+    <select id="queryAllBlogs" resultType="com.markerhub.common.vo.BlogVo">
         select mb.id, username, title, description, content, mb.created, mb.status from vueblog.m_blog mb
             left join vueblog.m_user mu on mb.user_id = mu.id order by created desc ;
     </select>

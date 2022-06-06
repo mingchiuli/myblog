@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.markerhub.common.lang.Const;
+import com.markerhub.common.vo.BlogVo;
 import com.markerhub.entity.Blog;
 import com.markerhub.entity.User;
 import com.markerhub.search.model.BlogPostDocument;
@@ -172,21 +173,21 @@ public class MyUtil {
      * 取得阅读量数据，数据在redis中
      * @param page
      */
-    public static void setRead(Page<Blog> page) {
+    public static void setRead(Page<BlogVo> page) {
 
         RedisTemplate<String, Object> redisTemplate = (RedisTemplate<String, Object>) SpringUtil.getBean("redisTemplate");
 
-        List<Blog> blogs = page.getRecords();
+        List<BlogVo> blogs = page.getRecords();
         ArrayList<Object> ids = new ArrayList<>();
 
-        for(Blog blog : blogs) {
+        for(BlogVo blog : blogs) {
             ids.add(blog.getId().toString());
         }
 
         //为数据设置7日阅读和总阅读数
         List<Object> listSum = redisTemplate.opsForHash().multiGet(Const.READ_SUM, ids);
         for (int i = 0; i < blogs.size(); i++) {
-            Blog blog = blogs.get(i);
+            BlogVo blog = blogs.get(i);
             if (listSum.get(i) != null) {
                 blog.setReadSum((Integer) listSum.get(i));
                 Integer recentNum = (Integer) redisTemplate.opsForValue().get(Const.READ_RECENT + blog.getId());
@@ -271,13 +272,13 @@ public class MyUtil {
         return blogPostDocument;
     }
 
-    public static void documentToBlog(SearchHit<BlogPostDocument> hit, Blog blog) {
+    public static void documentToBlog(SearchHit<BlogPostDocument> hit, BlogVo blog) {
         UserService userService = SpringUtil.getBean(UserService.class);
 
         BeanUtil.copyProperties(hit.getContent(), blog, "created");
 
         blog.setCreated(hit.getContent().getCreated().plusHours(Const.GMT_PLUS_8));
-        String username = userService.getOne(new QueryWrapper<User>().eq("id", hit.getContent().getUserId())).getUsername();
+        String username = userService.getOne(new QueryWrapper<User>().select("username").eq("id", hit.getContent().getUserId())).getUsername();
         blog.setUsername(username);
     }
 

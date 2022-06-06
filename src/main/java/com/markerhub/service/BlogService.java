@@ -3,6 +3,7 @@ package com.markerhub.service;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.markerhub.common.vo.BlogPostDocumentVo;
+import com.markerhub.common.vo.BlogVo;
 import com.markerhub.entity.Blog;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.markerhub.search.model.BlogPostDocument;
@@ -20,7 +21,7 @@ public interface BlogService extends IService<Blog> {
 
     Integer getYearCount(Integer year);
 
-    List<Blog> queryAllBlogs();
+    List<BlogVo> queryAllBlogs();
 
     boolean recover(Blog blog);
 
@@ -38,19 +39,19 @@ public interface BlogService extends IService<Blog> {
 
     Page<BlogPostDocumentVo> selectYearBlogsByES(Integer currentPage, String keyword, Integer year);
 
-    void updateBlog(Blog blog);
+    void updateBlog(BlogVo blog);
 
     Long initBlog();
 
-    Page<Blog> selectDeletedBlogs(String title, Integer currentPage, Integer size, Long userId);
+    Page<BlogVo> selectDeletedBlogs(String title, Integer currentPage, Integer size, Long userId);
 
     void recoverBlog(Long id, Long userId);
 
     void changeBlogStatus(Long id, Integer status);
 
-    Page<Blog> getAllBlogs(Integer currentPage, Integer size);
+    Page<BlogVo> getAllBlogs(Integer currentPage, Integer size);
 
-    Page<Blog> queryBlogsAbstract(String keyword, Integer currentPage, Integer size);
+    Page<BlogVo> queryBlogsAbstract(String keyword, Integer currentPage, Integer size);
 
     void deleteBlogs(Long[] ids);
 

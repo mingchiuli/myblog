@@ -36,10 +36,6 @@ public class Blog implements Serializable {
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
-    //文章对应的用户名字
-    @TableField(exist = false)
-    private String username;
-
     private Long userId;
 
     @NotBlank(message = "标题不能为空")
@@ -58,13 +54,5 @@ public class Blog implements Serializable {
 
     private Integer status;
 
-    @TableField(exist = false)
-    private Integer readSum;
-
-    @TableField(exist = false)
-    private Integer readRecent;
-
     private String link;
-
-
 }
