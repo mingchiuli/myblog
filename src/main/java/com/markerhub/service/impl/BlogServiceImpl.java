@@ -159,7 +159,7 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
     @Override
     public Page<Blog> listBlogsByPage(Integer currentPage) {
 
-        long totalPage = count(null) % Const.PAGE_SIZE == 0 ? count(null) / Const.PAGE_SIZE : count(null) / Const.PAGE_SIZE + 1;
+        long totalPage = count() % Const.PAGE_SIZE == 0 ? count() / Const.PAGE_SIZE : count() / Const.PAGE_SIZE + 1;
 
         if (currentPage > totalPage) {
             Page<Blog> page = new Page<>(totalPage, Const.PAGE_SIZE);
