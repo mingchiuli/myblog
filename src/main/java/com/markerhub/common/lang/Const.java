@@ -61,7 +61,9 @@ public class Const {
     public static final String CONSUME_MONITOR = "consume:";
 
 
+    public static final String BLOOM_FILTER_BLOG = "bloom_filter_blog";
 
+    public static final String BLOOM_FILTER_PAGE = "bloom_filter_page";
 
 
 

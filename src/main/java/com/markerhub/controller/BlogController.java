@@ -2,6 +2,7 @@ package com.markerhub.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.markerhub.common.bloom.Bloom;
 import com.markerhub.common.cache.Cache;
 import com.markerhub.common.lang.Const;
 import com.markerhub.common.lang.Result;
@@ -157,7 +158,8 @@ public class BlogController {
      */
 
     @GetMapping("/blogsByYear/{year}/{currentPage}")
-    @Cache(name = Const.HOT_BLOGS)//缓存页面信息一分钟
+    @Cache(name = Const.HOT_BLOGS)//缓存页面信息
+    @Bloom
     public Result listByYear(@PathVariable(name = "currentPage") Integer currentPage, @PathVariable(name = "year") Integer year) {
         Page<Blog> pageData = blogService.listByYear(currentPage, year);
         return Result.succ(pageData);
@@ -165,6 +167,7 @@ public class BlogController {
 
     @GetMapping("/getCountByYear/{year}")
     @Cache(name = Const.HOT_BLOGS)
+    @Bloom
     public Result getCountByYear(@PathVariable(name = "year") Integer year) {
         Integer count = blogService.getYearCount(year);
         return Result.succ(count);
@@ -175,6 +178,7 @@ public class BlogController {
      * @param currentPage
      * @return
      */
+    @Bloom
     @Cache(name = Const.HOT_BLOGS)//缓存页面信息
     @GetMapping("/blogs/{currentPage}")
     public Result list(@PathVariable(name = "currentPage") Integer currentPage) {
@@ -192,6 +196,7 @@ public class BlogController {
 
     @GetMapping("/blog/{id}")
     @Cache(name = Const.HOT_BLOG)
+    @Bloom
     public Result detail(@PathVariable(name = "id") Long id) {
         Blog blog = blogService.getBlogDetail(id);
         return Result.succ(blog);
@@ -249,7 +254,6 @@ public class BlogController {
      */
     @RequiresRoles(value = {Const.ADMIN, Const.GIRL, Const.BOY}, logical = Logical.OR)
     @PostMapping("/blog/edit")
-    //@DeleteCache(name = {Const.HOT_BLOG_PREFIX, Const.HOT_BLOGS_PREFIX, Const.BLOG_STATUS_PREFIX})
     public Result edit(@Validated @RequestBody BlogVo blog) {
 
         blogService.updateBlog(blog);
@@ -263,7 +267,6 @@ public class BlogController {
      */
     @RequiresRoles(value = {Const.ADMIN, Const.GIRL, Const.BOY}, logical = Logical.OR)
     @GetMapping("/addNewBlog")
-//    @DeleteCache(name = {Const.HOT_BLOGS_PREFIX})
     public Result addNewBlog() {
         Long id = blogService.initBlog();
         return Result.succ(id);
@@ -300,7 +303,6 @@ public class BlogController {
      */
     @RequiresRoles(Const.ADMIN)
     @GetMapping("/modifyBlogStatus/{id}/{status}")
-//    @DeleteCache(name = {Const.BLOG_STATUS_PREFIX, Const.HOT_BLOGS_PREFIX, Const.HOT_BLOG_PREFIX})
     public Result modifyBlogStatus(@PathVariable Long id, @PathVariable Integer status) {
         blogService.changeBlogStatus(id, status);
         return Result.succ(null);
@@ -336,7 +338,6 @@ public class BlogController {
      * @return
      */
     @RequiresRoles(Const.ADMIN)
-//    @DeleteCache(name = {Const.HOT_BLOGS_PREFIX, Const.HOT_BLOG_PREFIX, Const.BLOG_STATUS_PREFIX})
     @PostMapping("/deleteBlogs")
     public Result deleteBlogs(@RequestBody Long[] ids) {
         blogService.deleteBlogs(ids);
@@ -367,6 +368,7 @@ public class BlogController {
     /**
      * 获取文章状态
      */
+    @Bloom
     @GetMapping("/blogStatus/{blogId}")
     @Cache(name = Const.BLOG_STATUS)
     public Result getBlogStatus(@PathVariable Long blogId) {

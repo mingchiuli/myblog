@@ -1,12 +1,10 @@
 package com.markerhub.service;
 
-import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.markerhub.common.vo.BlogPostDocumentVo;
 import com.markerhub.common.vo.BlogVo;
 import com.markerhub.entity.Blog;
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.markerhub.search.model.BlogPostDocument;
 import java.util.List;
 
 /**

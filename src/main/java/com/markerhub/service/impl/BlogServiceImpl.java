@@ -147,10 +147,10 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
     public Page<Blog> listByYear(Integer currentPage, Integer year) {
 
         Page<Blog> page = new Page<>(currentPage, Const.PAGE_SIZE);
+
         QueryWrapper<Blog> queryWrapper = new QueryWrapper<>();
         LocalDateTime start = LocalDateTime.of(year, 1, 1, 0, 0, 0);
         LocalDateTime end = LocalDateTime.of(year, 12, 31, 23, 59, 59);
-
         QueryWrapper<Blog> wrapper = queryWrapper.select("id", "title", "description", "link", "created").between("created", start, end).orderByAsc("created");
 
         return page(page, wrapper);
@@ -159,7 +159,9 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
     @Override
     public Page<Blog> listBlogsByPage(Integer currentPage) {
 
-        long totalPage = count() % Const.PAGE_SIZE == 0 ? count() / Const.PAGE_SIZE : count() / Const.PAGE_SIZE + 1;
+        long count = count();
+
+        long totalPage = count % Const.PAGE_SIZE == 0 ? count / Const.PAGE_SIZE : count / Const.PAGE_SIZE + 1;
 
         if (currentPage > totalPage) {
             Page<Blog> page = new Page<>(totalPage, Const.PAGE_SIZE);
@@ -172,7 +174,6 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
         }
 
         Page<Blog> page = new Page<>(currentPage, Const.PAGE_SIZE);
-
         return page(page, new QueryWrapper<Blog>().select("id", "title", "description", "link", "created").orderByDesc("created"));
     }
 
@@ -376,6 +377,9 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
             throw new InsertOrUpdateErrorException("初始化博客失败");
         }
 
+        //设置bloomFilter
+        redisTemplate.opsForValue().setBit(Const.BLOOM_FILTER_BLOG, blog.getId(), true);
+
         //删除缓存
         Set<String> keys = redisTemplate.keys(Const.HOT_BLOGS_PREFIX);
 
@@ -465,6 +469,9 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
         log.info("恢复{}号日志结果:{}", id, recover);
 
         Assert.isTrue(recover, "恢复失败");
+
+        //设置bloomFilter
+        redisTemplate.opsForValue().setBit(Const.BLOOM_FILTER_BLOG, blog.getId(), true);
 
         redisTemplate.delete(key);
 
@@ -602,6 +609,9 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
             log.info("数据库删除{}号博客结果:{}", id, remove);
 
             Assert.isTrue(remove, "删除失败");
+
+            //更改bloomFilter
+            redisTemplate.opsForValue().setBit(Const.BLOOM_FILTER_BLOG, blog.getId(), false);
 
             //删除缓存
             deleteCache(id);

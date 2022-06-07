@@ -1,6 +1,7 @@
 package com.markerhub.controller;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.markerhub.common.cache.Cache;
 import com.markerhub.common.lang.Const;
 import com.markerhub.common.lang.Result;
 import com.markerhub.common.vo.WebsCollectDocumentVo;
@@ -57,6 +58,7 @@ public class WebsCollectController {
     }
 
     @GetMapping("/getJWT")
+    @Cache(name = "jwt")
     public Result getJWT() {
         String jwt = websCollectService.getJWT();
         return Result.succ(jwt);
@@ -82,7 +84,6 @@ public class WebsCollectController {
         }
 
     }
-
 
     @SneakyThrows
     @PostMapping("/modifyWebsite")
