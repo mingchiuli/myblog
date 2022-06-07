@@ -57,7 +57,7 @@ public class ScheduledTask {
     }
 
     @SneakyThrows
-    @Scheduled(cron = "0 0/1 * * * ?")
+    @Scheduled(cron = "0 0 0/2 * * ?")
     public void configureTask() {
         //detail和getBlogStatus接口
         List<Blog> blogs = blogService.list(new QueryWrapper<Blog>().ne("status", 1));
