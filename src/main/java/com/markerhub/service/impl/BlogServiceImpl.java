@@ -185,7 +185,7 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
             throw new AuthenticationException("没有访问权限");
         }
 
-        Blog blog = getOne(new QueryWrapper<Blog>().eq("status", 0).eq("id", id));
+        Blog blog = getOne(new QueryWrapper<Blog>().eq("id", id).eq("status", 0));
 
         Assert.notNull(blog, "该博客不存在");
 

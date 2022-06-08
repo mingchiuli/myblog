@@ -45,9 +45,9 @@ vueblog:
 
 year: 2021,2022
 
-#logging:
-#  level:
-#    com.markerhub.mapper: debug
+logging:
+  level:
+    com.markerhub.mapper: debug
 
 #logging:
 #  level:

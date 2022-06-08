@@ -24,11 +24,11 @@
             left join vueblog.m_user mu on mb.user_id = mu.id where title like concat('%', #{title}, '%') order by created desc;
     </select>
     <select id="getPageCount" resultType="java.lang.Integer">
-        select count(*) from vueblog.m_blog where unix_timestamp(created) > unix_timestamp(#{ldt})
+        select count(*) from vueblog.m_blog where created > #{ldt}
     </select>
 
     <select id="getPageYearCount" resultType="java.lang.Integer">
-        select count(*) from vueblog.m_blog where unix_timestamp(#{ldt}) > unix_timestamp(created) and YEAR(created) = #{year};
+        select count(*) from vueblog.m_blog where #{ldt} > created and YEAR(created) = #{year};
     </select>
 
 
