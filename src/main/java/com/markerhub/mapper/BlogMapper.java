@@ -3,8 +3,9 @@ package com.markerhub.mapper;
 import com.markerhub.common.vo.BlogVo;
 import com.markerhub.entity.Blog;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import org.springframework.stereotype.Service;
+import org.apache.ibatis.annotations.Param;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -25,4 +26,7 @@ public interface BlogMapper extends BaseMapper<Blog> {
 
     boolean recover(Blog blog);
 
+    int getPageCount(@Param("ldt") String ldt);
+
+    int getPageYearCount(@Param("ldt") String ldt, @Param("year") int year);
 }

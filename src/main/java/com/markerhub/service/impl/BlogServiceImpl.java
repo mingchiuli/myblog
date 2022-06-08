@@ -346,12 +346,8 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
             throw new InsertOrUpdateErrorException("更新失败");
         }
 
-        /*
-        删除缓存
-         */
-        deleteCache(blog.getId());
 
-        //通知消息给mq,更新
+        //通知消息给mq,更新并删除缓存
         CorrelationData correlationData = new CorrelationData();
         //防止重复消费
         redisTemplate.opsForValue().set(Const.CONSUME_MONITOR + correlationData.getId(), PostMQIndexMessage.UPDATE + "_" + blog.getId());
@@ -498,10 +494,7 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
 
         Assert.isTrue(update, "修改失败");
 
-        //删除缓存
-        deleteCache(id);
-
-        //通知消息给mq,更新
+        //通知消息给mq,更新并删除缓存
         CorrelationData correlationData = new CorrelationData();
         //防止重复消费
         redisTemplate.opsForValue().set(Const.CONSUME_MONITOR + correlationData.getId(), PostMQIndexMessage.UPDATE + "_" + id);
@@ -613,10 +606,8 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
             //更改bloomFilter
             redisTemplate.opsForValue().setBit(Const.BLOOM_FILTER_BLOG, blog.getId(), false);
 
-            //删除缓存
-            deleteCache(id);
 
-            //通知消息给mq,更新
+            //通知消息给mq,更新并删除缓存
             CorrelationData correlationData = new CorrelationData();
             //防止重复消费
             redisTemplate.opsForValue().set(Const.CONSUME_MONITOR + correlationData.getId(), PostMQIndexMessage.REMOVE + "_" + id);
@@ -688,6 +679,52 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
         if (keys != null) {
             redisTemplate.delete(keys);
         }
+    }
+
+    /**
+     * 删除年份分类、普通分类这一页的缓存和该博客的缓存
+     * @param id
+     */
+    @SneakyThrows
+    private void deleteBlogAndPageCache(Long id) {
+        //删除博客的缓存（不用lua脚本也行，delete返回值是一个Long，加锁博客缓存中不存在也可以删）
+        StringBuilder builder = new StringBuilder();
+        builder.append(objectMapper.writeValueAsString(id));
+        builder = new StringBuilder(Arrays.toString(DigestUtil.md5(builder.toString())));
+        String contentPrefix = Const.HOT_BLOG + "::BlogController::detail::" + builder;
+        redisTemplate.delete(contentPrefix);
+
+        //删除博客所在页的缓存
+        Blog blog = blogMapper.selectById(id);
+        //年份
+        int year = blog.getCreated().getYear();
+        /*
+         * 查出普通分页这条博客在第几页
+         */
+        long count = baseMapper.getPageCount(blog.getCreated().toString());
+        //他是第几条的
+        count++;
+
+        long pageNo = count % Const.PAGE_SIZE == 0 ? count / Const.PAGE_SIZE : count / Const.PAGE_SIZE + 1;
+        StringBuilder sb = new StringBuilder();
+        sb.append(objectMapper.writeValueAsString(pageNo));
+        sb = new StringBuilder(Arrays.toString(DigestUtil.md5(sb.toString())));
+        String pagePrefix = Const.HOT_BLOGS + "::BlogController::list::" + sb;
+        redisTemplate.delete(pagePrefix);
+
+        /*
+         * 查出年份分页这条博客在第几页
+         */
+        int countYear = baseMapper.getPageYearCount(blog.getCreated().toString(), year);
+        countYear++;
+
+        int pageYearNo = countYear % Const.PAGE_SIZE == 0 ? countYear / Const.PAGE_SIZE : countYear / Const.PAGE_SIZE + 1;
+        StringBuilder s = new StringBuilder();
+        s.append(objectMapper.writeValueAsString(pageYearNo));
+        s.append(objectMapper.writeValueAsString(year));
+        s = new StringBuilder(Arrays.toString(DigestUtil.md5(s.toString())));
+        String pageYearPrefix = Const.HOT_BLOGS + "::BlogController::listByYear::" + s;
+        redisTemplate.delete(pageYearPrefix);
     }
 
 
