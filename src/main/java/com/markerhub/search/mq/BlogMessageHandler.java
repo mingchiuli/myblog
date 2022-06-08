@@ -85,7 +85,6 @@ public class BlogMessageHandler {
                     Long updateId = message.getPostId();
                     Blog blogExisted = blogService.getById(updateId);
 
-
                     /*
                      Redis流程
                      */
