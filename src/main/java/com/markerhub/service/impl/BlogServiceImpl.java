@@ -331,7 +331,7 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
         Assert.isTrue(temp.getUserId().longValue() == ShiroUtil.getProfile().getId().longValue(), "没有权限编辑");
 
         BeanUtil.copyProperties(blog, temp, "id", "userId", "created", "status");
-        boolean update = updateById(temp);
+        boolean update = saveOrUpdate(temp);
 
         log.info("数据库更新{}号博客结果:{}", blog.getId(), update);
 
@@ -353,13 +353,12 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
     }
 
     @Override
-    @Transactional
     public Long initBlog() {
         Blog blog = new Blog();
 
         MyUtil.initBlog(blog);
 
-        boolean add = save(blog);
+        boolean add = saveOrUpdate(blog);
 
         log.info("初始化博客结果:{}", add);
         if (!add) {
