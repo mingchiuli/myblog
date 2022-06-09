@@ -134,7 +134,6 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
     }
 
     @Override
-    @Transactional
     public boolean recover(Blog blog) {
         return blogMapper.recover(blog);
     }
@@ -443,6 +442,7 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
     }
 
     @Override
+    @Transactional
     public void recoverBlog(Long id, Long userId) {
         String key = userId + Const.QUERY_DELETED + id;
         LinkedHashMap<String, Object> value = (LinkedHashMap<String, Object>) redisTemplate.opsForValue().get(key);
