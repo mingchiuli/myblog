@@ -2,7 +2,6 @@ package com.markerhub.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.lang.UUID;
-import cn.hutool.crypto.digest.DigestUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -44,7 +43,6 @@ import org.springframework.data.elasticsearch.core.query.NativeSearchQueryBuilde
 import org.springframework.data.redis.core.RedisOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.SessionCallback;
-import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -126,13 +124,11 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
 
 
     @Override
-    @Transactional
     public Integer getYearCount(Integer year) {
         return blogMapper.getYearCount(year);
     }
 
     @Override
-    @Transactional
     public List<BlogVo> queryAllBlogs() {
         return blogMapper.queryAllBlogs();
     }
@@ -178,7 +174,6 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
     }
 
     @Override
-    @Transactional
     public Blog getBlogDetail(Long id) {
 
         if (getById(id).getStatus() == 1) {
@@ -195,7 +190,6 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
     }
 
     @Override
-    @Transactional
     public Blog getAuthorizedBlogDetail(Long id) {
         Blog blog = getById(id);
 
@@ -338,7 +332,7 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
         Assert.isTrue(temp.getUserId().longValue() == ShiroUtil.getProfile().getId().longValue(), "没有权限编辑");
 
         BeanUtil.copyProperties(blog, temp, "id", "userId", "created", "status");
-        boolean update = saveOrUpdate(temp);
+        boolean update = updateById(temp);
 
         log.info("数据库更新{}号博客结果:{}", blog.getId(), update);
 
@@ -360,12 +354,13 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
     }
 
     @Override
+    @Transactional
     public Long initBlog() {
         Blog blog = new Blog();
 
         MyUtil.initBlog(blog);
 
-        boolean add = saveOrUpdate(blog);
+        boolean add = save(blog);
 
         log.info("初始化博客结果:{}", add);
 
@@ -564,11 +559,22 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
     }
 
     @Override
+    @Transactional
     public void deleteBlogs(Long[] ids) {
         ArrayList<Long> idList = new ArrayList<>(List.of(ids));
 
         for (Long id : idList) {
             Blog blog = getById(id);
+
+            //删除文章
+            boolean remove = removeById(id);
+
+            log.info("数据库删除{}号博客结果:{}", id, remove);
+
+            Assert.isTrue(remove, "删除失败");
+
+            //更改bloomFilter
+            redisTemplate.opsForValue().setBit(Const.BLOOM_FILTER_BLOG, blog.getId(), false);
 
             redisTemplate.execute(new SessionCallback<>() {
                 @Override
@@ -595,17 +601,6 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
             File file = new File(finalDest);
 
             MyUtil.deleteAllImg(file);
-
-            //删除文章
-            boolean remove = removeById(id);
-
-            log.info("数据库删除{}号博客结果:{}", id, remove);
-
-            Assert.isTrue(remove, "删除失败");
-
-            //更改bloomFilter
-            redisTemplate.opsForValue().setBit(Const.BLOOM_FILTER_BLOG, blog.getId(), false);
-
 
             //通知消息给mq,更新并删除缓存
             CorrelationData correlationData = new CorrelationData();
