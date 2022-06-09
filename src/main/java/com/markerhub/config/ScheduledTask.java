@@ -9,10 +9,8 @@ import com.markerhub.common.lang.Const;
 import com.markerhub.common.lang.Result;
 import com.markerhub.entity.Blog;
 import com.markerhub.service.BlogService;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.scheduling.annotation.EnableScheduling;
@@ -20,7 +18,9 @@ import org.springframework.scheduling.annotation.Scheduled;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Random;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -32,8 +32,13 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 public class ScheduledTask {
 
-    @Value("${year}")
-    private String yearsStr;
+    ThreadPoolExecutor executor;
+
+    @Autowired
+    public void setThreadPoolExecutor(ThreadPoolExecutor threadPoolExecutor) {
+        this.executor = threadPoolExecutor;
+    }
+
 
     BlogService blogService;
 
@@ -56,82 +61,109 @@ public class ScheduledTask {
         this.redisTemplate = redisTemplate;
     }
 
-    @SneakyThrows
     @Scheduled(cron = "0 0 0/2 * * ?")
     public void configureTask() {
-        //detail和getBlogStatus接口
-        List<Blog> blogs = blogService.list(new QueryWrapper<Blog>().ne("status", 1));
-        blogs.forEach(blog -> {
-            StringBuilder builder = new StringBuilder();
+        int[] years = blogService.searchYears();
 
-            try {
-                builder.append(objectMapper.writeValueAsString(blog.getId()));
-            } catch (JsonProcessingException e) {
-                log.info(e.getMessage());
-            }
+        CompletableFuture<Void> var1 = CompletableFuture.runAsync(() -> {
+            //detail和getBlogStatus接口
+            List<Blog> blogs = blogService.list(new QueryWrapper<Blog>().ne("status", 1));
+            blogs.forEach(blog -> {
+                StringBuilder builder = new StringBuilder();
 
-            builder = new StringBuilder(Arrays.toString(DigestUtil.md5(builder.toString())));
-            String contentPrefix = Const.HOT_BLOG + "::BlogController::detail::" + builder;
-            String statusPrefix = Const.BLOG_STATUS + "::BlogController::getBlogStatus::" + builder;
+                try {
+                    builder.append(objectMapper.writeValueAsString(blog.getId()));
+                } catch (JsonProcessingException e) {
+                    log.info(e.getMessage());
+                }
 
-            redisTemplate.opsForValue().set(contentPrefix, Result.succ(blog), new Random().nextInt(120) + 1, TimeUnit.MINUTES);
-            redisTemplate.opsForValue().set(statusPrefix, Result.succ(blog.getStatus()), new Random().nextInt(120) + 1, TimeUnit.MINUTES);
-            //bloomFilter
-            redisTemplate.opsForValue().setBit(Const.BLOOM_FILTER_BLOG, blog.getId(), true);
+                builder = new StringBuilder(Arrays.toString(DigestUtil.md5(builder.toString())));
+                String contentPrefix = Const.HOT_BLOG + "::BlogController::detail::" + builder;
+                String statusPrefix = Const.BLOG_STATUS + "::BlogController::getBlogStatus::" + builder;
 
-        });
 
-        //list接口
-        long count = blogService.count();
-        long totalPage = count % Const.PAGE_SIZE == 0 ? count / Const.PAGE_SIZE : count / Const.PAGE_SIZE + 1;
+                redisTemplate.opsForValue().set(contentPrefix, Result.succ(blog), ThreadLocalRandom.current().nextInt(120) + 1, TimeUnit.MINUTES);
+                redisTemplate.opsForValue().set(statusPrefix, Result.succ(blog.getStatus()), ThreadLocalRandom.current().nextInt(120) + 1, TimeUnit.MINUTES);
+                //bloomFilter
+                redisTemplate.opsForValue().setBit(Const.BLOOM_FILTER_BLOG, blog.getId(), true);
 
-        for (int i = 1; i <= totalPage; i++) {
-            Page<Blog> page = new Page<>(i, Const.PAGE_SIZE);
-            page = blogService.page(page, new QueryWrapper<Blog>().select("id", "title", "description", "link", "created").orderByDesc("created"));
-            StringBuilder sb = new StringBuilder();
-            sb.append(objectMapper.writeValueAsString(i));
-            sb = new StringBuilder(Arrays.toString(DigestUtil.md5(sb.toString())));
-            String pagesPrefix = Const.HOT_BLOGS + "::BlogController::list::" + sb;
-            redisTemplate.opsForValue().set(pagesPrefix, Result.succ(page), new Random().nextInt(120) + 1, TimeUnit.MINUTES);
-            //bloomFilter
-            redisTemplate.opsForValue().setBit(Const.BLOOM_FILTER_PAGE, i, true);
-        }
+            });
+        }, executor);
 
-        //getCountByYear接口
-        String[] years = yearsStr.split(",");
+        CompletableFuture<Void> var2 = CompletableFuture.runAsync(() -> {
+            //list接口
+            long count = blogService.count();
+            long totalPage = count % Const.PAGE_SIZE == 0 ? count / Const.PAGE_SIZE : count / Const.PAGE_SIZE + 1;
 
-        for (String yearStr : years) {
-            Integer year = Integer.parseInt(yearStr);
-            Integer countYear = blogService.getYearCount(year);
-            StringBuilder sb = new StringBuilder();
-            sb.append(objectMapper.writeValueAsString(year));
-            sb = new StringBuilder(Arrays.toString(DigestUtil.md5(sb.toString())));
-            String yearCountPrefix = Const.HOT_BLOGS + "::BlogController::getCountByYear::" + sb;
-            redisTemplate.opsForValue().set(yearCountPrefix, Result.succ(countYear), new Random().nextInt(120) + 1, TimeUnit.MINUTES);
-        }
-
-        //listByYear接口
-        for (String yearStr : years) {
-            int year = Integer.parseInt(yearStr);
-
-            //当前年份的总页数
-            LocalDateTime start = LocalDateTime.of(year, 1, 1, 0, 0, 0);
-            LocalDateTime end = LocalDateTime.of(year, 12, 31, 23, 59, 59);
-            long pageNum = blogService.count(new QueryWrapper<Blog>().between("created", start, end));
-            for (int i = 1; i <= pageNum; i++) {
-                //每一页的缓存
-                Page<Blog> pageData = blogService.listByYear(i, year);
+            for (int i = 1; i <= totalPage; i++) {
+                Page<Blog> page = new Page<>(i, Const.PAGE_SIZE);
+                page = blogService.page(page, new QueryWrapper<Blog>().select("id", "title", "description", "link", "created").orderByDesc("created"));
                 StringBuilder sb = new StringBuilder();
-                sb.append(objectMapper.writeValueAsString(i));
-                sb.append(objectMapper.writeValueAsString(year));
+                try {
+                    sb.append(objectMapper.writeValueAsString(i));
+                } catch (JsonProcessingException e) {
+                    log.error(e.getMessage());
+                }
                 sb = new StringBuilder(Arrays.toString(DigestUtil.md5(sb.toString())));
-                String yearListPrefix = Const.HOT_BLOGS + "::BlogController::listByYear::" + sb;
-                redisTemplate.opsForValue().set(yearListPrefix, Result.succ(pageData), new Random().nextInt(120) + 1, TimeUnit.MINUTES);
-
-                //bloom过滤器
-                redisTemplate.opsForValue().setBit(Const.BLOOM_FILTER_PAGE + year, i, true);
+                String pagesPrefix = Const.HOT_BLOGS + "::BlogController::list::" + sb;
+                redisTemplate.opsForValue().set(pagesPrefix, Result.succ(page), ThreadLocalRandom.current().nextInt(120) + 1, TimeUnit.MINUTES);
+                //bloomFilter
+                redisTemplate.opsForValue().setBit(Const.BLOOM_FILTER_PAGE, i, true);
             }
-        }
+        }, executor);
+
+        CompletableFuture<Void> var3 = CompletableFuture.runAsync(() -> {
+            //getCountByYear接口
+            for (int year : years) {
+                Integer countYear = blogService.getYearCount(year);
+                StringBuilder sb = new StringBuilder();
+                try {
+                    sb.append(objectMapper.writeValueAsString(year));
+                } catch (JsonProcessingException e) {
+                    log.error(e.getMessage());
+                }
+                sb = new StringBuilder(Arrays.toString(DigestUtil.md5(sb.toString())));
+                String yearCountPrefix = Const.HOT_BLOGS + "::BlogController::getCountByYear::" + sb;
+                redisTemplate.opsForValue().set(yearCountPrefix, Result.succ(countYear), ThreadLocalRandom.current().nextInt(120) + 1, TimeUnit.MINUTES);
+            }
+        }, executor);
+
+        CompletableFuture<Void> var4 = CompletableFuture.runAsync(() -> {
+            //listByYear接口
+            for (int year : years) {
+
+                //当前年份的总页数
+                LocalDateTime start = LocalDateTime.of(year, 1, 1, 0, 0, 0);
+                LocalDateTime end = LocalDateTime.of(year, 12, 31, 23, 59, 59);
+                long pageNum = blogService.count(new QueryWrapper<Blog>().between("created", start, end));
+                for (int i = 1; i <= pageNum; i++) {
+                    //每一页的缓存
+                    Page<Blog> pageData = blogService.listByYear(i, year);
+                    StringBuilder sb = new StringBuilder();
+                    try {
+                        sb.append(objectMapper.writeValueAsString(i));
+                        sb.append(objectMapper.writeValueAsString(year));
+                    } catch (JsonProcessingException e) {
+                        log.error(e.getMessage());
+                    }
+                    sb = new StringBuilder(Arrays.toString(DigestUtil.md5(sb.toString())));
+                    String yearListPrefix = Const.HOT_BLOGS + "::BlogController::listByYear::" + sb;
+                    redisTemplate.opsForValue().set(yearListPrefix, Result.succ(pageData), ThreadLocalRandom.current().nextInt(120) + 1, TimeUnit.MINUTES);
+
+                    //bloom过滤器
+                    redisTemplate.opsForValue().setBit(Const.BLOOM_FILTER_PAGE + year, i, true);
+                }
+            }
+        }, executor);
+
+
+        CompletableFuture<Void> var5 = CompletableFuture.runAsync(() -> {
+            int[] ints = blogService.searchYears();
+            String yearKey = Const.YEARS + "::BlogController::searchYears::";
+            redisTemplate.opsForValue().set(yearKey, Result.succ(ints), ThreadLocalRandom.current().nextInt(120) + 1, TimeUnit.MINUTES);
+        }, executor);
+
+        CompletableFuture.allOf(var1, var2, var3, var4, var5);
 
         log.info("定时任务执行完毕");
     }

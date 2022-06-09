@@ -633,4 +633,14 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
         redisTemplate.opsForValue().set(Const.READ_TOKEN, token, 24, TimeUnit.HOURS);
     }
 
+    @Override
+    public int[] searchYears() {
+        List<Integer> in = blogMapper.searchYears();
+        int[] out = new int[in.size()];
+        for (int i = 0; i < in.size(); i++) {
+            out[i] = in.get(i);
+        }
+        return out;
+    }
+
 }

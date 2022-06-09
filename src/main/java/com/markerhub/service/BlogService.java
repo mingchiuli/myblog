@@ -57,4 +57,7 @@ public interface BlogService extends IService<Blog> {
 
     void setBlogToken();
 
+    int[] searchYears();
+
+
 }

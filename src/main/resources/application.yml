@@ -43,8 +43,6 @@ vueblog:
     max-size: 100
     keep-alive-time: 10
 
-year: 2021,2022
-
 #logging:
 #  level:
 #    com.markerhub.mapper: debug

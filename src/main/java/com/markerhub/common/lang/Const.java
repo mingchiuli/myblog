@@ -65,7 +65,8 @@ public class Const {
 
     public static final String BLOOM_FILTER_PAGE = "bloom_filter_page";
 
-
+    public final static String YEARS = "years";
+    public final static String BLOOM_FILTER_YEARS = "bloom_filter_years";
 
 
 }

@@ -29,4 +29,7 @@ public interface BlogMapper extends BaseMapper<Blog> {
     int getPageCount(@Param("ldt") String ldt);
 
     int getPageYearCount(@Param("ldt") String ldt, @Param("year") int year);
+
+    List<Integer> searchYears();
+
 }

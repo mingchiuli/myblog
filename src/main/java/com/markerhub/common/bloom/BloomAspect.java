@@ -1,6 +1,7 @@
 package com.markerhub.common.bloom;
 
 import com.markerhub.common.lang.Const;
+import com.markerhub.service.BlogService;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.Signature;
@@ -8,7 +9,6 @@ import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;
 import org.aspectj.lang.annotation.Pointcut;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 
@@ -21,8 +21,12 @@ import org.springframework.stereotype.Component;
 @Slf4j
 public class BloomAspect {
 
-    @Value("${year}")
-    private String yearsStr;
+    BlogService blogService;
+
+    @Autowired
+    public void setBlogService(BlogService blogService) {
+        this.blogService = blogService;
+    }
 
     RedisTemplate<String, Object> redisTemplate;
 
@@ -59,9 +63,9 @@ public class BloomAspect {
                 break;
             case "getCountByYear":
                 int year = (Integer) args[0];
-                for (String y : yearsStr.split(",")) {
-                    int yi = Integer.parseInt(y);
-                    if (year == yi) {
+                int[] years = blogService.searchYears();
+                for (int y : years) {
+                    if (year == y) {
                         return;
                     }
                 }

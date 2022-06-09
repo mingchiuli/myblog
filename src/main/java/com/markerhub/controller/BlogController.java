@@ -376,4 +376,14 @@ public class BlogController {
         return Result.succ(status);
     }
 
+    /**
+     * 获取年份状态
+     */
+    @GetMapping("/searchYears")
+    @Cache(name = Const.YEARS)
+    public Result searchYears() {
+        int[] years = blogService.searchYears();
+        return Result.succ(years);
+    }
+
 }

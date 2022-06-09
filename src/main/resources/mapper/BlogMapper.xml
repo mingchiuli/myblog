@@ -31,5 +31,9 @@
         select count(*) from vueblog.m_blog where #{ldt} > created and YEAR(created) = #{year};
     </select>
 
+    <select id="searchYears" resultType="java.lang.Integer">
+        select distinct YEAR(created) from vueblog.m_blog order by YEAR(created);
+    </select>
+
 
 </mapper>
