@@ -362,7 +362,6 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
         boolean add = save(blog);
 
         log.info("初始化博客结果:{}", add);
-
         if (!add) {
             throw new InsertOrUpdateErrorException("初始化博客失败");
         }

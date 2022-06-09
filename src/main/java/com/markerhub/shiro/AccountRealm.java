@@ -15,6 +15,7 @@ import org.apache.shiro.authz.SimpleAuthorizationInfo;
 import org.apache.shiro.realm.AuthorizingRealm;
 import org.apache.shiro.subject.PrincipalCollection;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 import java.util.LinkedHashMap;
@@ -33,9 +34,11 @@ public class AccountRealm extends AuthorizingRealm {
     UserService userService;
 
     @Autowired
+    @Lazy
     private void setUserServiceImpl(UserService userService) {
         this.userService = userService;
     }
+
 
     RedisTemplate<String, Object> redisTemplate;
 
@@ -44,10 +47,11 @@ public class AccountRealm extends AuthorizingRealm {
         this.redisTemplate = redisTemplate;
     }
 
+
     JwtUtil jwtUtil;
 
     @Autowired
-    private void setJwtUtils(JwtUtil jwtUtil) {
+    public void setJwtUtil(JwtUtil jwtUtil) {
         this.jwtUtil = jwtUtil;
     }
 

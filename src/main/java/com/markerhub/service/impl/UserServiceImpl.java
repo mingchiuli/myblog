@@ -20,6 +20,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.TransactionDefinition;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -114,6 +117,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     }
 
     @Override
+    @Transactional
     public void addUser(UserVo user) {
         User userExist = getBaseMapper().selectOne(new QueryWrapper<User>().eq("id", user.getId()));
 
@@ -122,7 +126,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             user.setCreated(LocalDateTime.now());
             user.setLastLogin(LocalDateTime.now());
             boolean update = saveOrUpdate(user);
-
             log.info("添加{}号账号结果:{}", user.getId(), update);
 
             Assert.isTrue(update, "添加失败");

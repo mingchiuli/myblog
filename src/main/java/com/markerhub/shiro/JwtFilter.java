@@ -13,6 +13,9 @@ import org.apache.shiro.authc.AuthenticationToken;
 import org.apache.shiro.web.filter.authc.AuthenticatingFilter;
 import org.apache.shiro.web.util.WebUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.context.annotation.Role;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
@@ -49,6 +52,7 @@ public class JwtFilter extends AuthenticatingFilter {
     UserService userService;
 
     @Autowired
+    @Lazy
     public void setUserService(UserService userService) {
         this.userService = userService;
     }
