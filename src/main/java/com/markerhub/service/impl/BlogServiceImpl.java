@@ -168,7 +168,7 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
     @Override
     public Blog getBlogDetail(Long id) {
 
-        if (getById(id).getStatus() == 1) {
+        if (getOne(new QueryWrapper<Blog>().select("status").eq("id", id)).getStatus() == 1) {
             throw new AuthenticationException("没有访问权限");
         }
 

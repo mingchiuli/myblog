@@ -84,10 +84,17 @@ public class ScheduledTask {
 
                 redisTemplate.opsForValue().set(contentPrefix, Result.succ(blog), ThreadLocalRandom.current().nextInt(120) + 1, TimeUnit.MINUTES);
                 redisTemplate.opsForValue().set(statusPrefix, Result.succ(blog.getStatus()), ThreadLocalRandom.current().nextInt(120) + 1, TimeUnit.MINUTES);
-                //bloomFilter
-                redisTemplate.opsForValue().setBit(Const.BLOOM_FILTER_BLOG, blog.getId(), true);
 
             });
+
+            //bloomFilter
+            List<Blog> blogIds = blogService.list(new QueryWrapper<Blog>().select("id"));
+            blogIds.forEach(blogId -> {
+                redisTemplate.opsForValue().setBit(Const.BLOOM_FILTER_BLOG, blogId.getId(), true);
+            });
+
+
+
         }, executor);
 
         CompletableFuture<Void> var2 = CompletableFuture.runAsync(() -> {
