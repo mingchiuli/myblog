@@ -105,7 +105,9 @@ public class CooperateController {
         if (authorization != null) {
             String token = authorization.get(0);
             Claims claim = jwtUtil.getClaimByToken(token);
-            String userId = claim.getSubject();
+            String username = claim.getSubject();
+
+            String userId = userService.getOne(new QueryWrapper<User>().select("id").eq("username", username)).getId().toString();
 
             redisTemplate.opsForHash().delete(Const.CO_PREFIX + blogId, userId);
 
@@ -215,7 +217,7 @@ public class CooperateController {
 
         Assert.notNull(blog, "该博客不存在");
 
-        if (!Const.ADMIN.equals(userService.getById(userId).getRole()) && blog.getStatus() == 1) {
+        if (!Const.ADMIN.equals(userService.getOne(new QueryWrapper<User>().select("role").eq("id", userId)).getRole()) && blog.getStatus() == 1) {
             throw new AuthenticationException("游客账号没有编辑权限");
         }
 

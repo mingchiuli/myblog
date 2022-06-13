@@ -48,17 +48,13 @@ public class LoginSuccessHandler implements AuthenticationSuccessHandler {
 		// 生成jwt
 		String jwt = jwtUtils.generateToken(authentication.getName());
 
-		User user = userService.getOne(new QueryWrapper<User>().eq("username", authentication.getName()));
+		User user = userService.getOne(new QueryWrapper<User>().select("id", "username", "avatar", "email", "role").eq("username", authentication.getName()));
 		userService.update(new UpdateWrapper<User>().set("last_login", LocalDateTime.now()).eq("username", authentication.getName()));
 
 		MyUtil.setUserToCache(jwt, user, (long) (5 * 60));
 
 		Result succ = Result.succ(MapUtil.builder()
-				.put("id", user.getId())
-				.put("username", user.getUsername())
-				.put("avatar", user.getAvatar())
-				.put("email", user.getEmail())
-				.put("role", user.getRole())
+				.put("user", user)
 				.put("token", jwt)
 				.map());
 
