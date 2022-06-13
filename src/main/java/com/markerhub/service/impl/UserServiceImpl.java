@@ -183,6 +183,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     }
 
     @Override
+    @Transactional
     public void getPassword(PasswordDto passwordDto) {
         boolean update = update(new UpdateWrapper<User>().eq("username", passwordDto.getUsername()).set("password", bCryptPasswordEncoder.encode(passwordDto.getPassword())));
 

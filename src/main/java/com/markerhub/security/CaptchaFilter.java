@@ -16,11 +16,20 @@ import java.io.IOException;
 @Component
 public class CaptchaFilter extends OncePerRequestFilter {
 
-	@Autowired
+
 	RedisTemplate<String, Object> redisTemplate;
 
-	@Autowired
 	LoginFailureHandler loginFailureHandler;
+
+	@Autowired
+	public void setRedisTemplate(RedisTemplate<String, Object> redisTemplate) {
+		this.redisTemplate = redisTemplate;
+	}
+
+	@Autowired
+	public void setLoginFailureHandler(LoginFailureHandler loginFailureHandler) {
+		this.loginFailureHandler = loginFailureHandler;
+	}
 
 	@Override
 	protected void doFilterInternal(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse, FilterChain filterChain) throws ServletException, IOException {
