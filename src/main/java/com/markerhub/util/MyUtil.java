@@ -15,6 +15,7 @@ import com.markerhub.service.UserService;
 import com.rabbitmq.client.Channel;
 import io.jsonwebtoken.Claims;
 import lombok.SneakyThrows;
+import org.apache.catalina.valves.rewrite.Substitution;
 import org.springframework.amqp.core.Message;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.elasticsearch.core.SearchHit;
@@ -28,6 +29,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.SessionCallback;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.lang.NonNull;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.util.StringUtils;
 
 import javax.servlet.http.HttpServletRequest;
@@ -57,9 +59,12 @@ public class MyUtil {
             // 教验jwt
             Claims claim = jwtUtil.getClaimByToken(token);
 
-            String userId = Objects.requireNonNull(claim).getSubject();
+            String username = Objects.requireNonNull(claim).getSubject();
 
-            return Long.valueOf(userId);
+            UserService userService = SpringUtil.getBean(UserService.class);
+            User user = userService.getOne(new QueryWrapper<User>().select("id").eq("username", username));
+
+            return user.getId();
         }
     }
 
@@ -98,13 +103,13 @@ public class MyUtil {
         map.put(Const.TOKEN, token);
 
         //续10分钟
-        if (Boolean.FALSE.equals(redisTemplate.hasKey(Const.USER_PREFIX + user.getId()))) {
+        if (Boolean.FALSE.equals(redisTemplate.hasKey(Const.USER_PREFIX + user.getUsername()))) {
             redisTemplate.execute(new SessionCallback<>() {
                 @Override
                 public Object execute(@NonNull RedisOperations operations) throws DataAccessException {
                     operations.multi();
-                    operations.opsForHash().putAll(Const.USER_PREFIX + user.getId().toString(), map);
-                    operations.expire(Const.USER_PREFIX + user.getId().toString(), time, TimeUnit.SECONDS);
+                    operations.opsForHash().putAll(Const.USER_PREFIX + user.getUsername(), map);
+                    operations.expire(Const.USER_PREFIX + user.getUsername(), time, TimeUnit.SECONDS);
                     operations.exec();
                     return null;
                 }
@@ -285,7 +290,10 @@ public class MyUtil {
     }
 
     public static void initBlog(Blog blog) {
-        blog.setUserId(ShiroUtil.getProfile().getId());
+
+        UserService userService = SpringUtil.getBean(UserService.class);
+        User user = userService.getOne(new QueryWrapper<User>().select("id").eq("username", SecurityContextHolder.getContext().getAuthentication().getName()));
+        blog.setUserId(user.getId());
         blog.setCreated(LocalDateTime.now());
         blog.setStatus(0);
         blog.setTitle("每天都有好心情");

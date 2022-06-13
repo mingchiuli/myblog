@@ -98,22 +98,11 @@
     <orderEntry type="library" name="Maven: org.springframework.boot:spring-boot-starter-jdbc:2.6.2" level="project" />
     <orderEntry type="library" name="Maven: com.zaxxer:HikariCP:4.0.3" level="project" />
     <orderEntry type="library" name="Maven: org.springframework:spring-jdbc:5.3.14" level="project" />
-    <orderEntry type="library" name="Maven: org.apache.shiro:shiro-spring-boot-web-starter:1.9.0" level="project" />
-    <orderEntry type="library" name="Maven: org.apache.shiro:shiro-spring-boot-starter:1.9.0" level="project" />
-    <orderEntry type="library" name="Maven: org.apache.shiro:shiro-spring:1.9.0" level="project" />
-    <orderEntry type="library" name="Maven: org.apache.shiro:shiro-core:1.9.0" level="project" />
-    <orderEntry type="library" name="Maven: org.apache.shiro:shiro-lang:1.9.0" level="project" />
-    <orderEntry type="library" name="Maven: org.apache.shiro:shiro-cache:1.9.0" level="project" />
-    <orderEntry type="library" name="Maven: org.apache.shiro:shiro-crypto-hash:1.9.0" level="project" />
-    <orderEntry type="library" name="Maven: org.apache.shiro:shiro-crypto-core:1.9.0" level="project" />
-    <orderEntry type="library" name="Maven: org.apache.shiro:shiro-crypto-cipher:1.9.0" level="project" />
-    <orderEntry type="library" name="Maven: org.apache.shiro:shiro-config-core:1.9.0" level="project" />
-    <orderEntry type="library" name="Maven: org.apache.shiro:shiro-config-ogdl:1.9.0" level="project" />
-    <orderEntry type="library" name="Maven: commons-beanutils:commons-beanutils:1.9.4" level="project" />
-    <orderEntry type="library" name="Maven: commons-collections:commons-collections:3.2.2" level="project" />
-    <orderEntry type="library" name="Maven: org.apache.shiro:shiro-event:1.9.0" level="project" />
-    <orderEntry type="library" name="Maven: org.apache.shiro:shiro-web:1.9.0" level="project" />
-    <orderEntry type="library" name="Maven: org.owasp.encoder:encoder:1.2.2" level="project" />
+    <orderEntry type="library" name="Maven: org.springframework.boot:spring-boot-starter-security:2.6.2" level="project" />
+    <orderEntry type="library" name="Maven: org.springframework.security:spring-security-config:5.6.1" level="project" />
+    <orderEntry type="library" name="Maven: org.springframework.security:spring-security-core:5.6.1" level="project" />
+    <orderEntry type="library" name="Maven: org.springframework.security:spring-security-crypto:5.6.1" level="project" />
+    <orderEntry type="library" name="Maven: org.springframework.security:spring-security-web:5.6.1" level="project" />
     <orderEntry type="library" name="Maven: javax.xml.bind:jaxb-api:2.3.1" level="project" />
     <orderEntry type="library" name="Maven: javax.activation:javax.activation-api:1.2.0" level="project" />
     <orderEntry type="library" name="Maven: org.springframework.boot:spring-boot-starter-data-redis:2.6.2" level="project" />

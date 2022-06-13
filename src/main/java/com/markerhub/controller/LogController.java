@@ -1,12 +1,11 @@
 package com.markerhub.controller;
 
-import com.markerhub.common.lang.Const;
 import com.markerhub.common.lang.Result;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.shiro.authz.annotation.RequiresRoles;
 import org.springframework.amqp.rabbit.listener.MessageListenerContainer;
 import org.springframework.amqp.rabbit.listener.RabbitListenerEndpointRegistry;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -27,7 +26,7 @@ public class LogController {
     }
 
     @GetMapping("/startMQ")
-    @RequiresRoles(Const.ADMIN)
+    @PreAuthorize("hasRole('admin')")
     public Result start() {
         MessageListenerContainer logContainer = registry.getListenerContainer("log");
 
@@ -41,7 +40,7 @@ public class LogController {
     }
 
     @GetMapping("/stopMQ")
-    @RequiresRoles(Const.ADMIN)
+    @PreAuthorize("hasRole('admin')")
     public Result stop() {
         MessageListenerContainer logContainer = registry.getListenerContainer("log");
 

@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.markerhub.common.exception.AuthenticationException;
 import com.markerhub.common.exception.InsertOrUpdateErrorException;
 import com.markerhub.common.lang.Const;
 import com.markerhub.common.vo.BlogPostDocumentVo;
@@ -19,11 +20,10 @@ import com.markerhub.search.model.BlogPostDocument;
 import com.markerhub.search.mq.PostMQIndexMessage;
 import com.markerhub.service.BlogService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.markerhub.service.UserService;
 import com.markerhub.util.MyUtil;
-import com.markerhub.util.ShiroUtil;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.shiro.authc.AuthenticationException;
 import org.elasticsearch.index.query.MultiMatchQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.fetch.subphase.highlight.HighlightBuilder;
@@ -44,6 +44,7 @@ import org.springframework.data.redis.core.RedisOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.SessionCallback;
 import org.springframework.lang.NonNull;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
@@ -72,6 +73,13 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
 
     @Value("${imgFoldName}")
     private String img;
+
+    UserService userService;
+
+    @Autowired
+    public void setUserService(UserService userService) {
+        this.userService = userService;
+    }
 
     ObjectMapper objectMapper;
 
@@ -153,21 +161,6 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
 
     @Override
     public Page<Blog> listBlogsByPage(Integer currentPage) {
-
-        long count = count();
-
-        long totalPage = count % Const.PAGE_SIZE == 0 ? count / Const.PAGE_SIZE : count / Const.PAGE_SIZE + 1;
-
-        if (currentPage > totalPage) {
-            Page<Blog> page = new Page<>(totalPage, Const.PAGE_SIZE);
-            return page(page, new QueryWrapper<Blog>().select("title", "description", "link", "created").orderByDesc("created"));
-        }
-
-        if (totalPage < 1) {
-            Page<Blog> page = new Page<>(1, Const.PAGE_SIZE);
-            return page(page, new QueryWrapper<Blog>().select("title", "description", "link", "created").orderByDesc("created"));
-        }
-
         Page<Blog> page = new Page<>(currentPage, Const.PAGE_SIZE);
         return page(page, new QueryWrapper<Blog>().select("id", "title", "description", "link", "created").orderByDesc("created"));
     }
@@ -327,8 +320,11 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
         //都是更新，之前初始化过了
 
         Blog temp = getById(blog.getId());
+
+        User user = userService.getOne(new QueryWrapper<User>().select("username").eq("id", temp.getUserId()));
+
         // 只能编辑自己的文章
-        Assert.isTrue(temp.getUserId().longValue() == ShiroUtil.getProfile().getId().longValue(), "没有权限编辑");
+        Assert.isTrue(Objects.equals(user.getUsername(), SecurityContextHolder.getContext().getAuthentication().getName()), "没有权限编辑");
 
         BeanUtil.copyProperties(blog, temp, "id", "userId", "created", "status");
         boolean update = saveOrUpdate(temp);

@@ -2,7 +2,6 @@ package com.markerhub.common.exception;
 
 import com.markerhub.common.lang.Result;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.shiro.ShiroException;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.ObjectError;
@@ -21,8 +20,8 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 public class GlobalExceptionHandler {
 
     @ResponseStatus(HttpStatus.UNAUTHORIZED)
-    @ExceptionHandler(value = ShiroException.class)
-    public Result handler(ShiroException e) {
+    @ExceptionHandler(value = AuthenticationException.class)
+    public Result handler(AuthenticationException e) {
         log.error("权限异常------------{}", e);
         return Result.fail(401, e.getMessage(), null);
     }

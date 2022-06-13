@@ -9,9 +9,8 @@ import com.markerhub.entity.Role;
 import com.markerhub.service.RoleMenuService;
 import com.markerhub.service.RoleService;
 import com.markerhub.service.UserService;
-import org.apache.shiro.authz.annotation.Logical;
-import org.apache.shiro.authz.annotation.RequiresRoles;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -47,14 +46,14 @@ public class RoleController {
     }
 
     @GetMapping("/info/{id}")
-    @RequiresRoles(Const.ADMIN)
+    @PreAuthorize("hasRole('admin')")
     public Result info(@PathVariable("id") Long id) {
         Role role = roleService.info(id);
         return Result.succ(role);
     }
 
     @GetMapping("/list")
-    @RequiresRoles(value = {Const.ADMIN, Const.GIRL, Const.BOY}, logical = Logical.OR)
+    @PreAuthorize("hasAnyRole('admin', 'boy', 'girl')")
     public Result list(String name, Integer current, Integer size) {
 
         Page<Role> pageData = roleService.page(new Page<>(current, size),
@@ -66,21 +65,21 @@ public class RoleController {
     }
 
     @PostMapping("/save")
-    @RequiresRoles(Const.ADMIN)
+    @PreAuthorize("hasRole('admin')")
     public Result save(@Validated @RequestBody Role role) {
         roleService.saveRole(role);
         return Result.succ(null);
     }
 
     @PostMapping("/update")
-    @RequiresRoles(Const.ADMIN)
+    @PreAuthorize("hasRole('admin')")
     public Result update(@Validated @RequestBody Role role) {
         roleService.updateRole(role);
         return Result.succ(null);
     }
 
     @PostMapping("/delete")
-    @RequiresRoles(Const.ADMIN)
+    @PreAuthorize("hasRole('admin')")
     public Result info(@RequestBody Long[] ids) {
         roleService.deleteRole(ids);
         return Result.succ(null);
@@ -88,7 +87,7 @@ public class RoleController {
 
     @Transactional
     @PostMapping("/perm/{roleId}")
-    @RequiresRoles(Const.ADMIN)
+    @PreAuthorize("hasRole('admin')")
     public Result info(@PathVariable("roleId") Long roleId, @RequestBody Long[] menuIds) {
         menuIds = roleService.perm(roleId, menuIds);
         return Result.succ(menuIds);

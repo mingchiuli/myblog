@@ -1,7 +1,6 @@
 package com.markerhub.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
-import cn.hutool.crypto.SecureUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -18,14 +17,13 @@ import com.markerhub.util.JwtUtil;
 import com.markerhub.util.MyUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.TransactionDefinition;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
-
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -42,6 +40,15 @@ import java.util.UUID;
 @Service
 @Slf4j
 public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements UserService {
+
+
+    BCryptPasswordEncoder bCryptPasswordEncoder;
+
+    @Autowired
+    @Lazy
+    public void setbCryptPasswordEncoder(BCryptPasswordEncoder bCryptPasswordEncoder) {
+        this.bCryptPasswordEncoder = bCryptPasswordEncoder;
+    }
 
     RoleService roleService;
 
@@ -117,12 +124,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     }
 
     @Override
-    @Transactional
     public void addUser(UserVo user) {
         User userExist = getBaseMapper().selectOne(new QueryWrapper<User>().eq("id", user.getId()));
 
         if (userExist == null) {//添加
-            user.setPassword(SecureUtil.md5(user.getPassword()));
+            user.setPassword(bCryptPasswordEncoder.encode(user.getPassword()));
             user.setCreated(LocalDateTime.now());
             user.setLastLogin(LocalDateTime.now());
             boolean update = saveOrUpdate(user);
@@ -143,6 +149,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     }
 
     @Override
+    @Transactional
     public void deleteUsers(Long[] ids) {
         for (Long id : ids) {
             String role = getOne(new QueryWrapper<User>().eq("id", id)).getRole();
@@ -154,7 +161,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             if (b) {
                 MyUtil.setUserToCache(UUID.randomUUID().toString(), user, 604800L);
             }
-            Assert.isTrue(!b, "删除[" + id + "]失败");
+            Assert.isTrue(b, "删除[" + id + "]失败");
         }
 
     }
@@ -169,7 +176,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         Assert.isTrue(update, "锁定失败");
         //再对缓存进行更新赋值操作
         User user = getById(id);
-        String jwt = jwtUtil.generateToken(id);
+        String jwt = jwtUtil.generateToken(user.getUsername());
 
         //替换掉原来的user会话
         MyUtil.setUserToCache(jwt, user, (long) (6 * 60 * 60));
@@ -177,7 +184,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
     @Override
     public void getPassword(PasswordDto passwordDto) {
-        boolean update = update(new UpdateWrapper<User>().eq("username", passwordDto.getUsername()).set("password", SecureUtil.md5(passwordDto.getPassword())));
+        boolean update = update(new UpdateWrapper<User>().eq("username", passwordDto.getUsername()).set("password", bCryptPasswordEncoder.encode(passwordDto.getPassword())));
 
         log.info("修改{}密码结果:{}", passwordDto.getUsername(), update);
 

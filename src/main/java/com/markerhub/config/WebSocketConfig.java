@@ -1,15 +1,14 @@
 package com.markerhub.config;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.markerhub.common.exception.AuthenticationException;
 import com.markerhub.common.lang.Const;
 import com.markerhub.common.vo.StompPrincipal;
 import com.markerhub.entity.User;
 import com.markerhub.service.UserService;
-import com.markerhub.shiro.JwtToken;
 import com.markerhub.util.JwtUtil;
 import io.jsonwebtoken.Claims;
 import lombok.NonNull;
-import org.apache.shiro.authc.AuthenticationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -82,13 +81,14 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer{
                     if (StompCommand.CONNECT.equals(accessor.getCommand())) {
                         String token = accessor.getFirstNativeHeader("Authorization");
                         //验证token是否有效
-                        JwtToken jwtToken = new JwtToken(token);
-                        Claims claim = jwtUtil.getClaimByToken((String) jwtToken.getCredentials());
+                        Claims claim = jwtUtil.getClaimByToken(token);
                         if (claim == null || jwtUtil.isTokenExpired(claim.getExpiration())) {
                             throw new AuthenticationException("token验证失败");
                         }
 
-                        String id = claim.getSubject();
+                        String username = claim.getSubject();
+
+                        String id = userService.getOne(new QueryWrapper<User>().select("id").eq("username", username)).getId().toString();
 
                         String role;
 
@@ -98,7 +98,6 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer{
                             role = profileRole;
                         } else {
                             role = userService.getOne(new QueryWrapper<User>().select("role").eq("id", id)).getRole();
-//                            role = (String) userService.getBaseMapper().selectObjs(new QueryWrapper<User>().select("role").eq("id", id)).get(0);
                         }
 
                         if (!(Const.ADMIN.equals(role) || Const.BOY.equals(role) || Const.GIRL.equals(role))) {

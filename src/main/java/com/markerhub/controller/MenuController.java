@@ -1,14 +1,12 @@
 package com.markerhub.controller;
 
-import com.markerhub.common.lang.Const;
 import com.markerhub.common.lang.Result;
 import com.markerhub.entity.Menu;
 import com.markerhub.service.MenuService;
 import com.markerhub.service.RoleMenuService;
 import com.markerhub.service.UserService;
-import org.apache.shiro.authz.annotation.RequiresAuthentication;
-import org.apache.shiro.authz.annotation.RequiresRoles;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import javax.servlet.http.HttpServletRequest;
@@ -49,7 +47,6 @@ public class MenuController {
      * @return
      */
     @GetMapping("/nav")
-    @RequiresAuthentication
     public Result nav(HttpServletRequest request) {
         List<Menu> navs = menuService.nav(request);
         return Result.succ(navs);
@@ -57,13 +54,13 @@ public class MenuController {
 
 
     @GetMapping("/info/{id}")
-    @RequiresRoles(Const.ADMIN)
+    @PreAuthorize("hasRole('admin')")
     public Result info(@PathVariable(name = "id") Long id) {
         return Result.succ(menuService.getById(id));
     }
 
     @GetMapping("/list")
-    @RequiresRoles(Const.ADMIN)
+    @PreAuthorize("hasRole('admin')")
     public Result list() {
 
         List<Menu> menus = menuService.tree();
@@ -71,7 +68,7 @@ public class MenuController {
     }
 
     @PostMapping("/save")
-    @RequiresRoles(Const.ADMIN)
+    @PreAuthorize("hasRole('admin')")
     public Result save(@Validated @RequestBody Menu menu) {
 
         menuService.save(menu);
@@ -80,7 +77,7 @@ public class MenuController {
     }
 
     @PostMapping("/update")
-    @RequiresRoles(Const.ADMIN)
+    @PreAuthorize("hasRole('admin')")
     public Result update(@Validated @RequestBody Menu menu) {
 
         menuService.updateById(menu);
@@ -89,7 +86,7 @@ public class MenuController {
     }
 
     @PostMapping("/delete/{id}")
-    @RequiresRoles(Const.ADMIN)
+    @PreAuthorize("hasRole('admin')")
     public Result delete(@PathVariable("id") Long id) {
         menuService.delete(id);
         return Result.succ(null);

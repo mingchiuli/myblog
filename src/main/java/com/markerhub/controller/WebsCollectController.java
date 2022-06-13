@@ -11,11 +11,9 @@ import com.markerhub.service.WebsCollectService;
 import com.markerhub.util.JwtUtil;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.shiro.authz.annotation.Logical;
-import org.apache.shiro.authz.annotation.RequiresAuthentication;
-import org.apache.shiro.authz.annotation.RequiresRoles;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.elasticsearch.core.ElasticsearchRestTemplate;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -65,14 +63,13 @@ public class WebsCollectController {
     }
 
     @PostMapping("/addWebsite")
-    @RequiresAuthentication
     public Result addWebsite(@Validated @RequestBody WebsCollectDocument document) {
         websCollectService.addWebsite(document);
         return Result.succ(null);
     }
 
     @GetMapping("/getWebInfo/{id}")
-    @RequiresRoles(value = {Const.ADMIN, Const.GIRL, Const.BOY}, logical = Logical.OR)
+    @PreAuthorize("hasAnyRole('admin', 'boy', 'girl')")
     public Result getWebInfo(@PathVariable String id) {
         WebsCollectDocument document = elasticsearchRestTemplate.get(id, WebsCollectDocument.class);
 
@@ -87,14 +84,14 @@ public class WebsCollectController {
 
     @SneakyThrows
     @PostMapping("/modifyWebsite")
-    @RequiresRoles(Const.ADMIN)
+    @PreAuthorize("hasRole('admin')")
     public Result modifyWebsite(@Validated @RequestBody WebsCollectDocument document) {
         websCollectService.modifyWebsite(document);
         return Result.succ(null);
     }
 
     @GetMapping("/deleteWebsite/{id}")
-    @RequiresRoles(Const.ADMIN)
+    @PreAuthorize("hasRole('admin')")
     public Result deleteWebsite(@PathVariable String id) {
         String delete = elasticsearchRestTemplate.delete(id, WebsCollectDocument.class);
         log.info("删除网页搜藏结果:{}", delete);
@@ -102,7 +99,7 @@ public class WebsCollectController {
     }
 
     @GetMapping("searchWebsiteAuth/{currentPage}")
-    @RequiresRoles(Const.ADMIN)
+    @PreAuthorize("hasRole('admin')")
     public Result searchWebsiteAuth(@PathVariable Integer currentPage, @RequestParam String keyword) {
         Page<WebsCollectDocumentVo> page = websCollectService.searchWebsiteAuth(currentPage, keyword);
         return Result.succ(page);

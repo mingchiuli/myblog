@@ -3,6 +3,7 @@ package com.markerhub.controller;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.map.MapUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.markerhub.common.exception.AuthenticationException;
 import com.markerhub.common.vo.CoNumberList;
 import com.markerhub.common.vo.Content;
 import com.markerhub.common.vo.Message;
@@ -12,20 +13,17 @@ import com.markerhub.common.vo.UserVo;
 import com.markerhub.entity.*;
 import com.markerhub.service.BlogService;
 import com.markerhub.service.UserService;
-import com.markerhub.shiro.JwtToken;
 import com.markerhub.util.JwtUtil;
 import com.markerhub.util.MyUtil;
 import io.jsonwebtoken.Claims;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.shiro.authc.AuthenticationException;
-import org.apache.shiro.authz.annotation.Logical;
-import org.apache.shiro.authz.annotation.RequiresRoles;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.Headers;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.Assert;
 import org.springframework.util.LinkedMultiValueMap;
@@ -88,11 +86,11 @@ public class CooperateController {
 
         Map<Object, Object> entries = redisTemplate.opsForHash().entries(Const.CO_PREFIX + blogId);
 
-        ArrayList<User> users = new ArrayList<>();
+        ArrayList<UserVo> users = new ArrayList<>();
 
         for (Map.Entry<Object, Object> entry : entries.entrySet()) {
 
-            User value = MyUtil.jsonToObj(entry.getValue(), User.class);
+            UserVo value = MyUtil.jsonToObj(entry.getValue(), UserVo.class);
             users.add(value);
         }
 
@@ -106,9 +104,7 @@ public class CooperateController {
         List<String> authorization = map.get("Authorization");
         if (authorization != null) {
             String token = authorization.get(0);
-
-            JwtToken jwtToken = new JwtToken(token);
-            Claims claim = jwtUtil.getClaimByToken((String) jwtToken.getCredentials());
+            Claims claim = jwtUtil.getClaimByToken(token);
             String userId = claim.getSubject();
 
             redisTemplate.opsForHash().delete(Const.CO_PREFIX + blogId, userId);
@@ -117,11 +113,11 @@ public class CooperateController {
 
             Map<Object, Object> entries = redisTemplate.opsForHash().entries(Const.CO_PREFIX + blogId);
 
-            ArrayList<User> users = new ArrayList<>();
+            ArrayList<UserVo> users = new ArrayList<>();
 
             for (Map.Entry<Object, Object> entry : entries.entrySet()) {
 
-                User value = MyUtil.jsonToObj(entry.getValue(), User.class);
+                UserVo value = MyUtil.jsonToObj(entry.getValue(), UserVo.class);
                 users.add(value);
             }
 
@@ -167,7 +163,7 @@ public class CooperateController {
     }
 
     @GetMapping("/coStatus/{blogId}")
-    @RequiresRoles(value = {Const.ADMIN, Const.GIRL, Const.BOY}, logical = Logical.OR)
+    @PreAuthorize("hasAnyRole('admin', 'boy', 'girl')")
     @ResponseBody
     public Result coStatus(@PathVariable Long blogId) {
         Map<Object, Object> entries = redisTemplate.opsForHash().entries(Const.CO_PREFIX + blogId);
@@ -199,7 +195,7 @@ public class CooperateController {
 
 
     @GetMapping("/blogWSCooperate/{blogId}/{coNumber}")
-    @RequiresRoles(value = {Const.ADMIN, Const.GIRL, Const.BOY}, logical = Logical.OR)
+    @PreAuthorize("hasAnyRole('admin', 'boy', 'girl')")
     @ResponseBody
     public Result init(@PathVariable Long blogId, @PathVariable Integer coNumber, HttpServletRequest request) {
 
@@ -209,9 +205,10 @@ public class CooperateController {
 
         String jwt = request.getHeader("Authorization");
 
-        JwtToken jwtToken = new JwtToken(jwt);
-        Claims claim = jwtUtil.getClaimByToken((String) jwtToken.getCredentials());
-        String userId = claim.getSubject();
+        Claims claim = jwtUtil.getClaimByToken(jwt);
+        String username = claim.getSubject();
+
+        String userId = userService.getOne(new QueryWrapper<User>().select("id").eq("username", username)).getId().toString();
 
 
         Blog blog = blogService.getById(blogId);

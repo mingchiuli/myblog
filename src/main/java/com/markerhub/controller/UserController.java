@@ -3,17 +3,14 @@ package com.markerhub.controller;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.markerhub.common.dto.PasswordDto;
-import com.markerhub.common.lang.Const;
 import com.markerhub.common.lang.Result;
 import com.markerhub.common.vo.UserVo;
 import com.markerhub.entity.User;
 import com.markerhub.service.UserService;
 import com.markerhub.util.JwtUtil;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.shiro.authz.annotation.Logical;
-import org.apache.shiro.authz.annotation.RequiresAuthentication;
-import org.apache.shiro.authz.annotation.RequiresRoles;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -43,7 +40,7 @@ public class UserController {
     /**
      * 更改账户状态，0可以正常使用，1禁用
      */
-    @RequiresRoles(Const.ADMIN)
+    @PreAuthorize("hasRole('admin')")
     @GetMapping("/modifyUser/{id}/{status}")
     public Result modifyUser(@PathVariable Integer id, @PathVariable Integer status) {
         userService.modifyUser(id, status);
@@ -53,7 +50,7 @@ public class UserController {
     /**
      * 查询账号
      */
-    @RequiresRoles(value = {Const.ADMIN, Const.BOY, Const.GIRL, Const.GUEST}, logical = Logical.OR)
+    @PreAuthorize("hasAnyRole('admin', 'boy', 'girl', 'guest')")
     @GetMapping("/queryUsers")
     public Result queryUsers(@RequestParam String role, @RequestParam Integer currentPage, @RequestParam Integer size) {
 
@@ -65,7 +62,7 @@ public class UserController {
     /**
      * 新增账号，修改信息
      */
-    @RequiresRoles(Const.ADMIN)
+    @PreAuthorize("hasRole('admin')")
     @PostMapping("/addUser")
     public Result addUser(@Validated @RequestBody UserVo user) {
         userService.addUser(user);
@@ -77,7 +74,7 @@ public class UserController {
      * @param ids
      * @return
      */
-    @RequiresRoles(Const.ADMIN)
+    @PreAuthorize("hasRole('admin')")
     @PostMapping("/deleteUsers")
     public Result deleteUsers(@RequestBody Long[] ids) {
         userService.deleteUsers(ids);
@@ -89,7 +86,6 @@ public class UserController {
      * @param id
      * @return
      */
-    @RequiresAuthentication
     @GetMapping("/getInfoById/{id}")
     public Result getRoleId(@PathVariable Long id) {
         User user = userService.getBaseMapper().selectOne(new QueryWrapper<User>().eq("id", id).select("id", "username", "email", "role", "avatar", "status"));
@@ -101,7 +97,7 @@ public class UserController {
      * @param id
      * @return
      */
-    @RequiresRoles(Const.ADMIN)
+    @PreAuthorize("hasRole('admin')")
     @GetMapping("/roleKick/{id}")
     public Result roleKick(@PathVariable Long id) {
         userService.roleKick(id);
@@ -113,7 +109,7 @@ public class UserController {
      * @param passwordDto
      * @return
      */
-    @RequiresRoles(Const.ADMIN)
+    @PreAuthorize("hasRole('admin')")
     @PostMapping("/modifyPassword")
     public Result getPassword(@Validated @RequestBody PasswordDto passwordDto) {
         userService.getPassword(passwordDto);

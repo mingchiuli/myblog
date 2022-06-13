@@ -1,10 +1,8 @@
 package com.markerhub.config;
 
-
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
-import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
@@ -33,16 +31,43 @@ public class WebMvcConfig implements WebMvcConfigurer {
     }
 
     /**
-     * 解决跨域问题
-     * @param registry
+     * 解决跨域问题，经过测试，websocket和Spring Security的配置不兼容，采用原始配置，此时响应头无法添加Authorization，
+     * 于是放到数据体中
+     * @param
      */
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
-                .allowedOriginPatterns("*")
+                .allowedOrigins("*")
                 .allowedMethods("GET", "HEAD", "POST", "PUT", "DELETE", "OPTIONS")
-                .allowCredentials(true)
-                .maxAge(3600)
-                .allowedHeaders("*");
+//                .allowCredentials(true)
+                .maxAge(3600);
+//                .allowedHeaders("*");
     }
+
+
+//    private CorsConfiguration buildConfig() {
+//        CorsConfiguration corsConfiguration = new CorsConfiguration();
+//        corsConfiguration.addAllowedOrigin("*");
+//        corsConfiguration.addAllowedHeader("*");
+//        corsConfiguration.addAllowedMethod("*");
+//        corsConfiguration.addExposedHeader("Authorization");
+//        return corsConfiguration;
+//    }
+//
+//    @Bean
+//    public CorsFilter corsFilter() {
+//        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+//        source.registerCorsConfiguration("/**", buildConfig());
+//        return new CorsFilter(source);
+//    }
+
+//    @Override
+//    public void addCorsMappings(CorsRegistry registry) {
+//        registry.addMapping("/**")
+//                .allowedOrigins("*")
+//                .allowCredentials(true)
+//                .allowedMethods("GET", "POST", "DELETE", "PUT")
+//                .maxAge(3600);
+//    }
 }

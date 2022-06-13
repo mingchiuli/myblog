@@ -1,11 +1,9 @@
 package com.markerhub.service.impl;
 
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.markerhub.common.lang.Const;
 import com.markerhub.common.vo.WebsCollectDocumentVo;
-import com.markerhub.entity.User;
 import com.markerhub.search.model.WebsCollectDocument;
 import com.markerhub.service.UserService;
 import com.markerhub.service.WebsCollectService;
@@ -81,9 +79,7 @@ public class WebsCollectServiceImpl implements WebsCollectService {
 
     @Override
     public String getJWT() {
-        Long id = userService.getOne(new QueryWrapper<User>().eq("username", "tokentooler")).getId();
-
-        return jwtUtil.generateToken(id);
+        return jwtUtil.generateToken("tokentooler");
     }
 
     @Override

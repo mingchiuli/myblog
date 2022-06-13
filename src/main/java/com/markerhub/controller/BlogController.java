@@ -11,12 +11,11 @@ import com.markerhub.common.vo.BlogVo;
 import com.markerhub.entity.Blog;
 import com.markerhub.service.BlogService;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.shiro.authz.annotation.Logical;
-import org.apache.shiro.authz.annotation.RequiresRoles;
 import org.elasticsearch.ResourceNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.util.FileCopyUtils;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -67,7 +66,7 @@ public class BlogController {
      * @param created
      * @return
      */
-    @RequiresRoles(value = {Const.ADMIN, Const.GIRL, Const.BOY}, logical = Logical.OR)
+    @PreAuthorize("hasAnyRole('admin', 'boy', 'girl')")
     @PostMapping("/upload")
     public Result upload(@RequestParam MultipartFile image, HttpServletRequest request, @RequestParam String created) {
         if (image != null) {
@@ -130,7 +129,7 @@ public class BlogController {
      * @param url
      * @return
      */
-    @RequiresRoles(value = {Const.ADMIN, Const.GIRL, Const.BOY}, logical = Logical.OR)
+    @PreAuthorize("hasAnyRole('admin', 'boy', 'girl')")
     @DeleteMapping("/delfile")
     public Result deleteFile(@RequestParam String url) {
         //常量是有关url的
@@ -182,7 +181,6 @@ public class BlogController {
     @Cache(name = Const.HOT_BLOGS)//缓存页面信息
     @GetMapping("/blogs/{currentPage}")
     public Result list(@PathVariable(name = "currentPage") Integer currentPage) {
-
         Page<Blog> pageData = blogService.listBlogsByPage(currentPage);
         return Result.succ(pageData);
     }
@@ -208,7 +206,7 @@ public class BlogController {
      * @return
      */
     @GetMapping("/blogAuthorized/{id}")
-    @RequiresRoles(Const.ADMIN)
+    @PreAuthorize("hasRole('admin')")
     public Result detailAuthorized(@PathVariable(name = "id") Long id) {
         Blog blog = blogService.getAuthorizedBlogDetail(id);
         return Result.succ(blog);
@@ -252,7 +250,7 @@ public class BlogController {
      * @param blog
      * @return
      */
-    @RequiresRoles(value = {Const.ADMIN, Const.GIRL, Const.BOY}, logical = Logical.OR)
+    @PreAuthorize("hasAnyRole('admin', 'boy', 'girl')")
     @PostMapping("/blog/edit")
     public Result edit(@Validated @RequestBody BlogVo blog) {
 
@@ -265,7 +263,7 @@ public class BlogController {
      * 初始化文章，目的是拿到创建时间，从而让每篇文章的上传图片位于每一个文件夹中
      * @return
      */
-    @RequiresRoles(value = {Const.ADMIN, Const.GIRL, Const.BOY}, logical = Logical.OR)
+    @PreAuthorize("hasAnyRole('admin', 'boy', 'girl')")
     @GetMapping("/addNewBlog")
     public Result addNewBlog() {
         Long id = blogService.initBlog();
@@ -278,7 +276,7 @@ public class BlogController {
      * @param currentPage
      * @return
      */
-    @RequiresRoles(Const.ADMIN)
+    @PreAuthorize("hasRole('admin')")
     @GetMapping("/queryDeletedBlogs")
     public Result listDeleted(@RequestParam String title, @RequestParam Integer currentPage, @RequestParam Integer size, @RequestParam Long userId) {
         Page<BlogVo> page = blogService.selectDeletedBlogs(title, currentPage, size, userId);
@@ -291,7 +289,7 @@ public class BlogController {
      * @param id
      * @return
      */
-    @RequiresRoles(Const.ADMIN)
+    @PreAuthorize("hasRole('admin')")
     @GetMapping("/recoverBlogs/{id}/{userId}")
     public Result recoverBlog(@PathVariable(name = "id") Long id, @PathVariable(name = "userId") Long userId) {
         blogService.recoverBlog(id, userId);
@@ -301,7 +299,7 @@ public class BlogController {
     /**
      * 更改文章状态，0为公开，1为登录后可阅读
      */
-    @RequiresRoles(Const.ADMIN)
+    @PreAuthorize("hasRole('admin')")
     @GetMapping("/modifyBlogStatus/{id}/{status}")
     public Result modifyBlogStatus(@PathVariable Long id, @PathVariable Integer status) {
         blogService.changeBlogStatus(id, status);
@@ -311,7 +309,7 @@ public class BlogController {
     /**
      * 后台获取博客信息
      */
-    @RequiresRoles(value = {Const.ADMIN, Const.BOY, Const.GIRL, Const.GUEST}, logical = Logical.OR)
+    @PreAuthorize("hasAnyRole('admin', 'boy', 'girl', 'guest')")
     @GetMapping("/getAllBlogs")
     public Result getAllBlogs(@RequestParam Integer currentPage, @RequestParam Integer size) {
         Page<BlogVo> page = blogService.getAllBlogs(currentPage, size);
@@ -324,7 +322,7 @@ public class BlogController {
      * @param currentPage
      * @return
      */
-    @RequiresRoles(Const.ADMIN)
+    @PreAuthorize("hasRole('admin')")
     @GetMapping("/queryBlogs")
     public Result queryBlogs(@RequestParam String keyword, @RequestParam Integer currentPage, @RequestParam Integer size) {
         Page<BlogVo> page = blogService.queryBlogsAbstract(keyword, currentPage, size);
@@ -337,7 +335,7 @@ public class BlogController {
      * @param ids
      * @return
      */
-    @RequiresRoles(Const.ADMIN)
+    @PreAuthorize("hasRole('admin')")
     @PostMapping("/deleteBlogs")
     public Result deleteBlogs(@RequestBody Long[] ids) {
         blogService.deleteBlogs(ids);
@@ -348,7 +346,7 @@ public class BlogController {
     /**
      * 设置阅读密钥
      */
-    @RequiresRoles(Const.ADMIN)
+    @PreAuthorize("hasRole('admin')")
     @GetMapping("/setBlogToken")
     public Result setBlogToken() {
         blogService.setBlogToken();
@@ -358,7 +356,7 @@ public class BlogController {
     /**
      * 获取阅读密钥
      */
-    @RequiresRoles(Const.ADMIN)
+    @PreAuthorize("hasRole('admin')")
     @GetMapping("/getBlogToken")
     public Result getBlogToken() {
         String token = blogService.getBlogToken();
