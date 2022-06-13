@@ -1,9 +1,11 @@
 package com.markerhub.security;
 
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.markerhub.common.exception.AuthenticationException;
 import com.markerhub.common.lang.Const;
+import com.markerhub.common.lang.Result;
 import com.markerhub.entity.User;
 import com.markerhub.service.UserService;
 import com.markerhub.util.JwtUtil;
@@ -22,7 +24,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 
@@ -82,16 +84,23 @@ public class JwtAuthenticationFilter extends BasicAuthenticationFilter {
 
 		User user;
 
-		ArrayList<Object> list = new ArrayList<>(2);
-		list.add(Const.USER_OBJECT);
-		list.add(Const.TOKEN);
+		HashSet<Object> set = new HashSet<>(2);
 
-		List<Object> multiGet = redisTemplate.opsForHash().multiGet(Const.USER_PREFIX + username, list);
+		set.add(Const.USER_OBJECT);
+		set.add(Const.TOKEN);
+
+		List<Object> multiGet = redisTemplate.opsForHash().multiGet(Const.USER_PREFIX + username, set);
 		LinkedHashMap<String, Object> userInfo = (LinkedHashMap<String, Object>) multiGet.get(0);
 		String originToken = (String) multiGet.get(1);
 
-		if (StringUtils.hasLength(originToken) && !jwt.equals(originToken)) {
-			throw new AuthenticationException("你已被强制下线");
+		try {
+			if (StringUtils.hasLength(originToken) && !jwt.equals(originToken)) {
+				throw new AuthenticationException("你已被强制下线");
+			}
+		} catch (Exception e) {
+			response.setContentType("application/json;charset=utf-8");
+			response.getWriter().write(JSONUtil.toJsonStr(Result.fail(401, e.getMessage(), null)));
+			return;
 		}
 
 		if (userInfo != null) {
