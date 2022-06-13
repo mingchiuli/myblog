@@ -103,7 +103,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
         for (UserVo record : userVos) {
             //是否在线
-            if (Boolean.TRUE.equals(redisTemplate.hasKey(Const.USER_PREFIX + record.getId())) && record.getStatus() == 0) {
+            if (Boolean.TRUE.equals(redisTemplate.hasKey(Const.USER_PREFIX + record.getUsername())) && record.getStatus() == 0) {
                 record.setMonitor(1);
             } else {
                 record.setMonitor(0);
