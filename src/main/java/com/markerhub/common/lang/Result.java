@@ -1,7 +1,6 @@
 package com.markerhub.common.lang;
 
 import lombok.Data;
-
 import java.io.Serializable;
 
 /**

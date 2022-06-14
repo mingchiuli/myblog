@@ -2,9 +2,6 @@ package com.markerhub.mapper;
 
 import com.markerhub.entity.User;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
 import java.util.List;
 
 /**

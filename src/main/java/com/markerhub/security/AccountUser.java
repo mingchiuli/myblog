@@ -3,7 +3,6 @@ package com.markerhub.security;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.util.Assert;
-
 import java.util.Collection;
 
 public class AccountUser implements UserDetails {

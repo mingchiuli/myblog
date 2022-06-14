@@ -1,6 +1,5 @@
 package com.markerhub.common.vo;
 
-import com.baomidou.mybatisplus.annotation.TableField;
 import com.markerhub.entity.Blog;
 import lombok.Data;
 
