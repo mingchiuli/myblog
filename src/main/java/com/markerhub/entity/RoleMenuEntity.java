@@ -8,25 +8,25 @@ import java.io.Serializable;
 import lombok.Data;
 
 /**
- * 
+ *
  * @TableName m_role_menu
  */
 @TableName(value ="m_role_menu")
 @Data
-public class RoleMenu implements Serializable {
+public class RoleMenuEntity implements Serializable {
     /**
-     * 
+     *
      */
     @TableId(type = IdType.AUTO)
     private Long id;
 
     /**
-     * 
+     *
      */
     private Long roleId;
 
     /**
-     * 
+     *
      */
     private Long menuId;
 

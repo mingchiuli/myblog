@@ -17,7 +17,7 @@ import lombok.EqualsAndHashCode;
 @TableName(value ="m_menu")
 @EqualsAndHashCode(callSuper = false)
 @Data
-public class Menu implements Serializable {
+public class MenuEntity implements Serializable {
     /**
      *
      */
@@ -64,6 +64,6 @@ public class Menu implements Serializable {
     private static final long serialVersionUID = 1L;
 
     @TableField(exist = false)
-    private List<Menu> children = new ArrayList<>();
+    private List<MenuEntity> children = new ArrayList<>();
 
 }

@@ -1,6 +1,6 @@
 package com.markerhub.common.vo;
 
-import com.markerhub.entity.Blog;
+import com.markerhub.entity.BlogEntity;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -10,7 +10,7 @@ import java.io.Serializable;
  * @create 2022-06-06 11:17 AM
  */
 @Data
-public class BlogVo extends Blog implements Serializable {
+public class BlogEntityVo extends BlogEntity implements Serializable {
 
     private Integer readSum;
 

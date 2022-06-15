@@ -37,13 +37,8 @@ public class CaptchaFilter extends OncePerRequestFilter {
 		String url = httpServletRequest.getRequestURI();
 
 		if ("/login".equals(url) && httpServletRequest.getMethod().equals("POST")) {
-			try{
-				// 校验验证码
-				validate(httpServletRequest);
-			} catch (CaptchaException e) {
-				// 交给认证失败处理器
-				loginFailureHandler.onAuthenticationFailure(httpServletRequest, httpServletResponse, e);
-			}
+			// 校验验证码
+			validate(httpServletRequest);
 		}
 		filterChain.doFilter(httpServletRequest, httpServletResponse);
 	}
@@ -59,9 +54,9 @@ public class CaptchaFilter extends OncePerRequestFilter {
 		}
 
 		if (!code.equals(redisTemplate.opsForValue().get(Const.CAPTCHA_KEY + key))) {
+			redisTemplate.delete(Const.CAPTCHA_KEY + key);
 			throw new CaptchaException("验证码错误");
 		}
 
-		redisTemplate.delete(Const.CAPTCHA_KEY + key);
 	}
 }

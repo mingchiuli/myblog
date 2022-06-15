@@ -1,13 +1,13 @@
-package com.markerhub.util;
+package com.markerhub.utils;
 
 import cn.hutool.core.bean.BeanUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.markerhub.common.lang.Const;
-import com.markerhub.common.vo.BlogVo;
-import com.markerhub.entity.Blog;
-import com.markerhub.entity.User;
+import com.markerhub.common.vo.BlogEntityVo;
+import com.markerhub.entity.BlogEntity;
+import com.markerhub.entity.UserEntity;
 import com.markerhub.search.model.BlogPostDocument;
 import com.markerhub.service.UserService;
 import io.jsonwebtoken.Claims;
@@ -34,23 +34,23 @@ import java.util.concurrent.TimeUnit;
  * @author mingchiuli
  * @create 2021-11-02 8:55 PM
  */
-public class MyUtil {
+public class MyUtils {
 
     public static Long reqToUserId(HttpServletRequest request) {
         String token = request.getHeader("Authorization");
 
-        JwtUtil jwtUtil = SpringUtil.getBean(JwtUtil.class);
+        JwtUtils jwtUtils = SpringUtils.getBean(JwtUtils.class);
 
         if(!StringUtils.hasLength(token)) {
             return (long) -1;
         } else {
             // 教验jwt
-            Claims claim = jwtUtil.getClaimByToken(token);
+            Claims claim = jwtUtils.getClaimByToken(token);
 
             String username = Objects.requireNonNull(claim).getSubject();
 
-            UserService userService = SpringUtil.getBean(UserService.class);
-            User user = userService.getOne(new QueryWrapper<User>().select("id").eq("username", username));
+            UserService userService = SpringUtils.getBean(UserService.class);
+            UserEntity user = userService.getOne(new QueryWrapper<UserEntity>().select("id").eq("username", username));
 
             return user.getId();
         }
@@ -62,7 +62,7 @@ public class MyUtil {
      */
     public static void setReadCount(Long id) {
 
-        RedisTemplate<String, Object> redisTemplate = (RedisTemplate<String, Object>) SpringUtil.getBean("redisTemplate");
+        RedisTemplate<String, Object> redisTemplate = (RedisTemplate<String, Object>) SpringUtils.getBean("redisTemplate");
 
         redisTemplate.opsForHash().increment(Const.READ_SUM, "" + id , 1);
 
@@ -82,9 +82,9 @@ public class MyUtil {
      * @param token
      * @param user
      */
-    public static void setUserToCache(String token, User user, Long time) {
+    public static void setUserToCache(String token, UserEntity user, Long time) {
 
-        RedisTemplate<String, Object> redisTemplate = (RedisTemplate<String, Object>) SpringUtil.getBean("redisTemplate");
+        RedisTemplate<String, Object> redisTemplate = (RedisTemplate<String, Object>) SpringUtils.getBean("redisTemplate");
 
         HashMap<String, Object> map = new HashMap<>();
         map.put(Const.USER_OBJECT, user);
@@ -168,21 +168,21 @@ public class MyUtil {
      * 取得阅读量数据，数据在redis中
      * @param page
      */
-    public static void setRead(Page<BlogVo> page) {
+    public static void setRead(Page<BlogEntityVo> page) {
 
-        RedisTemplate<String, Object> redisTemplate = (RedisTemplate<String, Object>) SpringUtil.getBean("redisTemplate");
+        RedisTemplate<String, Object> redisTemplate = (RedisTemplate<String, Object>) SpringUtils.getBean("redisTemplate");
 
-        List<BlogVo> blogs = page.getRecords();
+        List<BlogEntityVo> blogs = page.getRecords();
         ArrayList<Object> ids = new ArrayList<>();
 
-        for(BlogVo blog : blogs) {
+        for(BlogEntityVo blog : blogs) {
             ids.add(blog.getId().toString());
         }
 
         //为数据设置7日阅读和总阅读数
         List<Object> listSum = redisTemplate.opsForHash().multiGet(Const.READ_SUM, ids);
         for (int i = 0; i < blogs.size(); i++) {
-            BlogVo blog = blogs.get(i);
+            BlogEntityVo blog = blogs.get(i);
             if (listSum.get(i) != null) {
                 blog.setReadSum((Integer) listSum.get(i));
                 Integer recentNum = (Integer) redisTemplate.opsForValue().get(Const.READ_RECENT + blog.getId());
@@ -206,7 +206,7 @@ public class MyUtil {
      * @return
      */
     public static <T> T jsonToObj(Object json, Class<T> clazz) {
-        ObjectMapper objectMapper = SpringUtil.getBean(ObjectMapper.class);
+        ObjectMapper objectMapper = SpringUtils.getBean(ObjectMapper.class);
         return objectMapper.convertValue(json, clazz);
     }
 
@@ -258,7 +258,7 @@ public class MyUtil {
         }
     }
 
-    public static BlogPostDocument blogToDocument(Blog blog) {
+    public static BlogPostDocument blogToDocument(BlogEntity blog) {
         BlogPostDocument blogPostDocument = new BlogPostDocument();
         BeanUtil.copyProperties(blog, blogPostDocument, "username", "readSum", "readRecent", "created");
 
@@ -267,20 +267,20 @@ public class MyUtil {
         return blogPostDocument;
     }
 
-    public static void documentToBlog(SearchHit<BlogPostDocument> hit, BlogVo blog) {
-        UserService userService = SpringUtil.getBean(UserService.class);
+    public static void documentToBlog(SearchHit<BlogPostDocument> hit, BlogEntityVo blog) {
+        UserService userService = SpringUtils.getBean(UserService.class);
 
         BeanUtil.copyProperties(hit.getContent(), blog, "created");
 
         blog.setCreated(hit.getContent().getCreated().plusHours(Const.GMT_PLUS_8));
-        String username = userService.getOne(new QueryWrapper<User>().select("username").eq("id", hit.getContent().getUserId())).getUsername();
+        String username = userService.getOne(new QueryWrapper<UserEntity>().select("username").eq("id", hit.getContent().getUserId())).getUsername();
         blog.setUsername(username);
     }
 
-    public static void initBlog(Blog blog) {
+    public static void initBlog(BlogEntity blog) {
 
-        UserService userService = SpringUtil.getBean(UserService.class);
-        User user = userService.getOne(new QueryWrapper<User>().select("id").eq("username", SecurityContextHolder.getContext().getAuthentication().getName()));
+        UserService userService = SpringUtils.getBean(UserService.class);
+        UserEntity user = userService.getOne(new QueryWrapper<UserEntity>().select("id").eq("username", SecurityContextHolder.getContext().getAuthentication().getName()));
         blog.setUserId(user.getId());
         blog.setCreated(LocalDateTime.now());
         blog.setStatus(0);

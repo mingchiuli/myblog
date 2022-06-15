@@ -6,15 +6,15 @@ import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.markerhub.common.dto.PasswordDto;
 import com.markerhub.common.lang.Const;
-import com.markerhub.common.vo.UserVo;
-import com.markerhub.entity.Role;
-import com.markerhub.entity.User;
+import com.markerhub.common.vo.UserEntityVo;
+import com.markerhub.entity.RoleEntity;
+import com.markerhub.entity.UserEntity;
 import com.markerhub.mapper.UserMapper;
 import com.markerhub.service.RoleService;
 import com.markerhub.service.UserService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.markerhub.util.JwtUtil;
-import com.markerhub.util.MyUtil;
+import com.markerhub.utils.JwtUtils;
+import com.markerhub.utils.MyUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
@@ -39,7 +39,7 @@ import java.util.UUID;
  */
 @Service
 @Slf4j
-public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements UserService {
+public class UserServiceImpl extends ServiceImpl<UserMapper, UserEntity> implements UserService {
 
 
     BCryptPasswordEncoder bCryptPasswordEncoder;
@@ -57,11 +57,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         this.roleService = roleService;
     }
 
-    JwtUtil jwtUtil;
+    JwtUtils jwtUtils;
 
     @Autowired
-    public void setJwtUtils(JwtUtil jwtUtil) {
-        this.jwtUtil = jwtUtil;
+    public void setJwtUtils(JwtUtils jwtUtils) {
+        this.jwtUtils = jwtUtils;
     }
 
     RedisTemplate<String, Object> redisTemplate;
@@ -73,7 +73,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
     @Override
     public void modifyUser(Integer id, Integer status) {
-        boolean update = update(new UpdateWrapper<User>().eq("id", id).set("status", status));
+        boolean update = update(new UpdateWrapper<UserEntity>().eq("id", id).set("status", status));
 
         log.info("更新账户状态:{}", update);
 
@@ -82,38 +82,38 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     }
 
     @Override
-    public Page<UserVo> queryUsers(String role, Integer currentPage, Integer size) {
-        Page<User> userPage = new Page<>(currentPage, size);
-        Page<User> page;
+    public Page<UserEntityVo> queryUsers(String role, Integer currentPage, Integer size) {
+        Page<UserEntity> userPage = new Page<>(currentPage, size);
+        Page<UserEntity> page;
         if (StringUtils.hasLength(role)) {//搜索
-            page = page(userPage, new QueryWrapper<User>().eq("role", role));
+            page = page(userPage, new QueryWrapper<UserEntity>().eq("role", role));
 
         } else {//不是搜索
-            page = page(userPage, new QueryWrapper<User>().select("id", "username", "avatar", "email", "status", "created", "last_login", "role").orderByAsc("created"));
+            page = page(userPage, new QueryWrapper<UserEntity>().select("id", "username", "avatar", "email", "status", "created", "last_login", "role").orderByAsc("created"));
         }
-        List<User> records = page.getRecords();
+        List<UserEntity> records = page.getRecords();
 
-        List<UserVo> userVos = new ArrayList<>();
+        List<UserEntityVo> userVos = new ArrayList<>();
 
         records.forEach(user -> {
-            UserVo userVo = new UserVo();
+            UserEntityVo userVo = new UserEntityVo();
             BeanUtil.copyProperties(user, userVo);
             userVos.add(userVo);
         });
 
-        for (UserVo record : userVos) {
+        for (UserEntityVo record : userVos) {
             //是否在线
             if (Boolean.TRUE.equals(redisTemplate.hasKey(Const.USER_PREFIX + record.getUsername())) && record.getStatus() == 0) {
                 record.setMonitor(1);
             } else {
                 record.setMonitor(0);
             }
-            String name = roleService.getOne(new QueryWrapper<Role>().select("name").eq("code", record.getRole())).getName();
+            String name = roleService.getOne(new QueryWrapper<RoleEntity>().select("name").eq("code", record.getRole())).getName();
             record.setRole(name);
         }
 
 
-        Page<UserVo> userVoPage = new Page<>();
+        Page<UserEntityVo> userVoPage = new Page<>();
 
         userVoPage.setRecords(userVos);
         userVoPage.setTotal(page.getTotal());
@@ -124,8 +124,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     }
 
     @Override
-    public void addUser(UserVo user) {
-        User userExist = getBaseMapper().selectOne(new QueryWrapper<User>().eq("id", user.getId()));
+    public void addUser(UserEntityVo user) {
+        UserEntity userExist = getBaseMapper().selectOne(new QueryWrapper<UserEntity>().eq("id", user.getId()));
 
         if (userExist == null) {//添加
             user.setPassword(bCryptPasswordEncoder.encode(user.getPassword()));
@@ -152,14 +152,14 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     @Transactional
     public void deleteUsers(Long[] ids) {
         for (Long id : ids) {
-            String role = getOne(new QueryWrapper<User>().eq("id", id)).getRole();
+            String role = getOne(new QueryWrapper<UserEntity>().eq("id", id)).getRole();
             if (Const.ADMIN.equals(role)) {
                 throw new RuntimeException("不准删除管理员");
             }
-            User user = getById(id);
+            UserEntity user = getById(id);
             boolean b = removeById(id);
             if (b) {
-                MyUtil.setUserToCache(UUID.randomUUID().toString(), user, 604800L);
+                MyUtils.setUserToCache(UUID.randomUUID().toString(), user, 604800L);
             }
             Assert.isTrue(b, "删除[" + id + "]失败");
         }
@@ -169,23 +169,23 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     @Override
     public void roleKick(Long id) {
         //先进行锁定
-        boolean update = update(new UpdateWrapper<User>().eq("id", id).set("status", 1));
+        boolean update = update(new UpdateWrapper<UserEntity>().eq("id", id).set("status", 1));
 
         log.info("锁定账号{}结果:{}", id, update);
 
         Assert.isTrue(update, "锁定失败");
         //再对缓存进行更新赋值操作
-        User user = getById(id);
-        String jwt = jwtUtil.generateToken(user.getUsername());
+        UserEntity user = getById(id);
+        String jwt = jwtUtils.generateToken(user.getUsername());
 
         //替换掉原来的user会话
-        MyUtil.setUserToCache(jwt, user, (long) (6 * 60 * 60));
+        MyUtils.setUserToCache(jwt, user, (long) (6 * 60 * 60));
     }
 
     @Override
     @Transactional
     public void getPassword(PasswordDto passwordDto) {
-        boolean update = update(new UpdateWrapper<User>().eq("username", passwordDto.getUsername()).set("password", bCryptPasswordEncoder.encode(passwordDto.getPassword())));
+        boolean update = update(new UpdateWrapper<UserEntity>().eq("username", passwordDto.getUsername()).set("password", bCryptPasswordEncoder.encode(passwordDto.getPassword())));
 
         log.info("修改{}密码结果:{}", passwordDto.getUsername(), update);
 

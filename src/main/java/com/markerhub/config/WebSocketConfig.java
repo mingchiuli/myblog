@@ -4,9 +4,9 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.markerhub.common.exception.AuthenticationException;
 import com.markerhub.common.lang.Const;
 import com.markerhub.common.vo.StompPrincipal;
-import com.markerhub.entity.User;
+import com.markerhub.entity.UserEntity;
 import com.markerhub.service.UserService;
-import com.markerhub.util.JwtUtil;
+import com.markerhub.utils.JwtUtils;
 import io.jsonwebtoken.Claims;
 import lombok.NonNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,11 +46,11 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer{
         this.userService = userService;
     }
 
-    JwtUtil jwtUtil;
+    JwtUtils jwtUtils;
 
     @Autowired
-    public void setJwtUtils(JwtUtil jwtUtil) {
-        this.jwtUtil = jwtUtil;
+    public void setJwtUtils(JwtUtils jwtUtils) {
+        this.jwtUtils = jwtUtils;
     }
 
     @Override
@@ -81,14 +81,14 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer{
                     if (StompCommand.CONNECT.equals(accessor.getCommand())) {
                         String token = accessor.getFirstNativeHeader("Authorization");
                         //验证token是否有效
-                        Claims claim = jwtUtil.getClaimByToken(token);
-                        if (claim == null || jwtUtil.isTokenExpired(claim.getExpiration())) {
+                        Claims claim = jwtUtils.getClaimByToken(token);
+                        if (claim == null || jwtUtils.isTokenExpired(claim.getExpiration())) {
                             throw new AuthenticationException("token验证失败");
                         }
 
                         String username = claim.getSubject();
 
-                        String id = userService.getOne(new QueryWrapper<User>().select("id").eq("username", username)).getId().toString();
+                        String id = userService.getOne(new QueryWrapper<UserEntity>().select("id").eq("username", username)).getId().toString();
 
                         String role;
 
@@ -97,7 +97,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer{
                         if (profileRole != null) {
                             role = profileRole;
                         } else {
-                            role = userService.getOne(new QueryWrapper<User>().select("role").eq("id", id)).getRole();
+                            role = userService.getOne(new QueryWrapper<UserEntity>().select("role").eq("id", id)).getRole();
                         }
 
                         if (!(Const.ADMIN.equals(role) || Const.BOY.equals(role) || Const.GIRL.equals(role))) {

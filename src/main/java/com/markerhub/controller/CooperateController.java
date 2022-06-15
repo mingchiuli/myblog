@@ -9,12 +9,12 @@ import com.markerhub.common.vo.Content;
 import com.markerhub.common.vo.Message;
 import com.markerhub.common.lang.Const;
 import com.markerhub.common.lang.Result;
-import com.markerhub.common.vo.UserVo;
+import com.markerhub.common.vo.UserEntityVo;
 import com.markerhub.entity.*;
 import com.markerhub.service.BlogService;
 import com.markerhub.service.UserService;
-import com.markerhub.util.JwtUtil;
-import com.markerhub.util.MyUtil;
+import com.markerhub.utils.JwtUtils;
+import com.markerhub.utils.MyUtils;
 import io.jsonwebtoken.Claims;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -74,11 +74,11 @@ public class CooperateController {
         this.simpMessagingTemplate = simpMessagingTemplate;
     }
 
-    JwtUtil jwtUtil;
+    JwtUtils jwtUtils;
 
     @Autowired
-    public void setJwtUtils(JwtUtil jwtUtil) {
-        this.jwtUtil = jwtUtil;
+    public void setJwtUtils(JwtUtils jwtUtils) {
+        this.jwtUtils = jwtUtils;
     }
 
     @MessageMapping("/pushUser/{blogId}")
@@ -86,11 +86,11 @@ public class CooperateController {
 
         Map<Object, Object> entries = redisTemplate.opsForHash().entries(Const.CO_PREFIX + blogId);
 
-        ArrayList<UserVo> users = new ArrayList<>();
+        ArrayList<UserEntityVo> users = new ArrayList<>();
 
         for (Map.Entry<Object, Object> entry : entries.entrySet()) {
 
-            UserVo value = MyUtil.jsonToObj(entry.getValue(), UserVo.class);
+            UserEntityVo value = MyUtils.jsonToObj(entry.getValue(), UserEntityVo.class);
             users.add(value);
         }
 
@@ -104,10 +104,10 @@ public class CooperateController {
         List<String> authorization = map.get("Authorization");
         if (authorization != null) {
             String token = authorization.get(0);
-            Claims claim = jwtUtil.getClaimByToken(token);
+            Claims claim = jwtUtils.getClaimByToken(token);
             String username = claim.getSubject();
 
-            String userId = userService.getOne(new QueryWrapper<User>().select("id").eq("username", username)).getId().toString();
+            String userId = userService.getOne(new QueryWrapper<UserEntity>().select("id").eq("username", username)).getId().toString();
 
             redisTemplate.opsForHash().delete(Const.CO_PREFIX + blogId, userId);
 
@@ -115,11 +115,11 @@ public class CooperateController {
 
             Map<Object, Object> entries = redisTemplate.opsForHash().entries(Const.CO_PREFIX + blogId);
 
-            ArrayList<UserVo> users = new ArrayList<>();
+            ArrayList<UserEntityVo> users = new ArrayList<>();
 
             for (Map.Entry<Object, Object> entry : entries.entrySet()) {
 
-                UserVo value = MyUtil.jsonToObj(entry.getValue(), UserVo.class);
+                UserEntityVo value = MyUtils.jsonToObj(entry.getValue(), UserEntityVo.class);
                 users.add(value);
             }
 
@@ -178,7 +178,7 @@ public class CooperateController {
 
         for (Map.Entry<Object, Object> entry : entries.entrySet()) {
 
-            UserVo user = MyUtil.jsonToObj(entry.getValue(), UserVo.class);
+            UserEntityVo user = MyUtils.jsonToObj(entry.getValue(), UserEntityVo.class);
 
             if (user.getNumber() == 0) {
                 number.setIndex0(Boolean.TRUE);
@@ -207,22 +207,22 @@ public class CooperateController {
 
         String jwt = request.getHeader("Authorization");
 
-        Claims claim = jwtUtil.getClaimByToken(jwt);
+        Claims claim = jwtUtils.getClaimByToken(jwt);
         String username = claim.getSubject();
 
-        String userId = userService.getOne(new QueryWrapper<User>().select("id").eq("username", username)).getId().toString();
+        String userId = userService.getOne(new QueryWrapper<UserEntity>().select("id").eq("username", username)).getId().toString();
 
 
-        Blog blog = blogService.getById(blogId);
+        BlogEntity blog = blogService.getById(blogId);
 
         Assert.notNull(blog, "该博客不存在");
 
-        if (!Const.ADMIN.equals(userService.getOne(new QueryWrapper<User>().select("role").eq("id", userId)).getRole()) && blog.getStatus() == 1) {
+        if (!Const.ADMIN.equals(userService.getOne(new QueryWrapper<UserEntity>().select("role").eq("id", userId)).getRole()) && blog.getStatus() == 1) {
             throw new AuthenticationException("游客账号没有编辑权限");
         }
 
-        User user = userService.getBaseMapper().selectOne(new QueryWrapper<User>().eq("id", userId).select("id", "username", "avatar", "role"));
-        UserVo userVo = new UserVo();
+        UserEntity user = userService.getBaseMapper().selectOne(new QueryWrapper<UserEntity>().eq("id", userId).select("id", "username", "avatar", "role"));
+        UserEntityVo userVo = new UserEntityVo();
         BeanUtil.copyProperties(user, userVo);
 
         userVo.setNumber(coNumber);
@@ -235,16 +235,16 @@ public class CooperateController {
 
         Map<Object, Object> entries = redisTemplate.opsForHash().entries(Const.CO_PREFIX + blogId);
 
-        ArrayList<UserVo> users = new ArrayList<>();
+        ArrayList<UserEntityVo> users = new ArrayList<>();
 
         for (Map.Entry<Object, Object> entry : entries.entrySet()) {
 
-            UserVo value = MyUtil.jsonToObj(entry.getValue(), UserVo.class);
+            UserEntityVo value = MyUtils.jsonToObj(entry.getValue(), UserEntityVo.class);
 
             users.add(value);
         }
 
-        users.sort(Comparator.comparingInt(UserVo::getNumber));
+        users.sort(Comparator.comparingInt(UserEntityVo::getNumber));
 
         simpMessagingTemplate.convertAndSendToUser(blogId.toString(),"/topic/users", users);
 

@@ -1,7 +1,7 @@
 package com.markerhub.mapper;
 
-import com.markerhub.common.vo.BlogVo;
-import com.markerhub.entity.Blog;
+import com.markerhub.common.vo.BlogEntityVo;
+import com.markerhub.entity.BlogEntity;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import org.apache.ibatis.annotations.Param;
 import java.util.List;
@@ -14,15 +14,15 @@ import java.util.List;
  * @author Li MingChiu
  * @since 2021-10-27
  */
-public interface BlogMapper extends BaseMapper<Blog> {
+public interface BlogMapper extends BaseMapper<BlogEntity> {
 
     Integer getYearCount(Integer year);
 
-    List<BlogVo> queryAllBlogs();
+    List<BlogEntityVo> queryAllBlogs();
 
-    List<Blog> queryBlogs(String title);
+    List<BlogEntity> queryBlogs(String title);
 
-    boolean recover(Blog blog);
+    boolean recover(BlogEntity blog);
 
     int getPageCount(@Param("ldt") String ldt);
 

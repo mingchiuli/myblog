@@ -30,8 +30,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
 
-    JwtAccessDeniedHandler jwtAccessDeniedHandler;
-
     UserDetailServiceImpl userDetailService;
 
     JwtLogoutSuccessHandler jwtLogoutSuccessHandler;
@@ -61,11 +59,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     @Autowired
     public void setJwtAuthenticationEntryPoint(JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint) {
         this.jwtAuthenticationEntryPoint = jwtAuthenticationEntryPoint;
-    }
-
-    @Autowired
-    public void setJwtAccessDeniedHandler(JwtAccessDeniedHandler jwtAccessDeniedHandler) {
-        this.jwtAccessDeniedHandler = jwtAccessDeniedHandler;
     }
 
     @Autowired
@@ -138,7 +131,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .and()
                 .exceptionHandling()
                 .authenticationEntryPoint(jwtAuthenticationEntryPoint)
-                .accessDeniedHandler(jwtAccessDeniedHandler)
+//                .accessDeniedHandler()配置权限失败的处理器，因为权限失败会被全局异常捕获，不走这个逻辑，所以想要启用需要关闭全局异常捕获的相关异常逻辑
 
                 // 配置自定义的过滤器
                 .and()

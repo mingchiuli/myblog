@@ -4,10 +4,10 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.markerhub.common.dto.PasswordDto;
 import com.markerhub.common.lang.Result;
-import com.markerhub.common.vo.UserVo;
-import com.markerhub.entity.User;
+import com.markerhub.common.vo.UserEntityVo;
+import com.markerhub.entity.UserEntity;
 import com.markerhub.service.UserService;
-import com.markerhub.util.JwtUtil;
+import com.markerhub.utils.JwtUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -30,11 +30,11 @@ public class UserController {
         this.userService = userService;
     }
 
-    JwtUtil jwtUtil;
+    JwtUtils jwtUtils;
 
     @Autowired
-    private void setJwtUtils(JwtUtil jwtUtil) {
-        this.jwtUtil = jwtUtil;
+    private void setJwtUtils(JwtUtils jwtUtils) {
+        this.jwtUtils = jwtUtils;
     }
 
     /**
@@ -54,7 +54,7 @@ public class UserController {
     @GetMapping("/queryUsers")
     public Result queryUsers(@RequestParam String role, @RequestParam Integer currentPage, @RequestParam Integer size) {
 
-        Page<UserVo> page = userService.queryUsers(role, currentPage, size);
+        Page<UserEntityVo> page = userService.queryUsers(role, currentPage, size);
         return Result.succ(page);
     }
 
@@ -64,7 +64,7 @@ public class UserController {
      */
     @PreAuthorize("hasRole('admin')")
     @PostMapping("/addUser")
-    public Result addUser(@Validated @RequestBody UserVo user) {
+    public Result addUser(@Validated @RequestBody UserEntityVo user) {
         userService.addUser(user);
         return Result.succ(null);
     }
@@ -88,7 +88,7 @@ public class UserController {
      */
     @GetMapping("/getInfoById/{id}")
     public Result getRoleId(@PathVariable Long id) {
-        User user = userService.getBaseMapper().selectOne(new QueryWrapper<User>().eq("id", id).select("id", "username", "email", "role", "avatar", "status"));
+        UserEntity user = userService.getBaseMapper().selectOne(new QueryWrapper<UserEntity>().eq("id", id).select("id", "username", "email", "role", "avatar", "status"));
         return Result.succ(user);
     }
 

@@ -4,11 +4,11 @@ import cn.hutool.crypto.digest.DigestUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.markerhub.common.lang.Const;
 import com.markerhub.config.RabbitConfig;
-import com.markerhub.entity.Blog;
+import com.markerhub.entity.BlogEntity;
 import com.markerhub.mapper.BlogMapper;
 import com.markerhub.search.model.BlogPostDocument;
 import com.markerhub.service.BlogService;
-import com.markerhub.util.MyUtil;
+import com.markerhub.utils.MyUtils;
 import com.rabbitmq.client.Channel;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -83,7 +83,7 @@ public class BlogMessageHandler {
 
                 if (Boolean.TRUE.equals(redisTemplate.hasKey(Const.CONSUME_MONITOR + updateUUID))) {
                     Long updateId = message.getPostId();
-                    Blog blogExisted = blogService.getById(updateId);
+                    BlogEntity blogExisted = blogService.getById(updateId);
 
                     /*
                      Redis流程
@@ -96,7 +96,7 @@ public class BlogMessageHandler {
                     redisTemplate.delete(contentPrefix);
 
                     //删除博客所在页的缓存
-                    Blog blog = blogMapper.selectById(updateId);
+                    BlogEntity blog = blogMapper.selectById(updateId);
                     //年份
                     int year = blog.getCreated().getYear();
                     /*
@@ -133,7 +133,7 @@ public class BlogMessageHandler {
                      * ES流程
                      */
 
-                    BlogPostDocument postDocument = MyUtil.blogToDocument(blogExisted);
+                    BlogPostDocument postDocument = MyUtils.blogToDocument(blogExisted);
 
                     String obj = objectMapper.writeValueAsString(postDocument);
                     Document document = Document.parse(obj);
@@ -281,8 +281,8 @@ public class BlogMessageHandler {
                     ES流程
                      */
 
-                    Blog newBlog = blogService.getById(createId);
-                    BlogPostDocument newDocument = MyUtil.blogToDocument(newBlog);
+                    BlogEntity newBlog = blogService.getById(createId);
+                    BlogPostDocument newDocument = MyUtils.blogToDocument(newBlog);
                     BlogPostDocument save = elasticsearchRestTemplate.save(newDocument);
 
                     log.info("ES创建{}号结果: {}", createId, save);

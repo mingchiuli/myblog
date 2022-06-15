@@ -1,6 +1,6 @@
 package com.markerhub.mapper;
 
-import com.markerhub.entity.Role;
+import com.markerhub.entity.RoleEntity;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 
 /**
@@ -9,7 +9,7 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 * @createDate 2022-02-25 10:48:04
 * @Entity com.markerhub.entity.Role
 */
-public interface RoleMapper extends BaseMapper<Role> {
+public interface RoleMapper extends BaseMapper<RoleEntity> {
 
 }
 

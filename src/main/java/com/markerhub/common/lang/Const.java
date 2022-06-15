@@ -69,4 +69,5 @@ public class Const {
     public final static String BLOOM_FILTER_YEARS = "bloom_filter_years";
 
 
+    public static final String ROLE_CACHE = "role_cache";
 }

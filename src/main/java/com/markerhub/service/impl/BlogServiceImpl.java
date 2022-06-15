@@ -10,10 +10,10 @@ import com.markerhub.common.exception.AuthenticationException;
 import com.markerhub.common.exception.InsertOrUpdateErrorException;
 import com.markerhub.common.lang.Const;
 import com.markerhub.common.vo.BlogPostDocumentVo;
-import com.markerhub.common.vo.BlogVo;
+import com.markerhub.common.vo.BlogEntityVo;
 import com.markerhub.config.RabbitConfig;
-import com.markerhub.entity.Blog;
-import com.markerhub.entity.User;
+import com.markerhub.entity.BlogEntity;
+import com.markerhub.entity.UserEntity;
 import com.markerhub.mapper.BlogMapper;
 import com.markerhub.mapper.UserMapper;
 import com.markerhub.search.model.BlogPostDocument;
@@ -21,7 +21,7 @@ import com.markerhub.search.mq.PostMQIndexMessage;
 import com.markerhub.service.BlogService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.markerhub.service.UserService;
-import com.markerhub.util.MyUtil;
+import com.markerhub.utils.MyUtils;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.elasticsearch.index.query.MultiMatchQueryBuilder;
@@ -66,7 +66,7 @@ import java.util.concurrent.TimeUnit;
  */
 @Service
 @Slf4j
-public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements BlogService {
+public class BlogServiceImpl extends ServiceImpl<BlogMapper, BlogEntity> implements BlogService {
 
     @Value("${uploadPath}")
     private String baseFolderPath;
@@ -137,63 +137,63 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
     }
 
     @Override
-    public List<BlogVo> queryAllBlogs() {
+    public List<BlogEntityVo> queryAllBlogs() {
         return blogMapper.queryAllBlogs();
     }
 
     @Override
-    public boolean recover(Blog blog) {
+    public boolean recover(BlogEntity blog) {
         return blogMapper.recover(blog);
     }
 
     @Override
-    public Page<Blog> listByYear(Integer currentPage, Integer year) {
+    public Page<BlogEntity> listByYear(Integer currentPage, Integer year) {
 
-        Page<Blog> page = new Page<>(currentPage, Const.PAGE_SIZE);
+        Page<BlogEntity> page = new Page<>(currentPage, Const.PAGE_SIZE);
 
-        QueryWrapper<Blog> queryWrapper = new QueryWrapper<>();
+        QueryWrapper<BlogEntity> queryWrapper = new QueryWrapper<>();
         LocalDateTime start = LocalDateTime.of(year, 1, 1, 0, 0, 0);
         LocalDateTime end = LocalDateTime.of(year, 12, 31, 23, 59, 59);
-        QueryWrapper<Blog> wrapper = queryWrapper.select("id", "title", "description", "link", "created").between("created", start, end).orderByAsc("created");
+        QueryWrapper<BlogEntity> wrapper = queryWrapper.select("id", "title", "description", "link", "created").between("created", start, end).orderByAsc("created");
 
         return page(page, wrapper);
     }
 
     @Override
-    public Page<Blog> listBlogsByPage(Integer currentPage) {
-        Page<Blog> page = new Page<>(currentPage, Const.PAGE_SIZE);
-        return page(page, new QueryWrapper<Blog>().select("id", "title", "description", "link", "created").orderByDesc("created"));
+    public Page<BlogEntity> listBlogsByPage(Integer currentPage) {
+        Page<BlogEntity> page = new Page<>(currentPage, Const.PAGE_SIZE);
+        return page(page, new QueryWrapper<BlogEntity>().select("id", "title", "description", "link", "created").orderByDesc("created"));
     }
 
     @Override
-    public Blog getBlogDetail(Long id) {
+    public BlogEntity getBlogDetail(Long id) {
 
-        if (getOne(new QueryWrapper<Blog>().select("status").eq("id", id)).getStatus() == 1) {
+        if (getOne(new QueryWrapper<BlogEntity>().select("status").eq("id", id)).getStatus() == 1) {
             throw new AuthenticationException("没有访问权限");
         }
 
-        Blog blog = getOne(new QueryWrapper<Blog>().eq("id", id).eq("status", 0));
+        BlogEntity blog = getOne(new QueryWrapper<BlogEntity>().eq("id", id).eq("status", 0));
 
         Assert.notNull(blog, "该博客不存在");
 
-        MyUtil.setReadCount(id);
+        MyUtils.setReadCount(id);
 
         return blog;
     }
 
     @Override
-    public Blog getAuthorizedBlogDetail(Long id) {
-        Blog blog = getById(id);
+    public BlogEntity getAuthorizedBlogDetail(Long id) {
+        BlogEntity blog = getById(id);
 
         Assert.notNull(blog, "该博客不存在");
 
-        MyUtil.setReadCount(id);
+        MyUtils.setReadCount(id);
 
         return blog;
     }
 
     @Override
-    public Blog getLockedBlog(Long blogId, String token) {
+    public BlogEntity getLockedBlog(Long blogId, String token) {
         token = token.trim();
         String exist = (String) redisTemplate.opsForValue().get(Const.READ_TOKEN);
         if (StringUtils.hasLength(token) && StringUtils.hasLength(exist)) {
@@ -248,7 +248,7 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
         SearchHits<BlogPostDocument> search = searchHitsFuture.get();
         Long count = countFuture.get();
 
-        Page<BlogPostDocumentVo> page = MyUtil.hitsToPage(search, BlogPostDocumentVo.class, currentPage, Const.PAGE_SIZE, count);
+        Page<BlogPostDocumentVo> page = MyUtils.hitsToPage(search, BlogPostDocumentVo.class, currentPage, Const.PAGE_SIZE, count);
 
         for (BlogPostDocumentVo record : page.getRecords()) {
             record.setContent(null);
@@ -301,7 +301,7 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
         long count = countFuture.get();
         SearchHits<BlogPostDocument> search = searchHitsFuture.get();
 
-        Page<BlogPostDocumentVo> page = MyUtil.hitsToPage(search, BlogPostDocumentVo.class, currentPage, Const.PAGE_SIZE, count);
+        Page<BlogPostDocumentVo> page = MyUtils.hitsToPage(search, BlogPostDocumentVo.class, currentPage, Const.PAGE_SIZE, count);
 
         for (BlogPostDocumentVo record : page.getRecords()) {
             record.setContent(null);
@@ -315,13 +315,13 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
 
     @SneakyThrows
     @Override
-    public void updateBlog(BlogVo blog) {
+    public void updateBlog(BlogEntityVo blog) {
 
         //都是更新，之前初始化过了
 
-        Blog temp = getById(blog.getId());
+        BlogEntity temp = getById(blog.getId());
 
-        User user = userService.getOne(new QueryWrapper<User>().select("username").eq("id", temp.getUserId()));
+        UserEntity user = userService.getOne(new QueryWrapper<UserEntity>().select("username").eq("id", temp.getUserId()));
 
         // 只能编辑自己的文章
         Assert.isTrue(Objects.equals(user.getUsername(), SecurityContextHolder.getContext().getAuthentication().getName()), "没有权限编辑");
@@ -350,9 +350,9 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
 
     @Override
     public Long initBlog() {
-        Blog blog = new Blog();
+        BlogEntity blog = new BlogEntity();
 
-        MyUtil.initBlog(blog);
+        MyUtils.initBlog(blog);
 
         boolean add = saveOrUpdate(blog);
 
@@ -386,9 +386,9 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
     }
 
     @Override
-    public Page<BlogVo> selectDeletedBlogs(String title, Integer currentPage, Integer size, Long userId) {
+    public Page<BlogEntityVo> selectDeletedBlogs(String title, Integer currentPage, Integer size, Long userId) {
 
-        User one = userMapper.selectOne(new QueryWrapper<User>().eq("id", userId));
+        UserEntity one = userMapper.selectOne(new QueryWrapper<UserEntity>().eq("id", userId));
         String username = one.getUsername();
 
         String prefix = userId + Const.QUERY_ALL_DELETED;
@@ -397,34 +397,34 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
         if (keys != null) {
             List<Object> rawAllDeleted = redisTemplate.opsForValue().multiGet(keys);
             if (rawAllDeleted != null) {
-                ArrayList<BlogVo> allDeleted = new ArrayList<>();
+                ArrayList<BlogEntityVo> allDeleted = new ArrayList<>();
                 for (Object value : rawAllDeleted) {
-                    BlogVo blog = MyUtil.jsonToObj(value, BlogVo.class);
+                    BlogEntityVo blog = MyUtils.jsonToObj(value, BlogEntityVo.class);
                     allDeleted.add(blog);
                 }
                 if (!StringUtils.hasLength(title)) {
                     //以创建时间排序，由晚到早
                     allDeleted.sort((o1, o2) -> -o1.getCreated().compareTo(o2.getCreated()));
-                    Page<BlogVo> page = MyUtil.listToPage(allDeleted, currentPage, size);
-                    List<BlogVo> records = page.getRecords();
-                    for (BlogVo record : records) {
+                    Page<BlogEntityVo> page = MyUtils.listToPage(allDeleted, currentPage, size);
+                    List<BlogEntityVo> records = page.getRecords();
+                    for (BlogEntityVo record : records) {
                         record.setUsername(username);
                     }
                     page.setRecords(records);
                     return page;
                 } else {
-                    ArrayList<BlogVo> blogs = new ArrayList<>();
-                    for (BlogVo blog : allDeleted) {
+                    ArrayList<BlogEntityVo> blogs = new ArrayList<>();
+                    for (BlogEntityVo blog : allDeleted) {
                         if (blog.getTitle().contains(title)) {
                             blogs.add(blog);
                         }
                     }
                     blogs.sort((o1, o2) -> -o1.getCreated().compareTo(o2.getCreated()));
 
-                    Page<BlogVo> page = MyUtil.listToPage(blogs, currentPage, size);
+                    Page<BlogEntityVo> page = MyUtils.listToPage(blogs, currentPage, size);
 
-                    List<BlogVo> records = page.getRecords();
-                    for (BlogVo record : records) {
+                    List<BlogEntityVo> records = page.getRecords();
+                    for (BlogEntityVo record : records) {
                         record.setUsername(username);
                     }
                     page.setRecords(records);
@@ -441,7 +441,7 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
         String key = userId + Const.QUERY_DELETED + id;
         LinkedHashMap<String, Object> value = (LinkedHashMap<String, Object>) redisTemplate.opsForValue().get(key);
 
-        Blog blog = MyUtil.jsonToObj(value, Blog.class);
+        BlogEntity blog = MyUtils.jsonToObj(value, BlogEntity.class);
 
         Assert.notNull(blog, "恢复异常");
 
@@ -477,7 +477,7 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
     public void changeBlogStatus(Long id, Integer status) {
         LocalDateTime created = getById(id).getCreated();
 
-        boolean update = update(new UpdateWrapper<Blog>().eq("id", id).set("status", status).set("created", created));
+        boolean update = update(new UpdateWrapper<BlogEntity>().eq("id", id).set("status", status).set("created", created));
 
         log.info("更改文章状态:{}", update);
 
@@ -495,23 +495,23 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
     }
 
     @Override
-    public Page<BlogVo> getAllBlogs(Integer currentPage, Integer size) {
-        List<BlogVo> blogsList = queryAllBlogs();
+    public Page<BlogEntityVo> getAllBlogs(Integer currentPage, Integer size) {
+        List<BlogEntityVo> blogsList = queryAllBlogs();
 
-        for (Blog blog : blogsList) {
+        for (BlogEntity blog : blogsList) {
             blog.setContent(blog.getContent().length() > 20 ? blog.getContent().substring(0, 20) : blog.getContent());
         }
 
-        Page<BlogVo> page = MyUtil.listToPage(blogsList, currentPage, size);
+        Page<BlogEntityVo> page = MyUtils.listToPage(blogsList, currentPage, size);
 
-        MyUtil.setRead(page);
+        MyUtils.setRead(page);
 
         return page;
     }
 
     @Override
-    public Page<BlogVo> queryBlogsAbstract(String keyword, Integer currentPage, Integer size) {
-        List<BlogVo> blogsList;
+    public Page<BlogEntityVo> queryBlogsAbstract(String keyword, Integer currentPage, Integer size) {
+        List<BlogEntityVo> blogsList;
 
         //查询相关数据
         if (!StringUtils.hasLength(keyword)) {
@@ -531,23 +531,23 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
             blogsList = new ArrayList<>();
 
             for (SearchHit<BlogPostDocument> hit : search.getSearchHits()) {
-                BlogVo blog = new BlogVo();
+                BlogEntityVo blog = new BlogEntityVo();
 
-                MyUtil.documentToBlog(hit, blog);
+                MyUtils.documentToBlog(hit, blog);
 
                 blogsList.add(blog);
             }
         }
 
         //只获取部分博客信息
-        for (BlogVo blog : blogsList) {
+        for (BlogEntityVo blog : blogsList) {
             blog.setContent(blog.getContent().length() > 20 ? blog.getContent().substring(0, 20) : blog.getContent());
         }
 
         //将相关数据封装Page对象
-        Page<BlogVo> page = MyUtil.listToPage(blogsList, currentPage, size);
+        Page<BlogEntityVo> page = MyUtils.listToPage(blogsList, currentPage, size);
 
-        MyUtil.setRead(page);
+        MyUtils.setRead(page);
 
         return page;
     }
@@ -558,7 +558,7 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
         ArrayList<Long> idList = new ArrayList<>(List.of(ids));
 
         for (Long id : idList) {
-            Blog blog = getById(id);
+            BlogEntity blog = getById(id);
 
             //删除文章
             boolean remove = removeById(id);
@@ -594,7 +594,7 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements Bl
             String finalDest = baseFolderPath + img + "/" + created;
             File file = new File(finalDest);
 
-            MyUtil.deleteAllImg(file);
+            MyUtils.deleteAllImg(file);
 
             //通知消息给mq,更新并删除缓存
             CorrelationData correlationData = new CorrelationData();

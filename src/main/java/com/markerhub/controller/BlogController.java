@@ -7,8 +7,8 @@ import com.markerhub.common.cache.Cache;
 import com.markerhub.common.lang.Const;
 import com.markerhub.common.lang.Result;
 import com.markerhub.common.vo.BlogPostDocumentVo;
-import com.markerhub.common.vo.BlogVo;
-import com.markerhub.entity.Blog;
+import com.markerhub.common.vo.BlogEntityVo;
+import com.markerhub.entity.BlogEntity;
 import com.markerhub.service.BlogService;
 import lombok.extern.slf4j.Slf4j;
 import org.elasticsearch.ResourceNotFoundException;
@@ -160,7 +160,7 @@ public class BlogController {
     @Cache(name = Const.HOT_BLOGS)//缓存页面信息
     @Bloom
     public Result listByYear(@PathVariable(name = "currentPage") Integer currentPage, @PathVariable(name = "year") Integer year) {
-        Page<Blog> pageData = blogService.listByYear(currentPage, year);
+        Page<BlogEntity> pageData = blogService.listByYear(currentPage, year);
         return Result.succ(pageData);
     }
 
@@ -181,7 +181,7 @@ public class BlogController {
     @Cache(name = Const.HOT_BLOGS)//缓存页面信息
     @GetMapping("/blogs/{currentPage}")
     public Result list(@PathVariable(name = "currentPage") Integer currentPage) {
-        Page<Blog> pageData = blogService.listBlogsByPage(currentPage);
+        Page<BlogEntity> pageData = blogService.listBlogsByPage(currentPage);
         return Result.succ(pageData);
     }
 
@@ -196,7 +196,7 @@ public class BlogController {
     @Cache(name = Const.HOT_BLOG)
     @Bloom
     public Result detail(@PathVariable(name = "id") Long id) {
-        Blog blog = blogService.getBlogDetail(id);
+        BlogEntity blog = blogService.getBlogDetail(id);
         return Result.succ(blog);
     }
 
@@ -208,7 +208,7 @@ public class BlogController {
     @GetMapping("/blogAuthorized/{id}")
     @PreAuthorize("hasRole('admin')")
     public Result detailAuthorized(@PathVariable(name = "id") Long id) {
-        Blog blog = blogService.getAuthorizedBlogDetail(id);
+        BlogEntity blog = blogService.getAuthorizedBlogDetail(id);
         return Result.succ(blog);
     }
 
@@ -220,7 +220,7 @@ public class BlogController {
      */
     @GetMapping("blogToken/{blogId}/{token}")
     public Result blogToken(@PathVariable Long blogId, @PathVariable String token) {
-        Blog blog = blogService.getLockedBlog(blogId, token);
+        BlogEntity blog = blogService.getLockedBlog(blogId, token);
         if (blog == null) {
             return Result.fail("密钥错误");
         } else {
@@ -252,7 +252,7 @@ public class BlogController {
      */
     @PreAuthorize("hasAnyRole('admin', 'boy', 'girl')")
     @PostMapping("/blog/edit")
-    public Result edit(@Validated @RequestBody BlogVo blog) {
+    public Result edit(@Validated @RequestBody BlogEntityVo blog) {
 
         blogService.updateBlog(blog);
 
@@ -279,7 +279,7 @@ public class BlogController {
     @PreAuthorize("hasRole('admin')")
     @GetMapping("/queryDeletedBlogs")
     public Result listDeleted(@RequestParam String title, @RequestParam Integer currentPage, @RequestParam Integer size, @RequestParam Long userId) {
-        Page<BlogVo> page = blogService.selectDeletedBlogs(title, currentPage, size, userId);
+        Page<BlogEntityVo> page = blogService.selectDeletedBlogs(title, currentPage, size, userId);
         return Result.succ(page);
 
     }
@@ -312,7 +312,7 @@ public class BlogController {
     @PreAuthorize("hasAnyRole('admin', 'boy', 'girl', 'guest')")
     @GetMapping("/getAllBlogs")
     public Result getAllBlogs(@RequestParam Integer currentPage, @RequestParam Integer size) {
-        Page<BlogVo> page = blogService.getAllBlogs(currentPage, size);
+        Page<BlogEntityVo> page = blogService.getAllBlogs(currentPage, size);
         return Result.succ(page);
     }
 
@@ -325,7 +325,7 @@ public class BlogController {
     @PreAuthorize("hasRole('admin')")
     @GetMapping("/queryBlogs")
     public Result queryBlogs(@RequestParam String keyword, @RequestParam Integer currentPage, @RequestParam Integer size) {
-        Page<BlogVo> page = blogService.queryBlogsAbstract(keyword, currentPage, size);
+        Page<BlogEntityVo> page = blogService.queryBlogsAbstract(keyword, currentPage, size);
         return Result.succ(page);
     }
 
@@ -370,7 +370,7 @@ public class BlogController {
     @GetMapping("/blogStatus/{blogId}")
     @Cache(name = Const.BLOG_STATUS)
     public Result getBlogStatus(@PathVariable Long blogId) {
-        Integer status = blogService.getOne(new QueryWrapper<Blog>().select("status").eq("id", blogId)).getStatus();
+        Integer status = blogService.getOne(new QueryWrapper<BlogEntity>().select("status").eq("id", blogId)).getStatus();
         return Result.succ(status);
     }
 

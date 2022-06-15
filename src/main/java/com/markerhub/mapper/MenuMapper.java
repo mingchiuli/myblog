@@ -1,6 +1,6 @@
 package com.markerhub.mapper;
 
-import com.markerhub.entity.Menu;
+import com.markerhub.entity.MenuEntity;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 
 /**
@@ -9,7 +9,7 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 * @createDate 2022-02-25 10:52:53
 * @Entity com.markerhub.entity.Menu
 */
-public interface MenuMapper extends BaseMapper<Menu> {
+public interface MenuMapper extends BaseMapper<MenuEntity> {
 
 }
 

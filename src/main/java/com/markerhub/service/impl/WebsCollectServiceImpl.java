@@ -7,8 +7,8 @@ import com.markerhub.common.vo.WebsCollectDocumentVo;
 import com.markerhub.search.model.WebsCollectDocument;
 import com.markerhub.service.UserService;
 import com.markerhub.service.WebsCollectService;
-import com.markerhub.util.JwtUtil;
-import com.markerhub.util.MyUtil;
+import com.markerhub.utils.JwtUtils;
+import com.markerhub.utils.MyUtils;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.elasticsearch.index.query.MultiMatchQueryBuilder;
@@ -60,11 +60,11 @@ public class WebsCollectServiceImpl implements WebsCollectService {
         this.userService = userService;
     }
 
-    JwtUtil jwtUtil;
+    JwtUtils jwtUtils;
 
     @Autowired
-    public void setJwtUtils(JwtUtil jwtUtil) {
-        this.jwtUtil = jwtUtil;
+    public void setJwtUtils(JwtUtils jwtUtils) {
+        this.jwtUtils = jwtUtils;
     }
 
     ElasticsearchRestTemplate elasticsearchRestTemplate;
@@ -77,7 +77,7 @@ public class WebsCollectServiceImpl implements WebsCollectService {
 
     @Override
     public String getJWT() {
-        return jwtUtil.generateToken("tokentooler");
+        return jwtUtils.generateToken("tokentooler");
     }
 
     @Override
@@ -147,7 +147,7 @@ public class WebsCollectServiceImpl implements WebsCollectService {
 
         //withSorts(SortBuilders.fieldSort("created").order(SortOrder.DESC))
 
-        Page<WebsCollectDocumentVo> page = MyUtil.hitsToPage(search, WebsCollectDocumentVo.class, currentPage, Const.WEB_SIZE, count);
+        Page<WebsCollectDocumentVo> page = MyUtils.hitsToPage(search, WebsCollectDocumentVo.class, currentPage, Const.WEB_SIZE, count);
 
         for (WebsCollectDocumentVo record : page.getRecords()) {
             record.setCreated(record.getCreated().plusHours(Const.GMT_PLUS_8));
@@ -187,7 +187,7 @@ public class WebsCollectServiceImpl implements WebsCollectService {
         long count = countFuture.get();
         SearchHits<WebsCollectDocument> search = searchHitsFuture.get();
 
-        Page<WebsCollectDocument> page = MyUtil.hitsToPage(search, currentPage, Const.WEB_SIZE, count);
+        Page<WebsCollectDocument> page = MyUtils.hitsToPage(search, currentPage, Const.WEB_SIZE, count);
 
         for (WebsCollectDocument record : page.getRecords()) {
             record.setCreated(record.getCreated().plusHours(Const.GMT_PLUS_8));
@@ -235,7 +235,7 @@ public class WebsCollectServiceImpl implements WebsCollectService {
         SearchHits<WebsCollectDocument> search = searchHitsFuture.get();
 
 
-        Page<WebsCollectDocumentVo> page = MyUtil.hitsToPage(search, WebsCollectDocumentVo.class, currentPage, Const.WEB_SIZE, count);
+        Page<WebsCollectDocumentVo> page = MyUtils.hitsToPage(search, WebsCollectDocumentVo.class, currentPage, Const.WEB_SIZE, count);
 
         for (WebsCollectDocumentVo record : page.getRecords()) {
             record.setCreated(record.getCreated().plusHours(Const.GMT_PLUS_8));

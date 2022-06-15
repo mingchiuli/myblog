@@ -1,6 +1,6 @@
 package com.markerhub.mapper;
 
-import com.markerhub.entity.RoleMenu;
+import com.markerhub.entity.RoleMenuEntity;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 
 /**
@@ -9,7 +9,7 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 * @createDate 2022-02-25 10:52:20
 * @Entity com.markerhub.entity.RoleMenu
 */
-public interface RoleMenuMapper extends BaseMapper<RoleMenu> {
+public interface RoleMenuMapper extends BaseMapper<RoleMenuEntity> {
 
 }
 

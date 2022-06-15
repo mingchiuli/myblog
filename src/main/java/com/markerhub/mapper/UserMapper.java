@@ -1,6 +1,6 @@
 package com.markerhub.mapper;
 
-import com.markerhub.entity.User;
+import com.markerhub.entity.UserEntity;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import java.util.List;
 
@@ -12,7 +12,7 @@ import java.util.List;
  * @author Li MingChiu
  * @since 2021-10-27
  */
-public interface UserMapper extends BaseMapper<User> {
+public interface UserMapper extends BaseMapper<UserEntity> {
 
     List<Long> getNavMenuIds(String role);
 }

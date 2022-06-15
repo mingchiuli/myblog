@@ -8,7 +8,7 @@ import com.markerhub.common.vo.WebsCollectDocumentVo;
 import com.markerhub.search.model.WebsCollectDocument;
 import com.markerhub.service.UserService;
 import com.markerhub.service.WebsCollectService;
-import com.markerhub.util.JwtUtil;
+import com.markerhub.utils.JwtUtils;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,11 +34,11 @@ public class WebsCollectController {
         this.userService = userService;
     }
 
-    JwtUtil jwtUtil;
+    JwtUtils jwtUtils;
 
     @Autowired
-    public void setJwtUtils(JwtUtil jwtUtil) {
-        this.jwtUtil = jwtUtil;
+    public void setJwtUtils(JwtUtils jwtUtils) {
+        this.jwtUtils = jwtUtils;
     }
 
     ElasticsearchRestTemplate elasticsearchRestTemplate;

@@ -7,7 +7,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.markerhub.common.lang.Const;
 import com.markerhub.common.lang.Result;
-import com.markerhub.entity.Blog;
+import com.markerhub.entity.BlogEntity;
 import com.markerhub.service.BlogService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -67,7 +67,7 @@ public class ScheduledTask {
 
         CompletableFuture<Void> var1 = CompletableFuture.runAsync(() -> {
             //detail和getBlogStatus接口
-            List<Blog> blogs = blogService.list(new QueryWrapper<Blog>().ne("status", 1));
+            List<BlogEntity> blogs = blogService.list(new QueryWrapper<BlogEntity>().ne("status", 1));
             blogs.forEach(blog -> {
                 StringBuilder builder = new StringBuilder();
 
@@ -88,7 +88,7 @@ public class ScheduledTask {
             });
 
             //bloomFilter
-            List<Blog> blogIds = blogService.list(new QueryWrapper<Blog>().select("id"));
+            List<BlogEntity> blogIds = blogService.list(new QueryWrapper<BlogEntity>().select("id"));
             blogIds.forEach(blogId -> {
                 redisTemplate.opsForValue().setBit(Const.BLOOM_FILTER_BLOG, blogId.getId(), true);
             });
@@ -103,8 +103,8 @@ public class ScheduledTask {
             long totalPage = count % Const.PAGE_SIZE == 0 ? count / Const.PAGE_SIZE : count / Const.PAGE_SIZE + 1;
 
             for (int i = 1; i <= totalPage; i++) {
-                Page<Blog> page = new Page<>(i, Const.PAGE_SIZE);
-                page = blogService.page(page, new QueryWrapper<Blog>().select("id", "title", "description", "link", "created").orderByDesc("created"));
+                Page<BlogEntity> page = new Page<>(i, Const.PAGE_SIZE);
+                page = blogService.page(page, new QueryWrapper<BlogEntity>().select("id", "title", "description", "link", "created").orderByDesc("created"));
                 StringBuilder sb = new StringBuilder();
                 try {
                     sb.append(objectMapper.writeValueAsString(i));
@@ -142,10 +142,10 @@ public class ScheduledTask {
                 //当前年份的总页数
                 LocalDateTime start = LocalDateTime.of(year, 1, 1, 0, 0, 0);
                 LocalDateTime end = LocalDateTime.of(year, 12, 31, 23, 59, 59);
-                long pageNum = blogService.count(new QueryWrapper<Blog>().between("created", start, end));
+                long pageNum = blogService.count(new QueryWrapper<BlogEntity>().between("created", start, end));
                 for (int i = 1; i <= pageNum; i++) {
                     //每一页的缓存
-                    Page<Blog> pageData = blogService.listByYear(i, year);
+                    Page<BlogEntity> pageData = blogService.listByYear(i, year);
                     StringBuilder sb = new StringBuilder();
                     try {
                         sb.append(objectMapper.writeValueAsString(i));

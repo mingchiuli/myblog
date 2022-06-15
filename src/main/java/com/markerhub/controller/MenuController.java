@@ -1,7 +1,7 @@
 package com.markerhub.controller;
 
 import com.markerhub.common.lang.Result;
-import com.markerhub.entity.Menu;
+import com.markerhub.entity.MenuEntity;
 import com.markerhub.service.MenuService;
 import com.markerhub.service.RoleMenuService;
 import com.markerhub.service.UserService;
@@ -48,7 +48,7 @@ public class MenuController {
      */
     @GetMapping("/nav")
     public Result nav(HttpServletRequest request) {
-        List<Menu> navs = menuService.nav(request);
+        List<MenuEntity> navs = menuService.nav(request);
         return Result.succ(navs);
     }
 
@@ -63,13 +63,13 @@ public class MenuController {
     @PreAuthorize("hasRole('admin')")
     public Result list() {
 
-        List<Menu> menus = menuService.tree();
+        List<MenuEntity> menus = menuService.tree();
         return Result.succ(menus);
     }
 
     @PostMapping("/save")
     @PreAuthorize("hasRole('admin')")
-    public Result save(@Validated @RequestBody Menu menu) {
+    public Result save(@Validated @RequestBody MenuEntity menu) {
 
         menuService.save(menu);
 
@@ -78,7 +78,7 @@ public class MenuController {
 
     @PostMapping("/update")
     @PreAuthorize("hasRole('admin')")
-    public Result update(@Validated @RequestBody Menu menu) {
+    public Result update(@Validated @RequestBody MenuEntity menu) {
 
         menuService.updateById(menu);
 

@@ -1,7 +1,7 @@
 package com.markerhub.service.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.markerhub.entity.RoleMenu;
+import com.markerhub.entity.RoleMenuEntity;
 import com.markerhub.service.RoleMenuService;
 import com.markerhub.mapper.RoleMenuMapper;
 import org.springframework.stereotype.Service;
@@ -12,7 +12,7 @@ import org.springframework.stereotype.Service;
 * @createDate 2022-02-25 10:52:20
 */
 @Service
-public class RoleMenuServiceImpl extends ServiceImpl<RoleMenuMapper, RoleMenu>
+public class RoleMenuServiceImpl extends ServiceImpl<RoleMenuMapper, RoleMenuEntity>
     implements RoleMenuService{
 
 }

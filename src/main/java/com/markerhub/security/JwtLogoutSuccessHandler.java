@@ -3,7 +3,7 @@ package com.markerhub.security;
 import cn.hutool.json.JSONUtil;
 import com.markerhub.common.lang.Const;
 import com.markerhub.common.lang.Result;
-import com.markerhub.util.JwtUtil;
+import com.markerhub.utils.JwtUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -20,7 +20,7 @@ import java.nio.charset.StandardCharsets;
 @Component
 public class JwtLogoutSuccessHandler implements LogoutSuccessHandler {
 
-	JwtUtil jwtUtils;
+	JwtUtils jwtUtils;
 
 	RedisTemplate<String, Object> redisTemplate;
 
@@ -33,7 +33,7 @@ public class JwtLogoutSuccessHandler implements LogoutSuccessHandler {
 	}
 
 	@Autowired
-	public void setJwtUtils(JwtUtil jwtUtils) {
+	public void setJwtUtils(JwtUtils jwtUtils) {
 		this.jwtUtils = jwtUtils;
 	}
 

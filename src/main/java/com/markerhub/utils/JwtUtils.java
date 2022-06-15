@@ -1,4 +1,4 @@
-package com.markerhub.util;
+package com.markerhub.utils;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
@@ -16,7 +16,7 @@ import java.util.Date;
 @Data
 @Component
 @ConfigurationProperties(prefix = "markerhub.jwt")
-public class JwtUtil {
+public class JwtUtils {
 
     private String secret;
 

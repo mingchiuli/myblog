@@ -1,6 +1,6 @@
 package com.markerhub.service;
 
-import com.markerhub.entity.Role;
+import com.markerhub.entity.RoleEntity;
 import com.baomidou.mybatisplus.extension.service.IService;
 
 /**
@@ -8,13 +8,13 @@ import com.baomidou.mybatisplus.extension.service.IService;
 * @description 针对表【m_role】的数据库操作Service
 * @createDate 2022-02-25 10:48:04
 */
-public interface RoleService extends IService<Role> {
+public interface RoleService extends IService<RoleEntity> {
 
-    Role info(Long id);
+    RoleEntity info(Long id);
 
-    void saveRole(Role role);
+    void saveRole(RoleEntity role);
 
-    void updateRole(Role role);
+    void updateRole(RoleEntity role);
 
     void deleteRole(Long[] ids);
 

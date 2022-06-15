@@ -4,7 +4,7 @@ import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.markerhub.common.lang.Result;
-import com.markerhub.entity.Role;
+import com.markerhub.entity.RoleEntity;
 import com.markerhub.service.RoleMenuService;
 import com.markerhub.service.RoleService;
 import com.markerhub.service.UserService;
@@ -47,7 +47,7 @@ public class RoleController {
     @GetMapping("/info/{id}")
     @PreAuthorize("hasRole('admin')")
     public Result info(@PathVariable("id") Long id) {
-        Role role = roleService.info(id);
+        RoleEntity role = roleService.info(id);
         return Result.succ(role);
     }
 
@@ -55,8 +55,8 @@ public class RoleController {
     @PreAuthorize("hasAnyRole('admin', 'boy', 'girl')")
     public Result list(String name, Integer current, Integer size) {
 
-        Page<Role> pageData = roleService.page(new Page<>(current, size),
-                new QueryWrapper<Role>()
+        Page<RoleEntity> pageData = roleService.page(new Page<>(current, size),
+                new QueryWrapper<RoleEntity>()
                         .like(StrUtil.isNotBlank(name), "name", name)
         );
 
@@ -65,14 +65,14 @@ public class RoleController {
 
     @PostMapping("/save")
     @PreAuthorize("hasRole('admin')")
-    public Result save(@Validated @RequestBody Role role) {
+    public Result save(@Validated @RequestBody RoleEntity role) {
         roleService.saveRole(role);
         return Result.succ(null);
     }
 
     @PostMapping("/update")
     @PreAuthorize("hasRole('admin')")
-    public Result update(@Validated @RequestBody Role role) {
+    public Result update(@Validated @RequestBody RoleEntity role) {
         roleService.updateRole(role);
         return Result.succ(null);
     }

@@ -21,7 +21,7 @@ import javax.validation.constraints.NotBlank;
 @TableName(value ="m_role")
 @EqualsAndHashCode(callSuper = false)
 @Data
-public class Role implements Serializable {
+public class RoleEntity implements Serializable {
     /**
      *
      */

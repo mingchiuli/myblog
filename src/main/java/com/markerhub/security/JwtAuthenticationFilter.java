@@ -3,19 +3,19 @@ package com.markerhub.security;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.markerhub.common.exception.AuthenticationException;
 import com.markerhub.common.lang.Const;
 import com.markerhub.common.lang.Result;
-import com.markerhub.entity.User;
+import com.markerhub.entity.UserEntity;
 import com.markerhub.service.UserService;
-import com.markerhub.util.JwtUtil;
-import com.markerhub.util.MyUtil;
+import com.markerhub.utils.JwtUtils;
+import com.markerhub.utils.MyUtils;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.util.StringUtils;
@@ -30,7 +30,7 @@ import java.util.List;
 
 public class JwtAuthenticationFilter extends BasicAuthenticationFilter {
 
-	JwtUtil jwtUtils;
+	JwtUtils jwtUtils;
 
 	UserDetailServiceImpl userDetailService;
 
@@ -44,7 +44,7 @@ public class JwtAuthenticationFilter extends BasicAuthenticationFilter {
 	}
 
 	@Autowired
-	public void setJwtUtils(JwtUtil jwtUtils) {
+	public void setJwtUtils(JwtUtils jwtUtils) {
 		this.jwtUtils = jwtUtils;
 	}
 
@@ -71,6 +71,21 @@ public class JwtAuthenticationFilter extends BasicAuthenticationFilter {
 			return;
 		}
 
+		Authentication authentication = getAuthentication(jwt);
+
+		if (authentication == null) {
+			response.setContentType("application/json;charset=utf-8");
+			response.getWriter().write(JSONUtil.toJsonStr(Result.fail(401, "你已被强制下线", null)));
+			return;
+		}
+
+		//非白名单资源、接口都要走这个流程，没有set就不能访问
+		SecurityContextHolder.getContext().setAuthentication(authentication);
+
+		chain.doFilter(request, response);
+	}
+
+	private Authentication getAuthentication(String jwt) {
 		Claims claim = jwtUtils.getClaimByToken(jwt);
 		if (claim == null) {
 			throw new JwtException("token异常");
@@ -82,7 +97,7 @@ public class JwtAuthenticationFilter extends BasicAuthenticationFilter {
 		String username = claim.getSubject();
 		// 获取用户的权限等信息
 
-		User user;
+		UserEntity user;
 
 		HashSet<Object> set = new HashSet<>(2);
 
@@ -93,28 +108,21 @@ public class JwtAuthenticationFilter extends BasicAuthenticationFilter {
 		LinkedHashMap<String, Object> userInfo = (LinkedHashMap<String, Object>) multiGet.get(0);
 		String originToken = (String) multiGet.get(1);
 
-		try {
-			if (StringUtils.hasLength(originToken) && !jwt.equals(originToken)) {
-				throw new AuthenticationException("你已被强制下线");
-			}
-		} catch (Exception e) {
-			response.setContentType("application/json;charset=utf-8");
-			response.getWriter().write(JSONUtil.toJsonStr(Result.fail(401, e.getMessage(), null)));
-			return;
+
+		if (StringUtils.hasLength(originToken) && !jwt.equals(originToken)) {
+			return null;
 		}
+
 
 		if (userInfo != null) {
-			user = MyUtil.jsonToObj(userInfo, User.class);
+			user = MyUtils.jsonToObj(userInfo, UserEntity.class);
 		} else {
-			user = sysUserService.getOne(new QueryWrapper<User>().eq("username", username));
-			MyUtil.setUserToCache(jwt, user, (long) (5 * 60));
+			user = sysUserService.getOne(new QueryWrapper<UserEntity>().eq("username", username));
+			MyUtils.setUserToCache(jwt, user, (long) (5 * 60));
 		}
 
 
-		UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(user.getUsername(), null, userDetailService.getUserRole(user.getId()));
+		return new UsernamePasswordAuthenticationToken(user.getUsername(), null, userDetailService.getUserRole(user.getId()));
 
-		SecurityContextHolder.getContext().setAuthentication(token);
-
-		chain.doFilter(request, response);
 	}
 }

@@ -4,7 +4,7 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.markerhub.mapper.RoleMenuMapper">
 
-    <resultMap id="BaseResultMap" type="com.markerhub.entity.RoleMenu">
+    <resultMap id="BaseResultMap" type="com.markerhub.entity.RoleMenuEntity">
             <id property="id" column="id" jdbcType="BIGINT"/>
             <result property="roleId" column="role_id" jdbcType="BIGINT"/>
             <result property="menuId" column="menu_id" jdbcType="BIGINT"/>

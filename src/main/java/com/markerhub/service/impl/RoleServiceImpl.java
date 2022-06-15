@@ -2,8 +2,8 @@ package com.markerhub.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.markerhub.entity.Role;
-import com.markerhub.entity.RoleMenu;
+import com.markerhub.entity.RoleEntity;
+import com.markerhub.entity.RoleMenuEntity;
 import com.markerhub.service.RoleMenuService;
 import com.markerhub.service.RoleService;
 import com.markerhub.mapper.RoleMapper;
@@ -22,7 +22,7 @@ import java.util.stream.Collectors;
 * @createDate 2022-02-25 10:48:04
 */
 @Service
-public class RoleServiceImpl extends ServiceImpl<RoleMapper, Role>
+public class RoleServiceImpl extends ServiceImpl<RoleMapper, RoleEntity>
     implements RoleService{
 
     RoleMenuService roleMenuService;
@@ -34,13 +34,13 @@ public class RoleServiceImpl extends ServiceImpl<RoleMapper, Role>
 
     @Override
     @Transactional
-    public Role info(Long id) {
+    public RoleEntity info(Long id) {
 
-        Role role = getById(id);
+        RoleEntity role = getById(id);
 
         // 获取角色相关联的菜单id
-        List<RoleMenu> roleMenus = roleMenuService.list(new QueryWrapper<RoleMenu>().eq("role_id", id));
-        List<Long> menuIds = roleMenus.stream().map(RoleMenu::getMenuId).collect(Collectors.toList());
+        List<RoleMenuEntity> roleMenus = roleMenuService.list(new QueryWrapper<RoleMenuEntity>().eq("role_id", id));
+        List<Long> menuIds = roleMenus.stream().map(RoleMenuEntity::getMenuId).collect(Collectors.toList());
 
         role.setMenuIds(menuIds);
 
@@ -48,7 +48,7 @@ public class RoleServiceImpl extends ServiceImpl<RoleMapper, Role>
     }
 
     @Override
-    public void saveRole(Role role) {
+    public void saveRole(RoleEntity role) {
 
         role.setCreated(LocalDateTime.now());
         //0为开启，1为禁用
@@ -58,7 +58,7 @@ public class RoleServiceImpl extends ServiceImpl<RoleMapper, Role>
     }
 
     @Override
-    public void updateRole(Role role) {
+    public void updateRole(RoleEntity role) {
         role.setUpdated(LocalDateTime.now());
         updateById(role);
     }
@@ -68,16 +68,16 @@ public class RoleServiceImpl extends ServiceImpl<RoleMapper, Role>
     public void deleteRole(Long[] ids) {
         removeByIds(List.of(ids));
         // 删除中间表
-        roleMenuService.remove(new QueryWrapper<RoleMenu>().in("role_id",  ids));
+        roleMenuService.remove(new QueryWrapper<RoleMenuEntity>().in("role_id",  ids));
     }
 
     @Override
     @Transactional
     public Long[] perm(Long roleId, Long[] menuIds) {
-        List<RoleMenu> sysRoleMenus = new ArrayList<>();
+        List<RoleMenuEntity> sysRoleMenus = new ArrayList<>();
 
         Arrays.stream(menuIds).forEach(menuId -> {
-            RoleMenu roleMenu = new RoleMenu();
+            RoleMenuEntity roleMenu = new RoleMenuEntity();
             roleMenu.setMenuId(menuId);
             roleMenu.setRoleId(roleId);
 
@@ -85,7 +85,7 @@ public class RoleServiceImpl extends ServiceImpl<RoleMapper, Role>
         });
 
         // 先删除原来的记录，再保存新的
-        roleMenuService.remove(new QueryWrapper<RoleMenu>().eq("role_id", roleId));
+        roleMenuService.remove(new QueryWrapper<RoleMenuEntity>().eq("role_id", roleId));
         roleMenuService.saveBatch(sysRoleMenus);
         return menuIds;
     }
