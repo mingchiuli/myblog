@@ -13,7 +13,9 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
 /**
- * 如果配置文件白名单没有配置的url，就会跳转到这个处理逻辑
+ * 如果访问白名单没有配置的url
+ * 和SecurityContextHolder.getContext().setAuthentication(token);
+ * 就会跳转到这个处理逻辑
  */
 @Component
 public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {

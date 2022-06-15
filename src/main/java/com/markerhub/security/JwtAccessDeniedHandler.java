@@ -15,6 +15,7 @@ import java.nio.charset.StandardCharsets;
 @Component
 public class JwtAccessDeniedHandler implements AccessDeniedHandler {
 
+	//权限异常
 	@Override
 	public void handle(HttpServletRequest request, HttpServletResponse response, AccessDeniedException accessDeniedException) throws IOException, ServletException {
 
