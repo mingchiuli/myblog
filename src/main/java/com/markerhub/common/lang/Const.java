@@ -42,10 +42,10 @@ public class Const {
 
     public static final Integer GMT_PLUS_8 = 8;
 
-    public static final String ADMIN = "ROLE_admin";
-    public static final String BOY = "ROLE_boy";
-    public static final String GIRL = "ROLE_girl";
-    public static final String GUEST = "ROLE_guest";
+    public static final String ADMIN = "admin";
+    public static final String BOY = "boy";
+    public static final String GIRL = "girl";
+    public static final String GUEST = "guest";
 
 
     public static final Integer WEB_SIZE = 9;

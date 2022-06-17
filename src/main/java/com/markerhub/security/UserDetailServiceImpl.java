@@ -59,6 +59,6 @@ public class UserDetailServiceImpl implements UserDetailsService {
 	 */
 	public List<GrantedAuthority> getUserRole(Long userId){
 		String role = sysUserService.getOne(new QueryWrapper<UserEntity>().select("role").eq("id", userId)).getRole();
-		return AuthorityUtils.createAuthorityList(role);
+		return AuthorityUtils.createAuthorityList("ROLE_" + role);
 	}
 }
