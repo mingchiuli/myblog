@@ -56,25 +56,22 @@ public class BloomAspect {
                 break;
             case "detail":
             case "getBlogStatus":
-                Long l = (Long) args[0];
-                if (Boolean.FALSE.equals(redisTemplate.opsForValue().getBit(Const.BLOOM_FILTER_BLOG, l))) {
+                Long blogId = (Long) args[0];
+                if (Boolean.FALSE.equals(redisTemplate.opsForValue().getBit(Const.BLOOM_FILTER_BLOG, blogId))) {
                     throw new ArithmeticException("没有此博客！");
                 }
                 break;
             case "getCountByYear":
                 int year = (Integer) args[0];
-                int[] years = blogService.searchYears();
-                for (int y : years) {
-                    if (year == y) {
-                        return;
-                    }
+                if (Boolean.FALSE.equals(redisTemplate.opsForValue().getBit(Const.BLOOM_FILTER_YEARS, year))) {
+                    throw new ArithmeticException("没有此年份！");
                 }
-                throw new ArithmeticException("没有此年份！");
+                break;
             case "listByYear":
                 int currentPage = (Integer) args[0];
                 int yearMark = (Integer) args[1];
                 if (Boolean.FALSE.equals(redisTemplate.opsForValue().getBit(Const.BLOOM_FILTER_PAGE + yearMark, currentPage))) {
-                    throw new ArithmeticException("没有此页面！");
+                    throw new ArithmeticException("没有此年份页面！");
                 }
                 break;
         }

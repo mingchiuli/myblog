@@ -2,6 +2,8 @@ package com.markerhub.mapper;
 
 import com.markerhub.entity.UserEntity;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import org.apache.ibatis.annotations.Mapper;
+
 import java.util.List;
 
 /**
@@ -12,6 +14,7 @@ import java.util.List;
  * @author Li MingChiu
  * @since 2021-10-27
  */
+@Mapper
 public interface UserMapper extends BaseMapper<UserEntity> {
 
     List<Long> getNavMenuIds(String role);

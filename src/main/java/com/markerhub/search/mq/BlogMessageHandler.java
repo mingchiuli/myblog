@@ -238,6 +238,7 @@ public class BlogMessageHandler {
                 String createUUID = msg.getMessageProperties().getHeader("spring_returned_message_correlation");
                 if (Boolean.TRUE.equals(redisTemplate.hasKey(Const.CONSUME_MONITOR + createUUID))) {
                     Long createId = message.getPostId();
+                    BlogEntity newBlog = blogService.getById(createId);
 
                     /*
                     、Redis流程
@@ -274,6 +275,10 @@ public class BlogMessageHandler {
                         redisTemplate.delete(keys);
                     }
 
+                    //年份过滤bloom更新
+                    int year = newBlog.getCreated().getYear();
+                    redisTemplate.opsForValue().setBit(Const.BLOOM_FILTER_YEARS, year, true);
+
                     log.info("新增博客Redis删除完毕");
 
 
@@ -281,7 +286,6 @@ public class BlogMessageHandler {
                     ES流程
                      */
 
-                    BlogEntity newBlog = blogService.getById(createId);
                     BlogPostDocument newDocument = MyUtils.blogToDocument(newBlog);
                     BlogPostDocument save = elasticsearchRestTemplate.save(newDocument);
 

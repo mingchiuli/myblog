@@ -164,10 +164,15 @@ public class ScheduledTask {
         }, executor);
 
 
+        //searchYears和getCountByYear
         CompletableFuture<Void> var5 = CompletableFuture.runAsync(() -> {
             int[] ints = blogService.searchYears();
             String yearKey = Const.YEARS + "::BlogController::searchYears::";
             redisTemplate.opsForValue().set(yearKey, Result.succ(ints), ThreadLocalRandom.current().nextInt(120) + 1, TimeUnit.MINUTES);
+            //getCountByYear的bloom
+            for (int year : ints) {
+                redisTemplate.opsForValue().setBit(Const.BLOOM_FILTER_YEARS, year, true);
+            }
         }, executor);
 
         CompletableFuture.allOf(var1, var2, var3, var4, var5);

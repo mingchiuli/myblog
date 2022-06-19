@@ -61,18 +61,9 @@ public class WebSocketInterceptor implements ChannelInterceptor {
                 }
 
                 String username = claim.getSubject();
-
-                String id = userService.getOne(new QueryWrapper<UserEntity>().select("id").eq("username", username)).getId().toString();
-
-                String role;
-
-                String profileRole =  (String) redisTemplate.opsForValue().get(Const.ROLE_PREFIX + id);
-
-                if (profileRole != null) {
-                    role = profileRole;
-                } else {
-                    role = userService.getOne(new QueryWrapper<UserEntity>().select("role").eq("id", id)).getRole();
-                }
+                UserEntity user = userService.getOne(new QueryWrapper<UserEntity>().select("id", "role").eq("username", username));
+                String id = user.getId().toString();
+                String role = user.getRole();
 
                 if (!(Const.ADMIN.equals(role) || Const.BOY.equals(role) || Const.GIRL.equals(role))) {
                     throw new AuthenticationException("禁止进入编辑室");
