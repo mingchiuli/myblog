@@ -232,16 +232,16 @@ public class BlogController {
     /**
      * 搜索功能，从es搜索
      */
-    @GetMapping("/search/{currentPage}")
-    public Result search(@PathVariable Integer currentPage, @RequestParam String keyword) {
-        Page<BlogPostDocumentVo> page = blogService.selectBlogsByES(currentPage, keyword);
+    @GetMapping("/search/{status}/{currentPage}")
+    public Result search(@PathVariable Integer currentPage, @PathVariable Integer status ,@RequestParam String keyword) {
+        Page<BlogPostDocumentVo> page = blogService.selectBlogsByES(currentPage, keyword, status);
         return Result.succ(page);
     }
 
 
-    @GetMapping("/searchByYear/{currentPage}/{year}")
-    public Result searchByYear(@PathVariable Integer currentPage, @RequestParam String keyword, @PathVariable Integer year) {
-        Page<BlogPostDocumentVo> page = blogService.selectYearBlogsByES(currentPage, keyword, year);
+    @GetMapping("/searchByYear/{status}/{currentPage}/{year}")
+    public Result searchByYear(@PathVariable Integer currentPage, @RequestParam String keyword, @PathVariable Integer year, @PathVariable Integer status) {
+        Page<BlogPostDocumentVo> page = blogService.selectYearBlogsByES(currentPage, keyword, year, status);
         return Result.succ(page);
     }
 

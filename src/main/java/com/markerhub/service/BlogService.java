@@ -33,9 +33,9 @@ public interface BlogService extends IService<BlogEntity> {
 
     BlogEntity getLockedBlog(Long blogId, String token);
 
-    Page<BlogPostDocumentVo> selectBlogsByES(Integer currentPage, String keyword);
+    Page<BlogPostDocumentVo> selectBlogsByES(Integer currentPage, String keyword, Integer status);
 
-    Page<BlogPostDocumentVo> selectYearBlogsByES(Integer currentPage, String keyword, Integer year);
+    Page<BlogPostDocumentVo> selectYearBlogsByES(Integer currentPage, String keyword, Integer year, Integer status);
 
     void updateBlog(BlogEntityVo blog);
 
