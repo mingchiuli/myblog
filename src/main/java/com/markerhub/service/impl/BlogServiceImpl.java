@@ -229,7 +229,7 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, BlogEntity> impleme
         CompletableFuture<SearchHits<BlogPostDocument>> searchHitsFuture;
 
         if (status == 0) {
-            //启动线程2
+            //简单搜索
             searchHitsFuture = CompletableFuture.supplyAsync(() -> {
                 NativeSearchQuery searchQueryHits = new NativeSearchQueryBuilder()
                         .withQuery(QueryBuilders.boolQuery()
@@ -238,13 +238,13 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, BlogEntity> impleme
                         .withSorts(SortBuilders.scoreSort())
                         .withPageable(PageRequest.of(currentPage - 1, Const.PAGE_SIZE))
                         .withHighlightBuilder(new HighlightBuilder()
-                                .field("title").field("description").field("content").preTags("<b style='color:red'>").postTags("</b>").fragmentSize(5).numOfFragments(2))
+                                .field("title").field("description").field("content").preTags("<b style='color:red'>").postTags("</b>").fragmentSize(5).numOfFragments(1))
                         .build();
 
                 return elasticsearchRestTemplate.search(searchQueryHits, BlogPostDocument.class);
             }, executor);
         } else {
-            //启动线程2
+            //精确搜索
             searchHitsFuture = CompletableFuture.supplyAsync(() -> {
                 NativeSearchQuery searchQueryHits = new NativeSearchQueryBuilder()
                         .withQuery(QueryBuilders.boolQuery()
@@ -312,7 +312,7 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, BlogEntity> impleme
                         .withSorts(SortBuilders.scoreSort())
                         .withPageable(PageRequest.of(currentPage - 1, Const.PAGE_SIZE))
                         .withHighlightBuilder(new HighlightBuilder()
-                                .field("title").field("description").field("content").preTags("<b style='color:red'>").postTags("</b>").fragmentSize(5).numOfFragments(2))
+                                .field("title").field("description").field("content").preTags("<b style='color:red'>").postTags("</b>").fragmentSize(5).numOfFragments(1))
                         .build();
 
                 return elasticsearchRestTemplate.search(searchQueryHits, BlogPostDocument.class);
