@@ -1,8 +1,10 @@
 package com.markerhub.security;
 
+import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.markerhub.common.exception.CaptchaException;
 import com.markerhub.common.lang.Const;
+import com.markerhub.common.lang.Result;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
@@ -32,15 +34,22 @@ public class CaptchaFilter extends OncePerRequestFilter {
 	}
 
 	@Override
-	protected void doFilterInternal(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse, FilterChain filterChain) throws ServletException, IOException {
+	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
 
-		String url = httpServletRequest.getRequestURI();
+		String url = request.getRequestURI();
 
-		if ("/login".equals(url) && httpServletRequest.getMethod().equals("POST")) {
+		if ("/login".equals(url) && request.getMethod().equals("POST")) {
 			// 校验验证码
-			validate(httpServletRequest);
+			try {
+				validate(request);
+			} catch (CaptchaException e) {
+				response.setContentType("application/json;charset=utf-8");
+				response.getWriter().write(JSONUtil.toJsonStr(Result.fail(400, e.getMessage(), null)));
+				return;
+			}
+
 		}
-		filterChain.doFilter(httpServletRequest, httpServletResponse);
+		filterChain.doFilter(request, response);
 	}
 
 	// 校验验证码逻辑

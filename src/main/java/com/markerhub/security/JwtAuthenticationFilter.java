@@ -71,7 +71,15 @@ public class JwtAuthenticationFilter extends BasicAuthenticationFilter {
 			return;
 		}
 
-		Authentication authentication = getAuthentication(jwt);
+		Authentication authentication;
+
+		try {
+			authentication = getAuthentication(jwt);
+		} catch (JwtException e) {
+			response.setContentType("application/json;charset=utf-8");
+			response.getWriter().write(JSONUtil.toJsonStr(Result.fail(401, e.getMessage(), null)));
+			return;
+		}
 
 		if (authentication == null) {
 			response.setContentType("application/json;charset=utf-8");
@@ -88,10 +96,10 @@ public class JwtAuthenticationFilter extends BasicAuthenticationFilter {
 	private Authentication getAuthentication(String jwt) {
 		Claims claim = jwtUtils.getClaimByToken(jwt);
 		if (claim == null) {
-			throw new JwtException("token异常");
+			throw new JwtException("token异常，请重新登录");
 		}
 		if (jwtUtils.isTokenExpired(claim.getExpiration())) {
-			throw new JwtException("token已过期");
+			throw new JwtException("token已过期，请重新登录");
 		}
 
 		String username = claim.getSubject();
@@ -113,14 +121,12 @@ public class JwtAuthenticationFilter extends BasicAuthenticationFilter {
 			return null;
 		}
 
-
 		if (userInfo != null) {
 			user = MyUtils.jsonToObj(userInfo, UserEntity.class);
 		} else {
 			user = sysUserService.getOne(new QueryWrapper<UserEntity>().eq("username", username));
 			MyUtils.setUserToCache(jwt, user, (long) (5 * 60));
 		}
-
 
 		return new UsernamePasswordAuthenticationToken(user.getUsername(), null, userDetailService.getUserRole(user.getId()));
 

@@ -201,7 +201,6 @@ public class BlogController {
     }
 
     /**
-     * 经测试此处缓存注解可以加，因为在没有密钥的时候访问这个接口，不会进入缓存流程，直接抛异常
      * @param id
      * @return
      */
