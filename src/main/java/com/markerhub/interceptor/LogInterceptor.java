@@ -9,7 +9,6 @@ import com.markerhub.service.UserService;
 import com.markerhub.utils.JwtUtils;
 import io.jsonwebtoken.Claims;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.simp.stomp.StompCommand;
@@ -18,19 +17,13 @@ import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.messaging.support.MessageHeaderAccessor;
 import org.springframework.stereotype.Component;
 
+
 /**
  * @author mingchiuli
- * @create 2022-06-17 9:46 PM
+ * @create 2022-07-06 10:34 PM
  */
 @Component
-public class WebSocketInterceptor implements ChannelInterceptor {
-
-    RedisTemplate<String, Object> redisTemplate;
-
-    @Autowired
-    public void setRedisTemplate(RedisTemplate<String, Object> redisTemplate) {
-        this.redisTemplate = redisTemplate;
-    }
+public class LogInterceptor implements ChannelInterceptor {
 
     UserService userService;
 
@@ -46,9 +39,10 @@ public class WebSocketInterceptor implements ChannelInterceptor {
         this.jwtUtils = jwtUtils;
     }
 
-
     @Override
     public Message<?> preSend(Message<?> message, MessageChannel channel) {
+
+
         StompHeaderAccessor accessor = MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class);
 
         if (accessor != null) {
@@ -59,7 +53,7 @@ public class WebSocketInterceptor implements ChannelInterceptor {
                     throw new AuthenticationException("不获准连接");
                 }
 
-                if (!"Cooperate".equals(type)) {
+                if (!"Log".equals(type)) {
                     return message;
                 }
 
@@ -70,19 +64,22 @@ public class WebSocketInterceptor implements ChannelInterceptor {
                     throw new AuthenticationException("token验证失败");
                 }
 
+
+
                 String username = claim.getSubject();
                 UserEntity user = userService.getOne(new QueryWrapper<UserEntity>().select("id", "role").eq("username", username));
                 String id = user.getId().toString();
                 String role = user.getRole();
 
-                if (!(Const.ADMIN.equals(role) || Const.BOY.equals(role) || Const.GIRL.equals(role))) {
-                    throw new AuthenticationException("禁止进入编辑室");
+                if (!Const.ADMIN.equals(role)) {
+                    throw new AuthenticationException("禁止进入日志查看页面");
                 }
 
                 accessor.setUser(new StompPrincipal(id));
             }
             return message;
         }
+
         return null;
     }
 }
