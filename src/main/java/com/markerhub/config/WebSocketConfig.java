@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.simp.config.ChannelRegistration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
+import org.springframework.scheduling.concurrent.DefaultManagedTaskScheduler;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
@@ -42,7 +43,9 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer{
         //客户端向服务器发消息的前缀
         registry.setApplicationDestinationPrefixes("/app");
         //客户端订阅消息的前缀
-        registry.enableSimpleBroker("/topic", "/queue", "/user", "/logs");
+        registry.enableSimpleBroker("/topic", "/queue", "/user", "/logs")
+                .setTaskScheduler(new DefaultManagedTaskScheduler())
+                .setHeartbeatValue(new long[] {2000, 2000});
         //用户级别订阅消息的前缀(默认已经配了/user)
 //        registry.setUserDestinationPrefix("/user");
 
