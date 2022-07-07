@@ -4,7 +4,6 @@ import com.markerhub.security.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -34,13 +33,13 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     JwtLogoutSuccessHandler jwtLogoutSuccessHandler;
 
-    JwtAuthenticationFilter jwtAuthenticationFilter;
-
-    @Autowired
-    @Lazy
-    public void setJwtAuthenticationFilter(JwtAuthenticationFilter jwtAuthenticationFilter) {
-        this.jwtAuthenticationFilter = jwtAuthenticationFilter;
-    }
+//    JwtAuthenticationFilter jwtAuthenticationFilter;
+//
+//    @Autowired
+//    @Lazy
+//    public void setJwtAuthenticationFilter(JwtAuthenticationFilter jwtAuthenticationFilter) {
+//        this.jwtAuthenticationFilter = jwtAuthenticationFilter;
+//    }
 
     @Autowired
     public void setLoginFailureHandler(LoginFailureHandler loginFailureHandler) {
@@ -135,9 +134,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
                 // 配置自定义的过滤器
                 .and()
-                .addFilter(jwtAuthenticationFilter)
+                .addFilter(jwtAuthenticationFilter())
                 .addFilterBefore(captchaFilter, UsernamePasswordAuthenticationFilter.class)
-                .addFilterBefore(jwtAuthenticationFilter, LogoutFilter.class);
+                .addFilterBefore(jwtAuthenticationFilter(), LogoutFilter.class);
 
     }
 

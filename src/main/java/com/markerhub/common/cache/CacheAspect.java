@@ -11,6 +11,7 @@ import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Pointcut;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.annotation.Order;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
@@ -26,6 +27,7 @@ import java.util.concurrent.TimeUnit;
 @Aspect
 @Component
 @Slf4j
+@Order(value = 1001)
 public class CacheAspect {
 
     RedisTemplate<String, Object> redisTemplate;

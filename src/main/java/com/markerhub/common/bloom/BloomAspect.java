@@ -1,5 +1,6 @@
 package com.markerhub.common.bloom;
 
+import com.markerhub.common.exception.AuthenticationException;
 import com.markerhub.common.lang.Const;
 import com.markerhub.service.BlogService;
 import lombok.extern.slf4j.Slf4j;
@@ -9,6 +10,7 @@ import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;
 import org.aspectj.lang.annotation.Pointcut;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.annotation.Order;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 
@@ -19,6 +21,7 @@ import org.springframework.stereotype.Component;
 @Aspect
 @Component
 @Slf4j
+@Order(value = 1000)
 public class BloomAspect {
 
     BlogService blogService;
@@ -51,27 +54,27 @@ public class BloomAspect {
             case "list":
                 Integer i = (Integer) args[0];
                 if (Boolean.FALSE.equals(redisTemplate.opsForValue().getBit(Const.BLOOM_FILTER_PAGE, i))) {
-                    throw new ArithmeticException("没有此页！");
+                    throw new AuthenticationException("没有" + i + "页！");
                 }
                 break;
             case "detail":
             case "getBlogStatus":
                 Long blogId = (Long) args[0];
                 if (Boolean.FALSE.equals(redisTemplate.opsForValue().getBit(Const.BLOOM_FILTER_BLOG, blogId))) {
-                    throw new ArithmeticException("没有此博客！");
+                    throw new AuthenticationException("没有"+ blogId + "号博客！");
                 }
                 break;
             case "getCountByYear":
                 int year = (Integer) args[0];
                 if (Boolean.FALSE.equals(redisTemplate.opsForValue().getBit(Const.BLOOM_FILTER_YEARS, year))) {
-                    throw new ArithmeticException("没有此年份！");
+                    throw new AuthenticationException("没有" + year + "年份！");
                 }
                 break;
             case "listByYear":
                 int currentPage = (Integer) args[0];
                 int yearMark = (Integer) args[1];
                 if (Boolean.FALSE.equals(redisTemplate.opsForValue().getBit(Const.BLOOM_FILTER_PAGE + yearMark, currentPage))) {
-                    throw new ArithmeticException("没有此年份页面！");
+                    throw new AuthenticationException("没有" + yearMark + "年份" + currentPage + "页面！");
                 }
                 break;
         }
