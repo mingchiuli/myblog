@@ -6,6 +6,7 @@ import com.markerhub.common.bloom.Bloom;
 import com.markerhub.common.cache.Cache;
 import com.markerhub.common.lang.Const;
 import com.markerhub.common.lang.Result;
+import com.markerhub.common.valid.ListValue;
 import com.markerhub.common.vo.BlogPostDocumentVo;
 import com.markerhub.common.vo.BlogEntityVo;
 import com.markerhub.entity.BlogEntity;
@@ -34,6 +35,7 @@ import java.util.*;
  */
 @Slf4j
 @RestController
+@Validated
 public class BlogController {
 
 
@@ -232,14 +234,14 @@ public class BlogController {
      * 搜索功能，从es搜索
      */
     @GetMapping("/search/{status}/{currentPage}")
-    public Result search(@PathVariable Integer currentPage, @PathVariable Integer status ,@RequestParam String keyword) {
+    public Result search(@PathVariable Integer currentPage, @PathVariable @Validated @ListValue(values = {0, 1}, message = "必须提交0或1") Integer status , @RequestParam String keyword) {
         Page<BlogPostDocumentVo> page = blogService.selectBlogsByES(currentPage, keyword, status);
         return Result.succ(page);
     }
 
 
     @GetMapping("/searchByYear/{status}/{currentPage}/{year}")
-    public Result searchByYear(@PathVariable Integer currentPage, @RequestParam String keyword, @PathVariable Integer year, @PathVariable Integer status) {
+    public Result searchByYear(@PathVariable Integer currentPage, @RequestParam String keyword, @PathVariable Integer year, @PathVariable @Validated @ListValue(values = {0, 1}, message = "必须提交0或1") Integer status) {
         Page<BlogPostDocumentVo> page = blogService.selectYearBlogsByES(currentPage, keyword, year, status);
         return Result.succ(page);
     }

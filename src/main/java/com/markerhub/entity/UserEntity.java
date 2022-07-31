@@ -8,6 +8,7 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
+import com.markerhub.common.valid.ListValue;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import javax.validation.constraints.Email;
@@ -44,6 +45,7 @@ public class UserEntity implements Serializable {
 
     private String password;
 
+    @ListValue(values = {0, 1}, message = "必须提交0或1")
     private Integer status;
 
     @JsonDeserialize(using = LocalDateTimeDeserializer.class)

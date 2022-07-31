@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.markerhub.common.dto.PasswordDto;
 import com.markerhub.common.lang.Result;
+import com.markerhub.common.valid.ListValue;
 import com.markerhub.common.vo.UserEntityVo;
 import com.markerhub.entity.UserEntity;
 import com.markerhub.service.UserService;
@@ -13,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import javax.validation.Valid;
 
 
 /**
@@ -21,6 +23,7 @@ import org.springframework.web.bind.annotation.*;
  */
 @RestController
 @Slf4j
+@Validated
 public class UserController {
 
     UserService userService;
@@ -42,7 +45,7 @@ public class UserController {
      */
     @PreAuthorize("hasRole('admin')")
     @GetMapping("/modifyUser/{id}/{status}")
-    public Result modifyUser(@PathVariable Integer id, @PathVariable Integer status) {
+    public Result modifyUser(@PathVariable Integer id, @PathVariable @Valid @ListValue(values = {0, 1}, message = "必须提交0或1") Integer status) {
         userService.modifyUser(id, status);
         return Result.succ(null);
     }
@@ -64,7 +67,7 @@ public class UserController {
      */
     @PreAuthorize("hasRole('admin')")
     @PostMapping("/addUser")
-    public Result addUser(@Validated @RequestBody UserEntityVo user) {
+    public Result addUser(@RequestBody @Validated UserEntityVo user) {
         userService.addUser(user);
         return Result.succ(null);
     }

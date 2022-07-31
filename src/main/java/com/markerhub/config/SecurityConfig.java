@@ -78,7 +78,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     }
 
     private static final String[] URL_WHITELIST = {
-
             "/captcha",
             "/favicon.ico",
             "/blogsByYear/**",
