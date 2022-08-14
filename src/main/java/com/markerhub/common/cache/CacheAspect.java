@@ -32,6 +32,8 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 public class CacheAspect {
 
+    private static String LOCK = "lock:";
+
     @Value("${locks}")
     String keys;
 
@@ -41,8 +43,10 @@ public class CacheAspect {
     public void setLocks() {
         String[] locks = keys.split(",");
         for (String lock : locks) {
-            lock.intern();
-            this.locks.add(lock);
+            StringBuilder sb = new StringBuilder(LOCK);
+            sb.append(lock);
+            String str = sb.toString().intern();
+            this.locks.add(str);
         }
     }
 
@@ -108,7 +112,7 @@ public class CacheAspect {
             return objectMapper.convertValue(o, Result.class);
         }
 
-        String lock = locks.get(locks.indexOf(methodName));
+        String lock = locks.get(locks.indexOf(LOCK +  methodName));
 
         //防止缓存击穿
         synchronized (lock) {
