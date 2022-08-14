@@ -4,7 +4,7 @@ spring:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://localhost:3306/vueblog?useUnicode=true&useSSL=false&characterEncoding=utf8&serverTimezone=Asia/Shanghai
     username: root
-    password: 123456
+    password: 12345678
   redis:
     port: 6379
     password: 123456
@@ -18,8 +18,6 @@ spring:
     password: guest
     host: 127.0.0.1
     port: 5672
-
-
 
 uploadPath: /users/mingchiuli/desktop/
 

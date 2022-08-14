@@ -12,7 +12,7 @@ import java.util.concurrent.TimeUnit;
  * @create 2022-04-26 10:06 PM
  */
 @Configuration
-public class ThreadConfig {
+public class ThreadPoolConfig {
     @Bean
     public ThreadPoolExecutor threadPoolExecutor(com.markerhub.config.ThreadPoolConfigProperties pool) {
         return new ThreadPoolExecutor(pool.getCoreSize(),

@@ -43,6 +43,9 @@ vueblog:
     max-size: 100
     keep-alive-time: 10
 
+locks:
+  listByYear,getCountByYear,list,detail,getBlogStatus,searchYears
+
 #logging:
 #  level:
 #    com.markerhub.mapper: debug

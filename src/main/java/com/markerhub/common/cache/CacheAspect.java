@@ -11,12 +11,15 @@ import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Pointcut;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.annotation.Order;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
+import javax.annotation.PostConstruct;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -27,8 +30,21 @@ import java.util.concurrent.TimeUnit;
 @Aspect
 @Component
 @Slf4j
-@Order(value = 1001)
 public class CacheAspect {
+
+    @Value("${locks}")
+    String keys;
+
+    List<String> locks = new ArrayList<>();
+
+    @PostConstruct
+    public void setLocks() {
+        String[] locks = keys.split(",");
+        for (String lock : locks) {
+            lock.intern();
+            this.locks.add(lock);
+        }
+    }
 
     RedisTemplate<String, Object> redisTemplate;
 
@@ -87,19 +103,20 @@ public class CacheAspect {
         String redisKey = name + "::" + className + "::" + methodName + "::" + params;
 //        String redisKey = name + "::" + params;
 
-        Result result = objectMapper.convertValue(redisTemplate.opsForValue().get(redisKey), Result.class);
-
-        if (result != null) {
-            return result;
+        Object o = redisTemplate.opsForValue().get(redisKey);
+        if (o != null) {
+            return objectMapper.convertValue(o, Result.class);
         }
 
+        String lock = locks.get(locks.indexOf(methodName));
+
         //防止缓存击穿
-        synchronized (this) {
+        synchronized (lock) {
             //双重检查
-            Result r = objectMapper.convertValue(redisTemplate.opsForValue().get(redisKey), Result.class);
+            Object r = redisTemplate.opsForValue().get(redisKey);
 
             if (r != null) {
-                return  r;
+                return objectMapper.convertValue(r, Result.class);
             }
 
             Object proceed = pjp.proceed();

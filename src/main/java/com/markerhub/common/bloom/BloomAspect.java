@@ -21,7 +21,6 @@ import org.springframework.stereotype.Component;
 @Aspect
 @Component
 @Slf4j
-@Order(value = 1000)
 public class BloomAspect {
 
     BlogService blogService;
