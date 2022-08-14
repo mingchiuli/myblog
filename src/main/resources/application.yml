@@ -44,7 +44,7 @@ vueblog:
     keep-alive-time: 10
 
 locks:
-  listByYear,getCountByYear,list,detail,getBlogStatus,searchYears
+  listByYear,getCountByYear,list,detail,getBlogStatus,searchYears,getJWT
 
 #logging:
 #  level:
