@@ -43,13 +43,6 @@ vueblog:
     max-size: 100
     keep-alive-time: 10
 
-locks:
-  listByYear,getCountByYear,list,detail,getBlogStatus,searchYears,getJWT
-
 #logging:
 #  level:
 #    com.markerhub.mapper: debug
-
-#logging:
-#  level:
-#    org.apache.catalina.core.ContainerBase: off

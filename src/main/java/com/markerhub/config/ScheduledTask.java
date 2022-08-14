@@ -73,11 +73,14 @@ public class ScheduledTask {
 
                 try {
                     builder.append(objectMapper.writeValueAsString(blog.getId()));
+                    builder.append("::");
                 } catch (JsonProcessingException e) {
                     log.info(e.getMessage());
                 }
 
-                builder = new StringBuilder(Arrays.toString(DigestUtil.md5(builder.toString())));
+//                builder = new StringBuilder(Arrays.toString(DigestUtil.md5(builder.toString())));
+//                builder = new StringBuilder(builder.toString());
+
                 String contentPrefix = Const.HOT_BLOG + "::BlogController::detail::" + builder;
                 String statusPrefix = Const.BLOG_STATUS + "::BlogController::getBlogStatus::" + builder;
 
@@ -108,10 +111,10 @@ public class ScheduledTask {
                 StringBuilder sb = new StringBuilder();
                 try {
                     sb.append(objectMapper.writeValueAsString(i));
+                    sb.append("::");
                 } catch (JsonProcessingException e) {
                     log.error(e.getMessage());
                 }
-                sb = new StringBuilder(Arrays.toString(DigestUtil.md5(sb.toString())));
                 String pagesPrefix = Const.HOT_BLOGS + "::BlogController::list::" + sb;
                 redisTemplate.opsForValue().set(pagesPrefix, Result.succ(page), ThreadLocalRandom.current().nextInt(120) + 1, TimeUnit.MINUTES);
                 //bloomFilter
@@ -126,10 +129,11 @@ public class ScheduledTask {
                 StringBuilder sb = new StringBuilder();
                 try {
                     sb.append(objectMapper.writeValueAsString(year));
+                    sb.append("::");
                 } catch (JsonProcessingException e) {
                     log.error(e.getMessage());
                 }
-                sb = new StringBuilder(Arrays.toString(DigestUtil.md5(sb.toString())));
+//                sb = new StringBuilder(Arrays.toString(DigestUtil.md5(sb.toString())));
                 String yearCountPrefix = Const.HOT_BLOGS + "::BlogController::getCountByYear::" + sb;
                 redisTemplate.opsForValue().set(yearCountPrefix, Result.succ(countYear), ThreadLocalRandom.current().nextInt(120) + 1, TimeUnit.MINUTES);
             }
@@ -149,11 +153,13 @@ public class ScheduledTask {
                     StringBuilder sb = new StringBuilder();
                     try {
                         sb.append(objectMapper.writeValueAsString(i));
+                        sb.append("::");
                         sb.append(objectMapper.writeValueAsString(year));
+                        sb.append("::");
                     } catch (JsonProcessingException e) {
                         log.error(e.getMessage());
                     }
-                    sb = new StringBuilder(Arrays.toString(DigestUtil.md5(sb.toString())));
+//                    sb = new StringBuilder(Arrays.toString(DigestUtil.md5(sb.toString())));
                     String yearListPrefix = Const.HOT_BLOGS + "::BlogController::listByYear::" + sb;
                     redisTemplate.opsForValue().set(yearListPrefix, Result.succ(pageData), ThreadLocalRandom.current().nextInt(120) + 1, TimeUnit.MINUTES);
 

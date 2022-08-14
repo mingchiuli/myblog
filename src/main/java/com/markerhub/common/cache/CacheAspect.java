@@ -1,6 +1,5 @@
 package com.markerhub.common.cache;
 
-import cn.hutool.crypto.digest.DigestUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.markerhub.common.lang.Result;
 import lombok.SneakyThrows;
@@ -11,13 +10,9 @@ import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Pointcut;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
-import javax.annotation.PostConstruct;
 import java.lang.reflect.Method;
-import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -31,17 +26,6 @@ import java.util.concurrent.TimeUnit;
 public class CacheAspect {
 
     private static final String LOCK = "lock:";
-
-    @Value("${locks}")
-    String keys;
-
-    @PostConstruct
-    public void setLocks() {
-        String[] locks = keys.split(",");
-        for (String lock : locks) {
-            String str = (LOCK + lock).intern();
-        }
-    }
 
     RedisTemplate<String, Object> redisTemplate;
 
@@ -78,16 +62,17 @@ public class CacheAspect {
             if (args[i] != null) {
                 //方法的参数必须是能够json化的
                 params.append(objectMapper.writeValueAsString(args[i]));
+                params.append("::");
 //                params.append(args[i]);
                 parameterTypes[i] = args[i].getClass();
             } else {
                 parameterTypes[i] = null;
             }
         }
-        if (StringUtils.hasLength(params.toString())) {
-            params = new StringBuilder(Arrays.toString(DigestUtil.md5(params.toString())));
+//        if (StringUtils.hasLength(params.toString())) {
+//            params = new StringBuilder(Arrays.toString(DigestUtil.md5(params.toString())));
 //            params = new StringBuilder(params.toString());
-        }
+//        }
         Method method = pjp.getSignature().getDeclaringType().getMethod(methodName, parameterTypes);
 
 //        MethodSignature methodSignature = (MethodSignature) signature;
@@ -105,19 +90,22 @@ public class CacheAspect {
             return objectMapper.convertValue(o, Result.class);
         }
 
-        String lock = (LOCK +  methodName).intern();
+        String lock = (LOCK +  methodName + params).intern();
 
         //防止缓存击穿
         synchronized (lock) {
+            log.info("线程{}拿到锁", Thread.currentThread().getName());
             //双重检查
             Object r = redisTemplate.opsForValue().get(redisKey);
 
             if (r != null) {
+                log.info("线程{}释放锁", Thread.currentThread().getName());
                 return objectMapper.convertValue(r, Result.class);
             }
 
             Object proceed = pjp.proceed();
             redisTemplate.opsForValue().set(redisKey, proceed, expire, TimeUnit.MINUTES);
+            log.info("线程{}查库并释放锁", Thread.currentThread().getName());
             return proceed;
         }
 
