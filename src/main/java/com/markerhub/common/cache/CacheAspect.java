@@ -17,9 +17,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import javax.annotation.PostConstruct;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -32,21 +30,16 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 public class CacheAspect {
 
-    private static String LOCK = "lock:";
+    private static final String LOCK = "lock:";
 
     @Value("${locks}")
     String keys;
-
-    List<String> locks = new ArrayList<>();
 
     @PostConstruct
     public void setLocks() {
         String[] locks = keys.split(",");
         for (String lock : locks) {
-            StringBuilder sb = new StringBuilder(LOCK);
-            sb.append(lock);
-            String str = sb.toString().intern();
-            this.locks.add(str);
+            String str = (LOCK + lock).intern();
         }
     }
 
@@ -112,7 +105,7 @@ public class CacheAspect {
             return objectMapper.convertValue(o, Result.class);
         }
 
-        String lock = locks.get(locks.indexOf(LOCK +  methodName));
+        String lock = (LOCK +  methodName).intern();
 
         //防止缓存击穿
         synchronized (lock) {
