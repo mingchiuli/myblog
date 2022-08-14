@@ -1,7 +1,7 @@
 package com.markerhub.security;
 
-import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.toolkit.StringUtils;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.markerhub.common.exception.CaptchaException;
 import com.markerhub.common.lang.Const;
 import com.markerhub.common.lang.Result;
@@ -18,10 +18,16 @@ import java.io.IOException;
 @Component
 public class CaptchaFilter extends OncePerRequestFilter {
 
+	ObjectMapper objectMapper;
 
 	RedisTemplate<String, Object> redisTemplate;
 
 	LoginFailureHandler loginFailureHandler;
+
+	@Autowired
+	public void setObjectMapper(ObjectMapper objectMapper) {
+		this.objectMapper = objectMapper;
+	}
 
 	@Autowired
 	public void setRedisTemplate(RedisTemplate<String, Object> redisTemplate) {
@@ -44,7 +50,7 @@ public class CaptchaFilter extends OncePerRequestFilter {
 				validate(request);
 			} catch (CaptchaException e) {
 				response.setContentType("application/json;charset=utf-8");
-				response.getWriter().write(JSONUtil.toJsonStr(Result.fail(400, e.getMessage(), null)));
+				response.getWriter().write(objectMapper.writeValueAsString(Result.fail(400, e.getMessage(), null)));
 				return;
 			}
 

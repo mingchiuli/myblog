@@ -1,8 +1,8 @@
 package com.markerhub.security;
 
-import cn.hutool.core.util.StrUtil;
-import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.markerhub.common.exception.AuthenticationException;
 import com.markerhub.common.lang.Const;
 import com.markerhub.common.lang.Result;
 import com.markerhub.entity.UserEntity;
@@ -30,6 +30,8 @@ import java.util.List;
 
 public class JwtAuthenticationFilter extends BasicAuthenticationFilter {
 
+	ObjectMapper objectMapper;
+
 	JwtUtils jwtUtils;
 
 	UserDetailServiceImpl userDetailService;
@@ -37,6 +39,11 @@ public class JwtAuthenticationFilter extends BasicAuthenticationFilter {
 	UserService sysUserService;
 
 	RedisTemplate<String, Object> redisTemplate;
+
+	@Autowired
+	public void setObjectMapper(ObjectMapper objectMapper) {
+		this.objectMapper = objectMapper;
+	}
 
 	@Autowired
 	public void setRedisTemplate(RedisTemplate<String, Object> redisTemplate) {
@@ -66,7 +73,7 @@ public class JwtAuthenticationFilter extends BasicAuthenticationFilter {
 	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain) throws IOException, ServletException {
 
 		String jwt = request.getHeader(jwtUtils.getHeader());
-		if (StrUtil.isBlankOrUndefined(jwt)) {
+		if (!StringUtils.hasLength(jwt)) {
 			chain.doFilter(request, response);
 			return;
 		}
@@ -75,15 +82,9 @@ public class JwtAuthenticationFilter extends BasicAuthenticationFilter {
 
 		try {
 			authentication = getAuthentication(jwt);
-		} catch (JwtException e) {
+		} catch (Exception e) {
 			response.setContentType("application/json;charset=utf-8");
-			response.getWriter().write(JSONUtil.toJsonStr(Result.fail(401, e.getMessage(), null)));
-			return;
-		}
-
-		if (authentication == null) {
-			response.setContentType("application/json;charset=utf-8");
-			response.getWriter().write(JSONUtil.toJsonStr(Result.fail(401, "你已被强制下线", null)));
+			response.getWriter().write(objectMapper.writeValueAsString(Result.fail(401, e.getMessage(), null)));
 			return;
 		}
 
@@ -118,7 +119,7 @@ public class JwtAuthenticationFilter extends BasicAuthenticationFilter {
 
 
 		if (StringUtils.hasLength(originToken) && !jwt.equals(originToken)) {
-			return null;
+			throw new AuthenticationException("你已被强制下线");
 		}
 
 		if (userInfo != null) {

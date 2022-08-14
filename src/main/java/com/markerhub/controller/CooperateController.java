@@ -1,7 +1,5 @@
 package com.markerhub.controller;
 
-import cn.hutool.core.bean.BeanUtil;
-import cn.hutool.core.map.MapUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.markerhub.common.exception.AuthenticationException;
 import com.markerhub.common.vo.CoNumberList;
@@ -17,6 +15,7 @@ import com.markerhub.utils.JwtUtils;
 import com.markerhub.utils.MyUtils;
 import io.jsonwebtoken.Claims;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
@@ -31,10 +30,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.ResponseBody;
 import javax.servlet.http.HttpServletRequest;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -223,7 +219,7 @@ public class CooperateController {
 
         UserEntity user = userService.getBaseMapper().selectOne(new QueryWrapper<UserEntity>().eq("id", userId).select("id", "username", "avatar", "role"));
         UserEntityVo userVo = new UserEntityVo();
-        BeanUtil.copyProperties(user, userVo);
+        BeanUtils.copyProperties(user, userVo);
 
         userVo.setNumber(coNumber);
 
@@ -250,9 +246,11 @@ public class CooperateController {
 
         log.info("{}号用户加入{}号编辑室", userId, blogId);
 
-        return Result.succ(MapUtil.builder()
-                .put("blog", blog)
-                .put("users", users).map());
+        HashMap<String, Object> map = new HashMap<>();
+        map.put("blog", blog);
+        map.put("users", users);
+
+        return Result.succ(map);
     }
 
 

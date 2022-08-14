@@ -1,7 +1,8 @@
 package com.markerhub.security;
 
-import cn.hutool.json.JSONUtil;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.markerhub.common.lang.Result;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.stereotype.Component;
@@ -14,6 +15,9 @@ import java.nio.charset.StandardCharsets;
 @Component
 public class LoginFailureHandler implements AuthenticationFailureHandler {
 
+	@Autowired
+	ObjectMapper objectMapper;
+
 	@Override
 	public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response, AuthenticationException exception) throws IOException {
 
@@ -22,7 +26,7 @@ public class LoginFailureHandler implements AuthenticationFailureHandler {
 
 		Result result = Result.fail(401, exception.getMessage(), null);
 
-		outputStream.write(JSONUtil.toJsonStr(result).getBytes(StandardCharsets.UTF_8));
+		outputStream.write(objectMapper.writeValueAsString(result).getBytes(StandardCharsets.UTF_8));
 
 		outputStream.flush();
 		outputStream.close();

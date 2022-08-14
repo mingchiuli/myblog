@@ -1,9 +1,9 @@
 package com.markerhub.security;
 
-import cn.hutool.core.map.MapUtil;
-import cn.hutool.json.JSONUtil;
+
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.markerhub.common.lang.Result;
 import com.markerhub.entity.UserEntity;
 import com.markerhub.service.UserService;
@@ -20,10 +20,18 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
+import java.util.HashMap;
 
 
 @Component
 public class LoginSuccessHandler implements AuthenticationSuccessHandler {
+
+	ObjectMapper objectMapper;
+
+	@Autowired
+	public void setObjectMapper(ObjectMapper objectMapper) {
+		this.objectMapper = objectMapper;
+	}
 
 	JwtUtils jwtUtils;
 
@@ -53,13 +61,14 @@ public class LoginSuccessHandler implements AuthenticationSuccessHandler {
 
 		MyUtils.setUserToCache(jwt, user, (long) (5 * 60));
 
-		Result succ = Result.succ(MapUtil.builder()
-				.put("user", user)
-				.put("token", jwt)
-				.map());
+		HashMap<String, Object> map = new HashMap<>();
+		map.put("user", user);
+		map.put("token", jwt);
+
+		Result succ = Result.succ(map);
 
 
-		outputStream.write(JSONUtil.toJsonStr(succ).getBytes(StandardCharsets.UTF_8));
+		outputStream.write(objectMapper.writeValueAsString(succ).getBytes(StandardCharsets.UTF_8));
 
 		outputStream.flush();
 		outputStream.close();

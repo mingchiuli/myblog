@@ -1,7 +1,5 @@
 package com.markerhub.controller;
 
-import cn.hutool.core.lang.UUID;
-import cn.hutool.core.map.MapUtil;
 import com.google.code.kaptcha.Producer;
 import com.markerhub.common.lang.Const;
 import com.markerhub.common.lang.Result;
@@ -17,6 +15,8 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Base64;
+import java.util.HashMap;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -58,6 +58,8 @@ public class AccountController {
     @GetMapping("/captcha")
     public Result captcha() throws IOException {
 
+
+
         String key = UUID.randomUUID().toString();
         String code = producer.createText();
 
@@ -72,12 +74,12 @@ public class AccountController {
 
         redisTemplate.opsForValue().set(Const.CAPTCHA_KEY + key, code, 120, TimeUnit.SECONDS);
 
-        return Result.succ(
-                MapUtil.builder()
-                        .put(Const.TOKEN, key)
-                        .put("captchaImg", base64Img)
-                        .build()
-        );
+        HashMap<String, String> map = new HashMap<>();
+
+        map.put(Const.TOKEN, key);
+        map.put("captchaImg", base64Img);
+
+        return Result.succ(map);
     }
 
 }

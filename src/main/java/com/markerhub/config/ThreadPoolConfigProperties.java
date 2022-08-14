@@ -7,7 +7,6 @@ import org.springframework.stereotype.Component;
 
 //跟配置文件绑定
 @ConfigurationProperties(prefix = "vueblog.thread")
-@Component
 @Data
 public class ThreadPoolConfigProperties {
 

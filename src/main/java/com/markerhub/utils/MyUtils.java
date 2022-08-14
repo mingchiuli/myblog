@@ -1,6 +1,5 @@
 package com.markerhub.utils;
 
-import cn.hutool.core.bean.BeanUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -12,6 +11,7 @@ import com.markerhub.search.model.BlogPostDocument;
 import com.markerhub.service.UserService;
 import io.jsonwebtoken.Claims;
 import lombok.SneakyThrows;
+import org.springframework.beans.BeanUtils;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.elasticsearch.core.SearchHit;
 import org.springframework.data.elasticsearch.core.SearchHits;
@@ -139,7 +139,7 @@ public class MyUtils {
         for (SearchHit<T> hit : hits.getSearchHits()) {
             E instance = kClass.getDeclaredConstructor().newInstance();
 
-            BeanUtil.copyProperties(hit.getContent(), instance);
+            BeanUtils.copyProperties(hit.getContent(), instance);
 
             Map<String, List<String>> highlightFields = hit.getHighlightFields();
 
@@ -260,7 +260,7 @@ public class MyUtils {
 
     public static BlogPostDocument blogToDocument(BlogEntity blog) {
         BlogPostDocument blogPostDocument = new BlogPostDocument();
-        BeanUtil.copyProperties(blog, blogPostDocument, "username", "readSum", "readRecent", "created");
+        BeanUtils.copyProperties(blog, blogPostDocument, "username", "readSum", "readRecent", "created");
 
         //ES中保存的时间是格林尼治标准时间，如果直接存入ES，用kibana分析的时候会自动加8小时
         blogPostDocument.setCreated(blog.getCreated().minusHours(Const.GMT_PLUS_8));
@@ -270,7 +270,7 @@ public class MyUtils {
     public static void documentToBlog(SearchHit<BlogPostDocument> hit, BlogEntityVo blog) {
         UserService userService = SpringUtils.getBean(UserService.class);
 
-        BeanUtil.copyProperties(hit.getContent(), blog, "created");
+        BeanUtils.copyProperties(hit.getContent(), blog, "created");
 
         blog.setCreated(hit.getContent().getCreated().plusHours(Const.GMT_PLUS_8));
         String username = userService.getOne(new QueryWrapper<UserEntity>().select("username").eq("id", hit.getContent().getUserId())).getUsername();

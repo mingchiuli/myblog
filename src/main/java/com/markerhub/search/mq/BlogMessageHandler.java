@@ -1,6 +1,5 @@
 package com.markerhub.search.mq;
 
-import cn.hutool.crypto.digest.DigestUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.markerhub.common.lang.Const;
 import com.markerhub.config.RabbitConfig;
@@ -26,7 +25,6 @@ import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.stereotype.Component;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Set;
 
 /**

@@ -1,5 +1,6 @@
 package com.markerhub.config;
 
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import java.util.concurrent.Executors;
@@ -12,6 +13,7 @@ import java.util.concurrent.TimeUnit;
  * @create 2022-04-26 10:06 PM
  */
 @Configuration
+@EnableConfigurationProperties(ThreadPoolConfigProperties.class)
 public class ThreadPoolConfig {
     @Bean
     public ThreadPoolExecutor threadPoolExecutor(com.markerhub.config.ThreadPoolConfigProperties pool) {

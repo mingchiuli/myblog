@@ -94,18 +94,18 @@ public class CacheAspect {
 
         //防止缓存击穿
         synchronized (lock) {
-            log.info("线程{}拿到锁", Thread.currentThread().getName());
+            log.info("线程{}拿到锁{}", Thread.currentThread().getName(), lock);
             //双重检查
             Object r = redisTemplate.opsForValue().get(redisKey);
 
             if (r != null) {
-                log.info("线程{}释放锁", Thread.currentThread().getName());
+                log.info("线程{}释放锁{}", Thread.currentThread().getName(), lock);
                 return objectMapper.convertValue(r, Result.class);
             }
-
+            //执行目标方法
             Object proceed = pjp.proceed();
             redisTemplate.opsForValue().set(redisKey, proceed, expire, TimeUnit.MINUTES);
-            log.info("线程{}查库并释放锁", Thread.currentThread().getName());
+            log.info("线程{}查库并释放锁{}", Thread.currentThread().getName(), lock);
             return proceed;
         }
 

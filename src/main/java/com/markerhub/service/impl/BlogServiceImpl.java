@@ -1,7 +1,5 @@
 package com.markerhub.service.impl;
 
-import cn.hutool.core.bean.BeanUtil;
-import cn.hutool.core.lang.UUID;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -9,7 +7,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.markerhub.common.exception.AuthenticationException;
 import com.markerhub.common.exception.InsertOrUpdateErrorException;
 import com.markerhub.common.lang.Const;
-import com.markerhub.common.valid.ListValue;
 import com.markerhub.common.vo.BlogPostDocumentVo;
 import com.markerhub.common.vo.BlogEntityVo;
 import com.markerhub.config.RabbitConfig;
@@ -32,6 +29,7 @@ import org.elasticsearch.search.sort.SortBuilders;
 import org.elasticsearch.search.sort.SortOrder;
 import org.springframework.amqp.rabbit.connection.CorrelationData;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataAccessException;
@@ -367,7 +365,7 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, BlogEntity> impleme
         // 只能编辑自己的文章
         Assert.isTrue(Objects.equals(user.getUsername(), SecurityContextHolder.getContext().getAuthentication().getName()), "没有权限编辑");
 
-        BeanUtil.copyProperties(blog, temp, "id", "userId", "created", "status");
+        BeanUtils.copyProperties(blog, temp, "id", "userId", "created", "status");
         boolean update = saveOrUpdate(temp);
 
         log.info("数据库更新{}号博客结果:{}", blog.getId(), update);

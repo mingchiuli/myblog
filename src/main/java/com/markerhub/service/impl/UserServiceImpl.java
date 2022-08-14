@@ -1,6 +1,5 @@
 package com.markerhub.service.impl;
 
-import cn.hutool.core.bean.BeanUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -16,6 +15,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.markerhub.utils.JwtUtils;
 import com.markerhub.utils.MyUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -97,7 +97,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserEntity> impleme
 
         records.forEach(user -> {
             UserEntityVo userVo = new UserEntityVo();
-            BeanUtil.copyProperties(user, userVo);
+            BeanUtils.copyProperties(user, userVo);
             userVos.add(userVo);
         });
 
@@ -137,7 +137,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserEntity> impleme
             Assert.isTrue(update, "添加失败");
         } else {//修改
 
-            BeanUtil.copyProperties(user, userExist, "created", "password", "lastLogin", "username", "id");
+            BeanUtils.copyProperties(user, userExist, "created", "password", "lastLogin", "username", "id");
 
             boolean update = saveOrUpdate(userExist);
 
