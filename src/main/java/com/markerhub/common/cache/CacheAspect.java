@@ -10,6 +10,7 @@ import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Pointcut;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.annotation.Order;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 import java.lang.reflect.Method;
@@ -18,11 +19,13 @@ import java.util.concurrent.TimeUnit;
 /**
  * 统一缓存处理
  * @author mingchiuli
+ * order: 多个切面执行顺序，越小越先执行
  * @create 2021-12-01 7:48 AM
  */
 @Aspect
 @Component
 @Slf4j
+@Order(2)
 public class CacheAspect {
 
     private static final String LOCK = "lock:";
@@ -69,10 +72,7 @@ public class CacheAspect {
                 parameterTypes[i] = null;
             }
         }
-//        if (StringUtils.hasLength(params.toString())) {
-//            params = new StringBuilder(Arrays.toString(DigestUtil.md5(params.toString())));
-//            params = new StringBuilder(params.toString());
-//        }
+
         Method method = pjp.getSignature().getDeclaringType().getMethod(methodName, parameterTypes);
 
 //        MethodSignature methodSignature = (MethodSignature) signature;
