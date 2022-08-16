@@ -47,13 +47,6 @@ public class ScheduledTask {
 
     RedisTemplate<String, Object> redisTemplate;
 
-    ObjectMapper objectMapper;
-
-    @Autowired
-    public void setObjectMapper(ObjectMapper objectMapper) {
-        this.objectMapper = objectMapper;
-    }
-
     @Autowired
     public void setRedisTemplate(RedisTemplate<String, Object> redisTemplate) {
         this.redisTemplate = redisTemplate;
@@ -69,12 +62,8 @@ public class ScheduledTask {
             blogs.forEach(blog -> {
                 StringBuilder builder = new StringBuilder();
 
-                try {
-                    builder.append("::");
-                    builder.append(objectMapper.writeValueAsString(blog.getId()));
-                } catch (JsonProcessingException e) {
-                    log.info(e.getMessage());
-                }
+                builder.append("::");
+                builder.append(blog.getId());
 
 //                builder = new StringBuilder(Arrays.toString(DigestUtil.md5(builder.toString())));
 //                builder = new StringBuilder(builder.toString());
@@ -106,13 +95,7 @@ public class ScheduledTask {
             for (int i = 1; i <= totalPage; i++) {
                 Page<BlogEntity> page = new Page<>(i, Const.PAGE_SIZE);
                 page = blogService.page(page, new QueryWrapper<BlogEntity>().select("id", "title", "description", "link", "created").orderByDesc("created"));
-                StringBuilder sb = new StringBuilder();
-                try {
-                    sb.append("::");
-                    sb.append(objectMapper.writeValueAsString(i));
-                } catch (JsonProcessingException e) {
-                    log.error(e.getMessage());
-                }
+                String sb = "::" + i;
                 String pagesPrefix = Const.HOT_BLOGS + "::BlogController::list" + sb;
                 redisTemplate.opsForValue().set(pagesPrefix, Result.succ(page), ThreadLocalRandom.current().nextInt(120) + 1, TimeUnit.MINUTES);
                 //bloomFilter
@@ -124,14 +107,7 @@ public class ScheduledTask {
             //getCountByYear接口
             for (int year : years) {
                 Integer countYear = blogService.getYearCount(year);
-                StringBuilder sb = new StringBuilder();
-                try {
-                    sb.append("::");
-                    sb.append(objectMapper.writeValueAsString(year));
-                } catch (JsonProcessingException e) {
-                    log.error(e.getMessage());
-                }
-//                sb = new StringBuilder(Arrays.toString(DigestUtil.md5(sb.toString())));
+                String sb = "::" + year;
                 String yearCountPrefix = Const.HOT_BLOGS + "::BlogController::getCountByYear" + sb;
                 redisTemplate.opsForValue().set(yearCountPrefix, Result.succ(countYear), ThreadLocalRandom.current().nextInt(120) + 1, TimeUnit.MINUTES);
             }
@@ -148,19 +124,9 @@ public class ScheduledTask {
                 for (int i = 1; i <= pageNum; i++) {
                     //每一页的缓存
                     Page<BlogEntity> pageData = blogService.listByYear(i, year);
-                    StringBuilder sb = new StringBuilder();
-                    try {
-                        sb.append("::");
-                        sb.append(objectMapper.writeValueAsString(i));
-                        sb.append("::");
-                        sb.append(objectMapper.writeValueAsString(year));
-                    } catch (JsonProcessingException e) {
-                        log.error(e.getMessage());
-                    }
-//                    sb = new StringBuilder(Arrays.toString(DigestUtil.md5(sb.toString())));
+                    String sb = "::" + i + "::" + year;
                     String yearListPrefix = Const.HOT_BLOGS + "::BlogController::listByYear" + sb;
                     redisTemplate.opsForValue().set(yearListPrefix, Result.succ(pageData), ThreadLocalRandom.current().nextInt(120) + 1, TimeUnit.MINUTES);
-
                     //bloom过滤器
                     redisTemplate.opsForValue().setBit(Const.BLOOM_FILTER_PAGE + year, i, true);
                 }

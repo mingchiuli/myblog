@@ -87,9 +87,7 @@ public class BlogMessageHandler {
                      Redis流程
                      */
                     //删除博客的缓存（不用lua脚本也行，delete返回值是一个Long，加锁博客缓存中不存在也可以删）
-                    StringBuilder builder = new StringBuilder();
-                    builder.append("::");
-                    builder.append(objectMapper.writeValueAsString(updateId));
+                    String builder = "::" + updateId;
 //                    builder = new StringBuilder(Arrays.toString(DigestUtil.md5(builder.toString())));
                     String contentPrefix = Const.HOT_BLOG + "::BlogController::detail" + builder;
                     redisTemplate.delete(contentPrefix);
@@ -106,10 +104,7 @@ public class BlogMessageHandler {
                     count++;
 
                     long pageNo = count % Const.PAGE_SIZE == 0 ? count / Const.PAGE_SIZE : count / Const.PAGE_SIZE + 1;
-                    StringBuilder sb = new StringBuilder();
-                    sb.append("::");
-                    sb.append(objectMapper.writeValueAsString(pageNo));
-//                    sb = new StringBuilder(Arrays.toString(DigestUtil.md5(sb.toString())));
+                    String sb = "::" + pageNo;
                     String pagePrefix = Const.HOT_BLOGS + "::BlogController::list" + sb;
                     redisTemplate.delete(pagePrefix);
 
@@ -120,12 +115,7 @@ public class BlogMessageHandler {
                     countYear++;
 
                     int pageYearNo = countYear % Const.PAGE_SIZE == 0 ? countYear / Const.PAGE_SIZE : countYear / Const.PAGE_SIZE + 1;
-                    StringBuilder s = new StringBuilder();
-                    s.append("::");
-                    s.append(objectMapper.writeValueAsString(pageYearNo));
-                    s.append("::");
-                    s.append(objectMapper.writeValueAsString(year));
-//                    s = new StringBuilder(Arrays.toString(DigestUtil.md5(s.toString())));
+                    String s = "::" + pageYearNo + "::" + year;
                     String pageYearPrefix = Const.HOT_BLOGS + "::BlogController::listByYear" + s;
                     redisTemplate.delete(pageYearPrefix);
 
@@ -181,7 +171,7 @@ public class BlogMessageHandler {
 
                     StringBuilder builder = new StringBuilder();
                     builder.append("::");
-                    builder.append(objectMapper.writeValueAsString(deleteId));
+                    builder.append(deleteId);
 //                    builder = new StringBuilder(Arrays.toString(DigestUtil.md5(builder.toString())));
 
                     String contentPrefix = Const.HOT_BLOG + "::BlogController::detail" + builder;
@@ -248,9 +238,7 @@ public class BlogMessageHandler {
                      */
                     StringBuilder builder = new StringBuilder();
                     builder.append("::");
-                    builder.append(objectMapper.writeValueAsString(createId));
-//                    builder = new StringBuilder(Arrays.toString(DigestUtil.md5(builder.toString())));
-
+                    builder.append(createId);
                     String contentPrefix = Const.HOT_BLOG + "::BlogController::detail" + builder;
                     String statusPrefix = Const.BLOG_STATUS + "::BlogController::getBlogStatus" + builder;
 
@@ -276,7 +264,7 @@ public class BlogMessageHandler {
                     Set<String> keys = redisTemplate.keys(Const.HOT_BLOGS_PREFIX);
 
                     if (keys != null) {
-                        redisTemplate.delete(keys);
+                        redisTemplate.unlink(keys);
                     }
 
                     //年份过滤bloom更新
