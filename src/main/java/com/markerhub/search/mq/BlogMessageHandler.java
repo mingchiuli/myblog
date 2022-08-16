@@ -88,10 +88,10 @@ public class BlogMessageHandler {
                      */
                     //删除博客的缓存（不用lua脚本也行，delete返回值是一个Long，加锁博客缓存中不存在也可以删）
                     StringBuilder builder = new StringBuilder();
-                    builder.append(objectMapper.writeValueAsString(updateId));
                     builder.append("::");
+                    builder.append(objectMapper.writeValueAsString(updateId));
 //                    builder = new StringBuilder(Arrays.toString(DigestUtil.md5(builder.toString())));
-                    String contentPrefix = Const.HOT_BLOG + "::BlogController::detail::" + builder;
+                    String contentPrefix = Const.HOT_BLOG + "::BlogController::detail" + builder;
                     redisTemplate.delete(contentPrefix);
 
                     //删除博客所在页的缓存
@@ -107,10 +107,10 @@ public class BlogMessageHandler {
 
                     long pageNo = count % Const.PAGE_SIZE == 0 ? count / Const.PAGE_SIZE : count / Const.PAGE_SIZE + 1;
                     StringBuilder sb = new StringBuilder();
-                    sb.append(objectMapper.writeValueAsString(pageNo));
                     sb.append("::");
+                    sb.append(objectMapper.writeValueAsString(pageNo));
 //                    sb = new StringBuilder(Arrays.toString(DigestUtil.md5(sb.toString())));
-                    String pagePrefix = Const.HOT_BLOGS + "::BlogController::list::" + sb;
+                    String pagePrefix = Const.HOT_BLOGS + "::BlogController::list" + sb;
                     redisTemplate.delete(pagePrefix);
 
                     /*
@@ -121,12 +121,12 @@ public class BlogMessageHandler {
 
                     int pageYearNo = countYear % Const.PAGE_SIZE == 0 ? countYear / Const.PAGE_SIZE : countYear / Const.PAGE_SIZE + 1;
                     StringBuilder s = new StringBuilder();
+                    s.append("::");
                     s.append(objectMapper.writeValueAsString(pageYearNo));
                     s.append("::");
                     s.append(objectMapper.writeValueAsString(year));
-                    s.append("::");
 //                    s = new StringBuilder(Arrays.toString(DigestUtil.md5(s.toString())));
-                    String pageYearPrefix = Const.HOT_BLOGS + "::BlogController::listByYear::" + s;
+                    String pageYearPrefix = Const.HOT_BLOGS + "::BlogController::listByYear" + s;
                     redisTemplate.delete(pageYearPrefix);
 
                     log.info("更新博客Redis删除完毕");
@@ -180,12 +180,12 @@ public class BlogMessageHandler {
                      */
 
                     StringBuilder builder = new StringBuilder();
-                    builder.append(objectMapper.writeValueAsString(deleteId));
                     builder.append("::");
+                    builder.append(objectMapper.writeValueAsString(deleteId));
 //                    builder = new StringBuilder(Arrays.toString(DigestUtil.md5(builder.toString())));
 
-                    String contentPrefix = Const.HOT_BLOG + "::BlogController::detail::" + builder;
-                    String statusPrefix = Const.BLOG_STATUS + "::BlogController::getBlogStatus::" + builder;
+                    String contentPrefix = Const.HOT_BLOG + "::BlogController::detail" + builder;
+                    String statusPrefix = Const.BLOG_STATUS + "::BlogController::getBlogStatus" + builder;
 
                     ArrayList<String> list = new ArrayList<>();
                     list.add(contentPrefix);
@@ -247,12 +247,12 @@ public class BlogMessageHandler {
                     、Redis流程
                      */
                     StringBuilder builder = new StringBuilder();
-                    builder.append(objectMapper.writeValueAsString(createId));
                     builder.append("::");
+                    builder.append(objectMapper.writeValueAsString(createId));
 //                    builder = new StringBuilder(Arrays.toString(DigestUtil.md5(builder.toString())));
 
-                    String contentPrefix = Const.HOT_BLOG + "::BlogController::detail::" + builder;
-                    String statusPrefix = Const.BLOG_STATUS + "::BlogController::getBlogStatus::" + builder;
+                    String contentPrefix = Const.HOT_BLOG + "::BlogController::detail" + builder;
+                    String statusPrefix = Const.BLOG_STATUS + "::BlogController::getBlogStatus" + builder;
 
                     ArrayList<String> list = new ArrayList<>();
                     list.add(contentPrefix);

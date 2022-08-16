@@ -64,9 +64,8 @@ public class CacheAspect {
         for (int i = 0; i < args.length; i++) {
             if (args[i] != null) {
                 //方法的参数必须是能够json化的
-                params.append(objectMapper.writeValueAsString(args[i]));
                 params.append("::");
-//                params.append(args[i]);
+                params.append(objectMapper.writeValueAsString(args[i]));
                 parameterTypes[i] = args[i].getClass();
             } else {
                 parameterTypes[i] = null;
@@ -82,7 +81,7 @@ public class CacheAspect {
         long expire = annotation.expire();
         String name = annotation.name();
 
-        String redisKey = name + "::" + className + "::" + methodName + "::" + params;
+        String redisKey = name + "::" + className + "::" + methodName + params;
 //        String redisKey = name + "::" + params;
 
         Object o = redisTemplate.opsForValue().get(redisKey);

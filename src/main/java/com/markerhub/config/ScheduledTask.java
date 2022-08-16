@@ -70,8 +70,8 @@ public class ScheduledTask {
                 StringBuilder builder = new StringBuilder();
 
                 try {
-                    builder.append(objectMapper.writeValueAsString(blog.getId()));
                     builder.append("::");
+                    builder.append(objectMapper.writeValueAsString(blog.getId()));
                 } catch (JsonProcessingException e) {
                     log.info(e.getMessage());
                 }
@@ -79,8 +79,8 @@ public class ScheduledTask {
 //                builder = new StringBuilder(Arrays.toString(DigestUtil.md5(builder.toString())));
 //                builder = new StringBuilder(builder.toString());
 
-                String contentPrefix = Const.HOT_BLOG + "::BlogController::detail::" + builder;
-                String statusPrefix = Const.BLOG_STATUS + "::BlogController::getBlogStatus::" + builder;
+                String contentPrefix = Const.HOT_BLOG + "::BlogController::detail" + builder;
+                String statusPrefix = Const.BLOG_STATUS + "::BlogController::getBlogStatus" + builder;
 
 
                 redisTemplate.opsForValue().set(contentPrefix, Result.succ(blog), ThreadLocalRandom.current().nextInt(120) + 1, TimeUnit.MINUTES);
@@ -108,12 +108,12 @@ public class ScheduledTask {
                 page = blogService.page(page, new QueryWrapper<BlogEntity>().select("id", "title", "description", "link", "created").orderByDesc("created"));
                 StringBuilder sb = new StringBuilder();
                 try {
-                    sb.append(objectMapper.writeValueAsString(i));
                     sb.append("::");
+                    sb.append(objectMapper.writeValueAsString(i));
                 } catch (JsonProcessingException e) {
                     log.error(e.getMessage());
                 }
-                String pagesPrefix = Const.HOT_BLOGS + "::BlogController::list::" + sb;
+                String pagesPrefix = Const.HOT_BLOGS + "::BlogController::list" + sb;
                 redisTemplate.opsForValue().set(pagesPrefix, Result.succ(page), ThreadLocalRandom.current().nextInt(120) + 1, TimeUnit.MINUTES);
                 //bloomFilter
                 redisTemplate.opsForValue().setBit(Const.BLOOM_FILTER_PAGE, i, true);
@@ -126,13 +126,13 @@ public class ScheduledTask {
                 Integer countYear = blogService.getYearCount(year);
                 StringBuilder sb = new StringBuilder();
                 try {
-                    sb.append(objectMapper.writeValueAsString(year));
                     sb.append("::");
+                    sb.append(objectMapper.writeValueAsString(year));
                 } catch (JsonProcessingException e) {
                     log.error(e.getMessage());
                 }
 //                sb = new StringBuilder(Arrays.toString(DigestUtil.md5(sb.toString())));
-                String yearCountPrefix = Const.HOT_BLOGS + "::BlogController::getCountByYear::" + sb;
+                String yearCountPrefix = Const.HOT_BLOGS + "::BlogController::getCountByYear" + sb;
                 redisTemplate.opsForValue().set(yearCountPrefix, Result.succ(countYear), ThreadLocalRandom.current().nextInt(120) + 1, TimeUnit.MINUTES);
             }
         }, executor);
@@ -150,15 +150,15 @@ public class ScheduledTask {
                     Page<BlogEntity> pageData = blogService.listByYear(i, year);
                     StringBuilder sb = new StringBuilder();
                     try {
+                        sb.append("::");
                         sb.append(objectMapper.writeValueAsString(i));
                         sb.append("::");
                         sb.append(objectMapper.writeValueAsString(year));
-                        sb.append("::");
                     } catch (JsonProcessingException e) {
                         log.error(e.getMessage());
                     }
 //                    sb = new StringBuilder(Arrays.toString(DigestUtil.md5(sb.toString())));
-                    String yearListPrefix = Const.HOT_BLOGS + "::BlogController::listByYear::" + sb;
+                    String yearListPrefix = Const.HOT_BLOGS + "::BlogController::listByYear" + sb;
                     redisTemplate.opsForValue().set(yearListPrefix, Result.succ(pageData), ThreadLocalRandom.current().nextInt(120) + 1, TimeUnit.MINUTES);
 
                     //bloom过滤器
@@ -171,7 +171,7 @@ public class ScheduledTask {
         //searchYears和getCountByYear
         CompletableFuture<Void> var5 = CompletableFuture.runAsync(() -> {
             int[] ints = blogService.searchYears();
-            String yearKey = Const.YEARS + "::BlogController::searchYears::";
+            String yearKey = Const.YEARS + "::BlogController::searchYears";
             redisTemplate.opsForValue().set(yearKey, Result.succ(ints), ThreadLocalRandom.current().nextInt(120) + 1, TimeUnit.MINUTES);
             //getCountByYear的bloom
             for (int year : ints) {
