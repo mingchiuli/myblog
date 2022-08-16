@@ -378,7 +378,7 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, BlogEntity> impleme
         //通知消息给mq,更新并删除缓存
         CorrelationData correlationData = new CorrelationData();
         //防止重复消费
-        redisTemplate.opsForValue().set(Const.CONSUME_MONITOR + correlationData.getId(), PostMQIndexMessage.UPDATE + "_" + blog.getId());
+        redisTemplate.opsForValue().set(Const.CONSUME_MONITOR + correlationData.getId(), PostMQIndexMessage.UPDATE + "_" + blog.getId(), 30, TimeUnit.MINUTES);
 
         rabbitTemplate.convertAndSend(
                 RabbitConfig.ES_EXCHANGE,
@@ -413,7 +413,7 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, BlogEntity> impleme
         //通知消息给mq，创建
         //防止重复消费
         CorrelationData correlationData = new CorrelationData();
-        redisTemplate.opsForValue().set(Const.CONSUME_MONITOR + correlationData.getId(), PostMQIndexMessage.CREATE + "_" + blog.getId());
+        redisTemplate.opsForValue().set(Const.CONSUME_MONITOR + correlationData.getId(), PostMQIndexMessage.CREATE + "_" + blog.getId(), 30, TimeUnit.MINUTES);
 
         rabbitTemplate.convertAndSend(
                 RabbitConfig.ES_EXCHANGE,
@@ -502,7 +502,7 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, BlogEntity> impleme
         //通知消息给mq,更新
         CorrelationData correlationData = new CorrelationData();
         //防止重复消费
-        redisTemplate.opsForValue().set(Const.CONSUME_MONITOR + correlationData.getId(), PostMQIndexMessage.CREATE + "_" + id);
+        redisTemplate.opsForValue().set(Const.CONSUME_MONITOR + correlationData.getId(), PostMQIndexMessage.CREATE + "_" + id, 30, TimeUnit.MINUTES);
 
         rabbitTemplate.convertAndSend(
                 RabbitConfig.ES_EXCHANGE,
@@ -525,7 +525,7 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, BlogEntity> impleme
         //通知消息给mq,更新并删除缓存
         CorrelationData correlationData = new CorrelationData();
         //防止重复消费
-        redisTemplate.opsForValue().set(Const.CONSUME_MONITOR + correlationData.getId(), PostMQIndexMessage.UPDATE + "_" + id);
+        redisTemplate.opsForValue().set(Const.CONSUME_MONITOR + correlationData.getId(), PostMQIndexMessage.UPDATE + "_" + id, 30, TimeUnit.MINUTES);
 
         rabbitTemplate.convertAndSend(
                 RabbitConfig.ES_EXCHANGE,
@@ -638,7 +638,7 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, BlogEntity> impleme
             //通知消息给mq,更新并删除缓存
             CorrelationData correlationData = new CorrelationData();
             //防止重复消费
-            redisTemplate.opsForValue().set(Const.CONSUME_MONITOR + correlationData.getId(), PostMQIndexMessage.REMOVE + "_" + id);
+            redisTemplate.opsForValue().set(Const.CONSUME_MONITOR + correlationData.getId(), PostMQIndexMessage.REMOVE + "_" + id, 30, TimeUnit.MINUTES);
 
             rabbitTemplate.convertAndSend(
                     RabbitConfig.ES_EXCHANGE,
