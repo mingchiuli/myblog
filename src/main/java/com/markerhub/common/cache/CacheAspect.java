@@ -1,8 +1,6 @@
 package com.markerhub.common.cache;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.Interner;
-import com.google.common.collect.Interners;
 import com.markerhub.common.lang.Result;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -31,9 +29,6 @@ import java.util.concurrent.TimeUnit;
 public class CacheAspect {
 
     private static final String LOCK = "lock:";
-
-    Interner<String> pool = Interners.newWeakInterner();
-
 
     RedisTemplate<String, Object> redisTemplate;
 
@@ -90,7 +85,7 @@ public class CacheAspect {
             return objectMapper.convertValue(o, Result.class);
         }
 
-        String lock = pool.intern(LOCK +  methodName + params);
+        String lock = (LOCK +  methodName + params).intern();
 
         //防止缓存击穿
         synchronized (lock) {
