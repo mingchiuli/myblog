@@ -88,7 +88,6 @@ public class BlogMessageHandler {
                      */
                     //删除博客的缓存（不用lua脚本也行，delete返回值是一个Long，加锁博客缓存中不存在也可以删）
                     String builder = "::" + updateId;
-//                    builder = new StringBuilder(Arrays.toString(DigestUtil.md5(builder.toString())));
                     String contentPrefix = Const.HOT_BLOG + "::BlogController::detail" + builder;
                     redisTemplate.delete(contentPrefix);
 
@@ -172,7 +171,6 @@ public class BlogMessageHandler {
                     StringBuilder builder = new StringBuilder();
                     builder.append("::");
                     builder.append(deleteId);
-//                    builder = new StringBuilder(Arrays.toString(DigestUtil.md5(builder.toString())));
 
                     String contentPrefix = Const.HOT_BLOG + "::BlogController::detail" + builder;
                     String statusPrefix = Const.BLOG_STATUS + "::BlogController::getBlogStatus" + builder;
@@ -199,7 +197,7 @@ public class BlogMessageHandler {
                     Set<String> keys = redisTemplate.keys(Const.HOT_BLOGS_PREFIX);
 
                     if (keys != null) {
-                        redisTemplate.delete(keys);
+                        redisTemplate.unlink(keys);
                     }
 
                     log.info("删除博客Redis删除完毕");
