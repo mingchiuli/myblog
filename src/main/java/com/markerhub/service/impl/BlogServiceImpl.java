@@ -225,39 +225,33 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, BlogEntity> impleme
 
         }, executor);
 
-        CompletableFuture<SearchHits<BlogPostDocument>> searchHitsFuture;
 
-        if (status == 0) {
-            //简单搜索
-            searchHitsFuture = CompletableFuture.supplyAsync(() -> {
-                NativeSearchQuery searchQueryHits = new NativeSearchQueryBuilder()
-                        .withQuery(QueryBuilders.boolQuery()
-                                .filter(QueryBuilders.termQuery("status", 0))
-                                .must(multiMatchQueryBuilder))
-                        .withSorts(SortBuilders.scoreSort())
-                        .withPageable(PageRequest.of(currentPage - 1, Const.PAGE_SIZE))
-                        .withHighlightBuilder(new HighlightBuilder()
-                                .field("title").field("description").field("content").preTags("<b style='color:red'>").postTags("</b>").fragmentSize(5).numOfFragments(1))
-                        .build();
+        CompletableFuture<SearchHits<BlogPostDocument>> searchHitsFuture = CompletableFuture.supplyAsync(() -> {
 
-                return elasticsearchRestTemplate.search(searchQueryHits, BlogPostDocument.class);
-            }, executor);
-        } else {
-            //精确搜索
-            searchHitsFuture = CompletableFuture.supplyAsync(() -> {
-                NativeSearchQuery searchQueryHits = new NativeSearchQueryBuilder()
-                        .withQuery(QueryBuilders.boolQuery()
-                                .filter(QueryBuilders.termQuery("status", 0))
-                                .must(multiMatchQueryBuilder))
-                        .withSorts(SortBuilders.scoreSort())
-                        .withPageable(PageRequest.of(currentPage - 1, Const.PAGE_SIZE))
-                        .withHighlightBuilder(new HighlightBuilder()
-                                .field("title").field("description").field("content").preTags("<b style='color:red'>").postTags("</b>"))
-                        .build();
 
-                return elasticsearchRestTemplate.search(searchQueryHits, BlogPostDocument.class);
-            }, executor);
-        }
+            NativeSearchQueryBuilder builder = new NativeSearchQueryBuilder()
+                    .withQuery(QueryBuilders.boolQuery()
+                            .filter(QueryBuilders.termQuery("status", 0))
+                            .must(multiMatchQueryBuilder))
+                    .withSorts(SortBuilders.scoreSort())
+                    .withPageable(PageRequest.of(currentPage - 1, Const.PAGE_SIZE));
+
+            NativeSearchQuery searchQueryHits;
+
+            if (status == 0) {
+
+                searchQueryHits = builder.withHighlightBuilder(new HighlightBuilder()
+                        .field("title").field("description").field("content").preTags("<b style='color:red'>").postTags("</b>").fragmentSize(5).numOfFragments(1)).build();
+            } else {
+                searchQueryHits = builder.withHighlightBuilder(new HighlightBuilder()
+                        .field("title").field("description").field("content").preTags("<b style='color:red'>").postTags("</b>")).build();
+            }
+
+            return elasticsearchRestTemplate.search(searchQueryHits, BlogPostDocument.class);
+
+
+        }, executor);
+
 
         //主线程在这等着
         CompletableFuture.allOf(countFuture, searchHitsFuture).get();
@@ -296,44 +290,32 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, BlogEntity> impleme
             return elasticsearchRestTemplate.count(searchQueryCount, BlogPostDocument.class);
         }, executor);
 
-        CompletableFuture<SearchHits<BlogPostDocument>> searchHitsFuture;
+        CompletableFuture<SearchHits<BlogPostDocument>> searchHitsFuture = CompletableFuture.supplyAsync(() -> {
 
+            NativeSearchQueryBuilder builder = new NativeSearchQueryBuilder()
+                    .withQuery(QueryBuilders.boolQuery()
+                            .filter(QueryBuilders.rangeQuery("created").gte(year + "-01-01T00:00:00").lte(year + "-12-31T23:59:59")
+                                    .includeUpper(true)
+                                    .includeLower(true))
+                            .must(multiMatchQueryBuilder)
+                            .filter(QueryBuilders.termQuery("status", 0)))
+                    .withSorts(SortBuilders.scoreSort())
+                    .withPageable(PageRequest.of(currentPage - 1, Const.PAGE_SIZE));
 
-        if (status == 0) {
-            searchHitsFuture = CompletableFuture.supplyAsync(() -> {
-                NativeSearchQuery searchQueryHits = new NativeSearchQueryBuilder()
-                        .withQuery(QueryBuilders.boolQuery()
-                                .filter(QueryBuilders.rangeQuery("created").gte(year + "-01-01T00:00:00").lte(year + "-12-31T23:59:59")
-                                        .includeUpper(true)
-                                        .includeLower(true))
-                                .must(multiMatchQueryBuilder)
-                                .filter(QueryBuilders.termQuery("status", 0)))
-                        .withSorts(SortBuilders.scoreSort())
-                        .withPageable(PageRequest.of(currentPage - 1, Const.PAGE_SIZE))
-                        .withHighlightBuilder(new HighlightBuilder()
-                                .field("title").field("description").field("content").preTags("<b style='color:red'>").postTags("</b>").fragmentSize(5).numOfFragments(1))
+            NativeSearchQuery searchQueryHits;
+
+            if (status == 0) {
+                searchQueryHits = builder.withHighlightBuilder(new HighlightBuilder()
+                        .field("title").field("description").field("content").preTags("<b style='color:red'>").postTags("</b>").fragmentSize(5).numOfFragments(1))
                         .build();
-
-                return elasticsearchRestTemplate.search(searchQueryHits, BlogPostDocument.class);
-            }, executor);
-        } else {
-            searchHitsFuture = CompletableFuture.supplyAsync(() -> {
-                NativeSearchQuery searchQueryHits = new NativeSearchQueryBuilder()
-                        .withQuery(QueryBuilders.boolQuery()
-                                .filter(QueryBuilders.rangeQuery("created").gte(year + "-01-01T00:00:00").lte(year + "-12-31T23:59:59")
-                                        .includeUpper(true)
-                                        .includeLower(true))
-                                .must(multiMatchQueryBuilder)
-                                .filter(QueryBuilders.termQuery("status", 0)))
-                        .withSorts(SortBuilders.scoreSort())
-                        .withPageable(PageRequest.of(currentPage - 1, Const.PAGE_SIZE))
-                        .withHighlightBuilder(new HighlightBuilder()
+            } else {
+                searchQueryHits = builder.withHighlightBuilder(new HighlightBuilder()
                                 .field("title").field("description").field("content").preTags("<b style='color:red'>").postTags("</b>"))
                         .build();
+            }
 
-                return elasticsearchRestTemplate.search(searchQueryHits, BlogPostDocument.class);
-            }, executor);
-        }
+            return elasticsearchRestTemplate.search(searchQueryHits, BlogPostDocument.class);
+        }, executor);
 
         CompletableFuture.allOf(countFuture, searchHitsFuture);
 

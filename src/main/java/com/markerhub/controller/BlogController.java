@@ -62,7 +62,7 @@ public class BlogController {
 
 
     /**
-     * 图片上传
+     * 图片上传OOS
      * @param image
      * @param request
      * @param created
@@ -117,7 +117,7 @@ public class BlogController {
                 File dest = new File(baseFolder, imgName);
                 FileCopyUtils.copy(image.getBytes(), dest);
             } catch (IOException e) {
-                e.printStackTrace();
+                log.error(e.getMessage());
                 return Result.fail("上传失败");
             }
             return Result.succ(url.toString());

@@ -34,8 +34,6 @@ public class LogController {
             logContainer.start();
         }
 
-        log.info("消息队列日志监听器已开启");
-
         return Result.succ(null);
     }
 
@@ -47,8 +45,6 @@ public class LogController {
         if (logContainer.isRunning()) {
             logContainer.stop();
         }
-
-        log.info("消息队列日志监听器已关闭");
 
         return Result.succ(null);
     }

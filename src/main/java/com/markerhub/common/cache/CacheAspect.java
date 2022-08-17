@@ -74,15 +74,11 @@ public class CacheAspect {
 
         Method method = pjp.getSignature().getDeclaringType().getMethod(methodName, parameterTypes);
 
-//        MethodSignature methodSignature = (MethodSignature) signature;
-//        Method method = methodSignature.getMethod();
-
         Cache annotation = method.getAnnotation(Cache.class);
         long expire = annotation.expire();
         String name = annotation.name();
 
         String redisKey = name + "::" + className + "::" + methodName + params;
-//        String redisKey = name + "::" + params;
 
         Object o = redisTemplate.opsForValue().get(redisKey);
         if (o != null) {
