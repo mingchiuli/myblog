@@ -6,6 +6,7 @@ import com.markerhub.common.lang.Const;
 import com.markerhub.common.lang.Result;
 import com.markerhub.entity.BlogEntity;
 import com.markerhub.service.BlogService;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
@@ -50,6 +51,7 @@ public class ScheduledTask {
         this.redisTemplate = redisTemplate;
     }
 
+    @SneakyThrows
     @Scheduled(cron = "0 0 0/2 * * ?")
     public void configureTask() {
         int[] years = blogService.searchYears();
@@ -143,7 +145,7 @@ public class ScheduledTask {
             }
         }, executor);
 
-        CompletableFuture.allOf(var1, var2, var3, var4, var5);
+        CompletableFuture.allOf(var1, var2, var3, var4, var5).get();
 
         log.info("定时任务执行完毕");
     }

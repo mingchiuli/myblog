@@ -317,7 +317,7 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, BlogEntity> impleme
             return elasticsearchRestTemplate.search(searchQueryHits, BlogPostDocument.class);
         }, executor);
 
-        CompletableFuture.allOf(countFuture, searchHitsFuture);
+        CompletableFuture.allOf(countFuture, searchHitsFuture).get();
 
         long count = countFuture.get();
         SearchHits<BlogPostDocument> search = searchHitsFuture.get();

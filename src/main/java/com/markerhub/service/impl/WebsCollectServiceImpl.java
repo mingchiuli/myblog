@@ -140,7 +140,7 @@ public class WebsCollectServiceImpl implements WebsCollectService {
             return elasticsearchRestTemplate.search(searchQueryHits, WebsCollectDocument.class);
         }, executor);
 
-        CompletableFuture.allOf(countFuture, searchHitsFuture);
+        CompletableFuture.allOf(countFuture, searchHitsFuture).get();
 
         long count = countFuture.get();
         SearchHits<WebsCollectDocument> search = searchHitsFuture.get();
@@ -182,7 +182,7 @@ public class WebsCollectServiceImpl implements WebsCollectService {
             return elasticsearchRestTemplate.search(searchQueryHits, WebsCollectDocument.class);
         }, executor);
 
-        CompletableFuture.allOf(countFuture, searchHitsFuture);
+        CompletableFuture.allOf(countFuture, searchHitsFuture).get();
 
         long count = countFuture.get();
         SearchHits<WebsCollectDocument> search = searchHitsFuture.get();
@@ -229,7 +229,7 @@ public class WebsCollectServiceImpl implements WebsCollectService {
             return elasticsearchRestTemplate.search(searchQueryHits, WebsCollectDocument.class);
         }, executor);
 
-        CompletableFuture.allOf(countFuture, searchHitsFuture);
+        CompletableFuture.allOf(countFuture, searchHitsFuture).get();
 
         long count = countFuture.get();
         SearchHits<WebsCollectDocument> search = searchHitsFuture.get();
