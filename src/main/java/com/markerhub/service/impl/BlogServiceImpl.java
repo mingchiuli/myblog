@@ -347,7 +347,7 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, BlogEntity> impleme
         // 只能编辑自己的文章
         Assert.isTrue(Objects.equals(user.getUsername(), SecurityContextHolder.getContext().getAuthentication().getName()), "没有权限编辑");
 
-        BeanUtils.copyProperties(blog, temp, "id", "userId", "created", "status");
+        BeanUtils.copyProperties(blog, temp, "id", "userId", "created");
         boolean update = saveOrUpdate(temp);
 
         log.info("数据库更新{}号博客结果:{}", blog.getId(), update);
@@ -389,7 +389,7 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, BlogEntity> impleme
         Set<String> keys = redisTemplate.keys(Const.HOT_BLOGS_PREFIX);
 
         if (keys != null) {
-            redisTemplate.delete(keys);
+            redisTemplate.unlink(keys);
         }
 
         //通知消息给mq，创建
