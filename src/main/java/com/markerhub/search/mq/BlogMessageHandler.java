@@ -33,7 +33,7 @@ import java.util.Set;
  */
 @Slf4j
 @Component
-@RabbitListener(queues = RabbitConfig.ES_QUEUE, concurrency = "1-2")
+@RabbitListener(queues = RabbitConfig.ES_QUEUE)
 public class BlogMessageHandler {
 
     BlogMapper blogMapper;

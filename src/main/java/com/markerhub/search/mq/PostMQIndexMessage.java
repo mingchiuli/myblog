@@ -11,14 +11,10 @@ import java.io.Serializable;
 @Data
 @AllArgsConstructor
 public class PostMQIndexMessage implements Serializable {
-
     public static final String UPDATE = "update";
     public static final String REMOVE = "remove";
     public static final String CREATE = "create";
-
-
     private Long postId;
-
     private String type;
 
 }

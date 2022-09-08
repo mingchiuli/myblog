@@ -6,6 +6,7 @@ import com.markerhub.common.bloom.Bloom;
 import com.markerhub.common.cache.Cache;
 import com.markerhub.common.lang.Const;
 import com.markerhub.common.lang.Result;
+import com.markerhub.common.valid.BlogAuthentication;
 import com.markerhub.common.valid.ListValue;
 import com.markerhub.common.vo.BlogPostDocumentVo;
 import com.markerhub.common.vo.BlogEntityVo;
@@ -197,7 +198,7 @@ public class BlogController {
     @GetMapping("/blog/{id}")
     @Cache(name = Const.HOT_BLOG)
     @Bloom
-    public Result detail(@PathVariable(name = "id") Long id) {
+    public Result detail(@PathVariable(name = "id") @BlogAuthentication Long id) {
         BlogEntity blog = blogService.getBlogDetail(id);
         return Result.succ(blog);
     }

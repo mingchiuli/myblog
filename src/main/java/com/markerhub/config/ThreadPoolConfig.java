@@ -15,8 +15,18 @@ import java.util.concurrent.TimeUnit;
 @Configuration
 @EnableConfigurationProperties(ThreadPoolConfigProperties.class)
 public class ThreadPoolConfig {
-    @Bean
-    public ThreadPoolExecutor threadPoolExecutor(com.markerhub.config.ThreadPoolConfigProperties pool) {
+    @Bean("scheduledThreadPoolExecutor")
+    public ThreadPoolExecutor scheduledThreadPoolExecutor(com.markerhub.config.ThreadPoolConfigProperties pool) {
+        return new ThreadPoolExecutor(pool.getCoreSize(),
+                pool.getMaxSize(),
+                pool.getKeepAliveTime(), TimeUnit.SECONDS,
+                new LinkedBlockingDeque<>(1000),
+                Executors.defaultThreadFactory(),
+                new ThreadPoolExecutor.AbortPolicy());
+    }
+
+    @Bean("pageThreadPoolExecutor")
+    public ThreadPoolExecutor pageThreadPoolExecutor(com.markerhub.config.ThreadPoolConfigProperties pool) {
         return new ThreadPoolExecutor(pool.getCoreSize(),
                 pool.getMaxSize(),
                 pool.getKeepAliveTime(), TimeUnit.SECONDS,

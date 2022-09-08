@@ -55,11 +55,8 @@ public class MenuServiceImpl extends ServiceImpl<MenuMapper, MenuEntity>
     public List<MenuEntity> getCurrentUserNav(Long id) {
 
         String role = userService.getOne(new QueryWrapper<UserEntity>().eq("id", id).select("role")).getRole();
-
         List<Long> menuIds = userMapper.getNavMenuIds(role);
-
         List<MenuEntity> menus = this.listByIds(menuIds);
-
         // 转树状结构
         return buildTreeMenu(menus);
 

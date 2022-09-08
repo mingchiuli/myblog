@@ -46,12 +46,9 @@ public class MyUtils {
         } else {
             // 教验jwt
             Claims claim = jwtUtils.getClaimByToken(token);
-
             String username = Objects.requireNonNull(claim).getSubject();
-
             UserService userService = SpringUtils.getBean(UserService.class);
             UserEntity user = userService.getOne(new QueryWrapper<UserEntity>().select("id").eq("username", username));
-
             return user.getId();
         }
     }
@@ -116,10 +113,7 @@ public class MyUtils {
      */
     public static <T> Page<T>  hitsToPage(SearchHits<T> hits, Integer currentPage, Integer pageSize, long total) {
         ArrayList<T> list = new ArrayList<>();
-
-        for (SearchHit<T> hit : hits.getSearchHits()) {
-            list.add(hit.getContent());
-        }
+        hits.getSearchHits().forEach(hit -> list.add(hit.getContent()));
 
         Page<T> page = new Page<>(currentPage, pageSize);
 
@@ -181,15 +175,13 @@ public class MyUtils {
 
         //为数据设置7日阅读和总阅读数
         List<Object> listSum = redisTemplate.opsForHash().multiGet(Const.READ_SUM, ids);
+
         for (int i = 0; i < blogs.size(); i++) {
             BlogEntityVo blog = blogs.get(i);
             if (listSum.get(i) != null) {
                 blog.setReadSum((Integer) listSum.get(i));
                 Integer recentNum = (Integer) redisTemplate.opsForValue().get(Const.READ_RECENT + blog.getId());
                 blog.setReadRecent(Objects.requireNonNullElse(recentNum, 0));
-            } else {
-                blog.setReadSum(0);
-                blog.setReadRecent(0);
             }
         }
 

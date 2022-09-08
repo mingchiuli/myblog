@@ -1,5 +1,6 @@
 package com.markerhub.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -31,6 +32,7 @@ import org.springframework.amqp.rabbit.connection.CorrelationData;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.domain.PageRequest;
@@ -39,6 +41,7 @@ import org.springframework.data.elasticsearch.core.SearchHit;
 import org.springframework.data.elasticsearch.core.SearchHits;
 import org.springframework.data.elasticsearch.core.query.NativeSearchQuery;
 import org.springframework.data.elasticsearch.core.query.NativeSearchQueryBuilder;
+import org.springframework.data.elasticsearch.core.suggest.response.CompletionSuggestion;
 import org.springframework.data.redis.core.RedisOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.SessionCallback;
@@ -90,6 +93,7 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, BlogEntity> impleme
     ThreadPoolExecutor executor;
 
     @Autowired
+    @Qualifier("pageThreadPoolExecutor")
     public void setExecutor(ThreadPoolExecutor executor) {
         this.executor = executor;
     }
@@ -166,28 +170,17 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, BlogEntity> impleme
 
     @Override
     public BlogEntity getBlogDetail(Long id) {
-
-        if (getOne(new QueryWrapper<BlogEntity>().select("status").eq("id", id)).getStatus() == 1) {
-            throw new AuthenticationException("没有访问权限");
-        }
-
         BlogEntity blog = getOne(new QueryWrapper<BlogEntity>().eq("id", id).eq("status", 0));
-
         Assert.notNull(blog, "该博客不存在");
-
         MyUtils.setReadCount(id);
-
         return blog;
     }
 
     @Override
     public BlogEntity getAuthorizedBlogDetail(Long id) {
         BlogEntity blog = getById(id);
-
         Assert.notNull(blog, "该博客不存在");
-
         MyUtils.setReadCount(id);
-
         return blog;
     }
 
@@ -252,7 +245,6 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, BlogEntity> impleme
 
         }, executor);
 
-
         //主线程在这等着
         CompletableFuture.allOf(countFuture, searchHitsFuture).get();
 
@@ -266,8 +258,6 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, BlogEntity> impleme
             record.setContent(null);
             record.setCreated(record.getCreated().plusHours(Const.GMT_PLUS_8));
         }
-
-        log.info("{} 关键词被首页搜索", keyword);
 
         return page;
     }
@@ -329,8 +319,6 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, BlogEntity> impleme
             record.setCreated(record.getCreated().plusHours(Const.GMT_PLUS_8));
         }
 
-        log.info("{} 关键词被{}年界面搜索", keyword, year);
-
         return page;
     }
 
@@ -352,10 +340,7 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, BlogEntity> impleme
 
         log.info("数据库更新{}号博客结果:{}", blog.getId(), update);
 
-        if (!update) {
-            throw new InsertOrUpdateErrorException("更新失败");
-        }
-
+        Assert.isTrue(update, "更新失败");
 
         //通知消息给mq,更新并删除缓存
         CorrelationData correlationData = new CorrelationData();
@@ -378,9 +363,7 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, BlogEntity> impleme
         boolean add = saveOrUpdate(blog);
 
         log.info("初始化博客结果:{}", add);
-        if (!add) {
-            throw new InsertOrUpdateErrorException("初始化博客失败");
-        }
+        Assert.isTrue(add, "初始化博客失败");
 
         //设置bloomFilter
         redisTemplate.opsForValue().setBit(Const.BLOOM_FILTER_BLOG, blog.getId(), true);
@@ -428,26 +411,16 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, BlogEntity> impleme
                     allDeleted.sort((o1, o2) -> -o1.getCreated().compareTo(o2.getCreated()));
                     Page<BlogEntityVo> page = MyUtils.listToPage(allDeleted, currentPage, size);
                     List<BlogEntityVo> records = page.getRecords();
-                    for (BlogEntityVo record : records) {
-                        record.setUsername(username);
-                    }
+                    records.forEach(record -> record.setUsername(username));
                     page.setRecords(records);
                     return page;
                 } else {
                     ArrayList<BlogEntityVo> blogs = new ArrayList<>();
-                    for (BlogEntityVo blog : allDeleted) {
-                        if (blog.getTitle().contains(title)) {
-                            blogs.add(blog);
-                        }
-                    }
+                    allDeleted.stream().filter(blog -> blog.getTitle().contains(title)).forEach(blogs::add);
                     blogs.sort((o1, o2) -> -o1.getCreated().compareTo(o2.getCreated()));
-
                     Page<BlogEntityVo> page = MyUtils.listToPage(blogs, currentPage, size);
-
                     List<BlogEntityVo> records = page.getRecords();
-                    for (BlogEntityVo record : records) {
-                        record.setUsername(username);
-                    }
+                    records.forEach(record -> record.setUsername(username));
                     page.setRecords(records);
                     return page;
                 }
@@ -518,15 +491,9 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, BlogEntity> impleme
     @Override
     public Page<BlogEntityVo> getAllBlogs(Integer currentPage, Integer size) {
         List<BlogEntityVo> blogsList = queryAllBlogs();
-
-        for (BlogEntity blog : blogsList) {
-            blog.setContent(blog.getContent().length() > 20 ? blog.getContent().substring(0, 20) : blog.getContent());
-        }
-
+        blogsList.forEach(blog -> blog.setContent(blog.getContent().length() > 20 ? blog.getContent().substring(0, 20) : blog.getContent()));
         Page<BlogEntityVo> page = MyUtils.listToPage(blogsList, currentPage, size);
-
         MyUtils.setRead(page);
-
         return page;
     }
 
@@ -551,25 +518,20 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, BlogEntity> impleme
 
             blogsList = new ArrayList<>();
 
-            for (SearchHit<BlogPostDocument> hit : search.getSearchHits()) {
+            search.getSearchHits().forEach(hit -> {
                 BlogEntityVo blog = new BlogEntityVo();
-
                 MyUtils.documentToBlog(hit, blog);
-
                 blogsList.add(blog);
-            }
+            });
         }
 
         //只获取部分博客信息
-        for (BlogEntityVo blog : blogsList) {
-            blog.setContent(blog.getContent().length() > 20 ? blog.getContent().substring(0, 20) : blog.getContent());
-        }
+        blogsList.forEach(blog -> blog.setContent(blog.getContent().length() > 20 ? blog.getContent().substring(0, 20) : blog.getContent()));
 
         //将相关数据封装Page对象
         Page<BlogEntityVo> page = MyUtils.listToPage(blogsList, currentPage, size);
 
         MyUtils.setRead(page);
-
         return page;
     }
 
@@ -578,9 +540,8 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, BlogEntity> impleme
     public void deleteBlogs(Long[] ids) {
         ArrayList<Long> idList = new ArrayList<>(List.of(ids));
 
-        for (Long id : idList) {
+        idList.forEach(id -> {
             BlogEntity blog = getById(id);
-
             //删除文章
             boolean remove = removeById(id);
 
@@ -626,8 +587,7 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, BlogEntity> impleme
                     RabbitConfig.ES_EXCHANGE,
                     RabbitConfig.ES_BINDING_KEY,
                     new PostMQIndexMessage(id, PostMQIndexMessage.REMOVE), correlationData);
-
-        }
+        });
     }
 
     @Override

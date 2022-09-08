@@ -17,6 +17,7 @@ import org.elasticsearch.search.fetch.subphase.highlight.HighlightBuilder;
 import org.elasticsearch.search.sort.SortBuilders;
 import org.elasticsearch.search.sort.SortOrder;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.elasticsearch.core.ElasticsearchRestTemplate;
 import org.springframework.data.elasticsearch.core.SearchHits;
@@ -49,6 +50,7 @@ public class WebsCollectServiceImpl implements WebsCollectService {
     ThreadPoolExecutor executor;
 
     @Autowired
+    @Qualifier("pageThreadPoolExecutor")
     public void setExecutor(ThreadPoolExecutor executor) {
         this.executor = executor;
     }
@@ -145,15 +147,9 @@ public class WebsCollectServiceImpl implements WebsCollectService {
         long count = countFuture.get();
         SearchHits<WebsCollectDocument> search = searchHitsFuture.get();
 
-        //withSorts(SortBuilders.fieldSort("created").order(SortOrder.DESC))
-
         Page<WebsCollectDocumentVo> page = MyUtils.hitsToPage(search, WebsCollectDocumentVo.class, currentPage, Const.WEB_SIZE, count);
 
-        for (WebsCollectDocumentVo record : page.getRecords()) {
-            record.setCreated(record.getCreated().plusHours(Const.GMT_PLUS_8));
-        }
-
-        log.info("{} 关键词被链接搜索", keyword);
+        page.getRecords().forEach(record -> record.setCreated(record.getCreated().plusHours(Const.GMT_PLUS_8)));
 
         return page;
     }
@@ -189,9 +185,7 @@ public class WebsCollectServiceImpl implements WebsCollectService {
 
         Page<WebsCollectDocument> page = MyUtils.hitsToPage(search, currentPage, Const.WEB_SIZE, count);
 
-        for (WebsCollectDocument record : page.getRecords()) {
-            record.setCreated(record.getCreated().plusHours(Const.GMT_PLUS_8));
-        }
+        page.getRecords().forEach(record -> record.setCreated(record.getCreated().plusHours(Const.GMT_PLUS_8)));
         return page;
     }
 
@@ -200,7 +194,6 @@ public class WebsCollectServiceImpl implements WebsCollectService {
     public Page<WebsCollectDocumentVo> searchWebsite(Integer currentPage, String keyword) {
         MultiMatchQueryBuilder multiMatchQueryBuilder = QueryBuilders.multiMatchQuery(keyword, "title", "description");
 
-
         CompletableFuture<Long> countFuture = CompletableFuture.supplyAsync(() -> {
 
             NativeSearchQuery searchQueryCount = new NativeSearchQueryBuilder()
@@ -208,9 +201,6 @@ public class WebsCollectServiceImpl implements WebsCollectService {
                             .must(multiMatchQueryBuilder)
                             .filter(QueryBuilders.termQuery("status", 0)))
                     .build();
-
-
-
 
             return elasticsearchRestTemplate.count(searchQueryCount, WebsCollectDocument.class);
         }, executor);
@@ -237,12 +227,7 @@ public class WebsCollectServiceImpl implements WebsCollectService {
 
         Page<WebsCollectDocumentVo> page = MyUtils.hitsToPage(search, WebsCollectDocumentVo.class, currentPage, Const.WEB_SIZE, count);
 
-        for (WebsCollectDocumentVo record : page.getRecords()) {
-            record.setCreated(record.getCreated().plusHours(Const.GMT_PLUS_8));
-        }
-
-        log.info("{} 关键词被链接搜索", keyword);
-
+        page.getRecords().forEach(record -> record.setCreated(record.getCreated().plusHours(Const.GMT_PLUS_8)));
         return page;
     }
 

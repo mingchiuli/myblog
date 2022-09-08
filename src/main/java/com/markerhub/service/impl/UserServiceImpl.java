@@ -101,25 +101,19 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserEntity> impleme
             userVos.add(userVo);
         });
 
-        for (UserEntityVo record : userVos) {
-            //是否在线
+        userVos.forEach(record -> {
             if (Boolean.TRUE.equals(redisTemplate.hasKey(Const.USER_PREFIX + record.getUsername())) && record.getStatus() == 0) {
                 record.setMonitor(1);
-            } else {
-                record.setMonitor(0);
             }
             String name = roleService.getOne(new QueryWrapper<RoleEntity>().select("name").eq("code", record.getRole())).getName();
             record.setRole(name);
-        }
-
+        });
 
         Page<UserEntityVo> userVoPage = new Page<>();
-
         userVoPage.setRecords(userVos);
         userVoPage.setTotal(page.getTotal());
         userVoPage.setCurrent(page.getCurrent());
         userVoPage.setSize(page.getSize());
-
         return userVoPage;
     }
 
@@ -138,11 +132,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserEntity> impleme
         } else {//修改
 
             BeanUtils.copyProperties(user, userExist, "created", "password", "lastLogin", "username", "id");
-
             boolean update = saveOrUpdate(userExist);
-
             log.info("修改{}号账号结果:{}", userExist.getId(), update);
-
             Assert.isTrue(update, "修改失败");
         }
 
@@ -186,9 +177,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserEntity> impleme
     @Transactional
     public void getPassword(PasswordDto passwordDto) {
         boolean update = update(new UpdateWrapper<UserEntity>().eq("username", passwordDto.getUsername()).set("password", bCryptPasswordEncoder.encode(passwordDto.getPassword())));
-
         log.info("修改{}密码结果:{}", passwordDto.getUsername(), update);
-
         Assert.isTrue(update, "修改密码失败");
     }
 }

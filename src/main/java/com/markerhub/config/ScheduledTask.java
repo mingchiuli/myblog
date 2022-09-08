@@ -9,6 +9,7 @@ import com.markerhub.service.BlogService;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.scheduling.annotation.EnableScheduling;
@@ -32,6 +33,7 @@ public class ScheduledTask {
     ThreadPoolExecutor executor;
 
     @Autowired
+    @Qualifier("scheduledThreadPoolExecutor")
     public void setThreadPoolExecutor(ThreadPoolExecutor threadPoolExecutor) {
         this.executor = threadPoolExecutor;
     }
