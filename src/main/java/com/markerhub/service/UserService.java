@@ -1,10 +1,15 @@
 package com.markerhub.service;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.markerhub.common.dto.PasswordDto;
 import com.markerhub.common.vo.UserEntityVo;
 import com.markerhub.entity.UserEntity;
 import com.baomidou.mybatisplus.extension.service.IService;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.AuthorityUtils;
+
+import java.util.List;
 
 /**
  * <p>
@@ -27,5 +32,7 @@ public interface UserService extends IService<UserEntity> {
     void roleKick(Long id);
 
     void getPassword(PasswordDto passwordDto);
+
+    List<GrantedAuthority> getUserRole(Long userId);
 
 }

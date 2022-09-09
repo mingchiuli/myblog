@@ -1,9 +1,11 @@
 package com.markerhub.config;
 
 import com.markerhub.security.*;
+import com.markerhub.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -29,17 +31,21 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
 
-    UserDetailServiceImpl userDetailService;
-
     JwtLogoutSuccessHandler jwtLogoutSuccessHandler;
 
-//    JwtAuthenticationFilter jwtAuthenticationFilter;
-//
-//    @Autowired
-//    @Lazy
-//    public void setJwtAuthenticationFilter(JwtAuthenticationFilter jwtAuthenticationFilter) {
-//        this.jwtAuthenticationFilter = jwtAuthenticationFilter;
-//    }
+    RedisTemplate<String, Object> redisTemplate;
+
+    UserService sysUserService;
+
+    @Autowired
+    public void setRedisTemplate(RedisTemplate<String, Object> redisTemplate) {
+        this.redisTemplate = redisTemplate;
+    }
+
+    @Autowired
+    public void setSysUserService(UserService sysUserService) {
+        this.sysUserService = sysUserService;
+    }
 
     @Autowired
     public void setLoginFailureHandler(LoginFailureHandler loginFailureHandler) {
@@ -58,11 +64,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     @Autowired
     public void setJwtAuthenticationEntryPoint(JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint) {
         this.jwtAuthenticationEntryPoint = jwtAuthenticationEntryPoint;
-    }
-
-    @Autowired
-    public void setUserDetailService(UserDetailServiceImpl userDetailService) {
-        this.userDetailService = userDetailService;
     }
 
     @Autowired
@@ -147,7 +148,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
-        auth.userDetailsService(userDetailService);
+        auth.userDetailsService(new UserDetailServiceImpl(redisTemplate, sysUserService));
     }
 
     @Bean

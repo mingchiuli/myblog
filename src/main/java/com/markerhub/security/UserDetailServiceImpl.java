@@ -16,20 +16,14 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import java.util.List;
 
-@Service
 public class UserDetailServiceImpl implements UserDetailsService {
 
 	RedisTemplate<String, Object> redisTemplate;
 
-	@Autowired
-	public void setRedisTemplate(RedisTemplate<String, Object> redisTemplate) {
-		this.redisTemplate = redisTemplate;
-	}
-
 	UserService sysUserService;
 
-	@Autowired
-	public void setSysUserService(UserService sysUserService) {
+	public UserDetailServiceImpl(RedisTemplate<String, Object> redisTemplate, UserService sysUserService) {
+		this.redisTemplate = redisTemplate;
 		this.sysUserService = sysUserService;
 	}
 
@@ -49,16 +43,6 @@ public class UserDetailServiceImpl implements UserDetailsService {
 		boolean accountNonLocked = sysUser.getStatus() == 0;
 
 		//通过User去自动比较用户名和密码
-		return new User(sysUser.getUsername(), sysUser.getPassword(), true,true,true, accountNonLocked, getUserRole(sysUser.getId()));
-	}
-
-	/**
-	 * 获取用户权限信息（角色权限）
-	 * @param userId 用户id
-	 * @return List<GrantedAuthority>
-	 */
-	public List<GrantedAuthority> getUserRole(Long userId){
-		String role = sysUserService.getOne(new QueryWrapper<UserEntity>().select("role").eq("id", userId)).getRole();
-		return AuthorityUtils.createAuthorityList("ROLE_" + role);
+		return new User(sysUser.getUsername(), sysUser.getPassword(), true,true,true, accountNonLocked, sysUserService.getUserRole(sysUser.getId()));
 	}
 }

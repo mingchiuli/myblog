@@ -19,6 +19,8 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -41,12 +43,11 @@ import java.util.UUID;
 @Slf4j
 public class UserServiceImpl extends ServiceImpl<UserMapper, UserEntity> implements UserService {
 
-
     BCryptPasswordEncoder bCryptPasswordEncoder;
 
     @Autowired
     @Lazy
-    public void setbCryptPasswordEncoder(BCryptPasswordEncoder bCryptPasswordEncoder) {
+    public void setBCryptPasswordEncoder(BCryptPasswordEncoder bCryptPasswordEncoder) {
         this.bCryptPasswordEncoder = bCryptPasswordEncoder;
     }
 
@@ -180,4 +181,16 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserEntity> impleme
         log.info("修改{}密码结果:{}", passwordDto.getUsername(), update);
         Assert.isTrue(update, "修改密码失败");
     }
+
+    /**
+     * 获取用户权限信息（角色权限）
+     * @param userId 用户id
+     * @return List<GrantedAuthority>
+     */
+    @Override
+    public List<GrantedAuthority> getUserRole(Long userId){
+        String role = getOne(new QueryWrapper<UserEntity>().select("role").eq("id", userId)).getRole();
+        return AuthorityUtils.createAuthorityList("ROLE_" + role);
+    }
+
 }

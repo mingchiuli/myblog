@@ -195,7 +195,6 @@ public class WebsCollectServiceImpl implements WebsCollectService {
         MultiMatchQueryBuilder multiMatchQueryBuilder = QueryBuilders.multiMatchQuery(keyword, "title", "description");
 
         CompletableFuture<Long> countFuture = CompletableFuture.supplyAsync(() -> {
-
             NativeSearchQuery searchQueryCount = new NativeSearchQueryBuilder()
                     .withQuery(QueryBuilders.boolQuery()
                             .must(multiMatchQueryBuilder)

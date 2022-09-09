@@ -34,8 +34,6 @@ public class JwtAuthenticationFilter extends BasicAuthenticationFilter {
 
 	JwtUtils jwtUtils;
 
-	UserDetailServiceImpl userDetailService;
-
 	UserService sysUserService;
 
 	RedisTemplate<String, Object> redisTemplate;
@@ -53,11 +51,6 @@ public class JwtAuthenticationFilter extends BasicAuthenticationFilter {
 	@Autowired
 	public void setJwtUtils(JwtUtils jwtUtils) {
 		this.jwtUtils = jwtUtils;
-	}
-
-	@Autowired
-	public void setUserDetailService(UserDetailServiceImpl userDetailService) {
-		this.userDetailService = userDetailService;
 	}
 
 	@Autowired
@@ -126,10 +119,10 @@ public class JwtAuthenticationFilter extends BasicAuthenticationFilter {
 			user = MyUtils.jsonToObj(userInfo, UserEntity.class);
 		} else {
 			user = sysUserService.getOne(new QueryWrapper<UserEntity>().eq("username", username));
-			MyUtils.setUserToCache(jwt, user, (long) (5 * 60));
 		}
+		MyUtils.setUserToCache(jwt, user, (long) (60));
 
-		return new UsernamePasswordAuthenticationToken(user.getUsername(), null, userDetailService.getUserRole(user.getId()));
+		return new UsernamePasswordAuthenticationToken(user.getUsername(), null, sysUserService.getUserRole(user.getId()));
 
 	}
 }
