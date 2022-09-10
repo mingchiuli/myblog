@@ -35,3 +35,5 @@ markerhub:
     #    七天
     expire: 604800
     header: Authorization
+
+serverIpHost: 127.0.0.1

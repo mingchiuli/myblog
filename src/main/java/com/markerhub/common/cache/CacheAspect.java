@@ -80,7 +80,15 @@ public class CacheAspect {
 
         String redisKey = name + "::" + className + "::" + methodName + params;
 
-        Object o = redisTemplate.opsForValue().get(redisKey);
+        Object o;
+
+        //防止redis挂了以后db也访问不了
+        try {
+            o = redisTemplate.opsForValue().get(redisKey);
+        } catch (Exception e) {
+            return pjp.proceed();
+        }
+
         if (o != null) {
             return objectMapper.convertValue(o, Result.class);
         }

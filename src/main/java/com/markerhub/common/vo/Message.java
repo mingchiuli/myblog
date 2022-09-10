@@ -12,9 +12,9 @@ import java.io.Serializable;
 public class Message implements Serializable {
 
     private String message;
-
     private String from;
-
     private Long to;
+    private Long blogId;
+    private String fromUsername;
 
 }

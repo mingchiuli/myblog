@@ -1,4 +1,4 @@
-package com.markerhub.controller;
+package com.markerhub.ws.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.markerhub.common.valid.CooperateBlogId;
@@ -8,15 +8,19 @@ import com.markerhub.common.vo.Message;
 import com.markerhub.common.lang.Const;
 import com.markerhub.common.lang.Result;
 import com.markerhub.common.vo.UserEntityVo;
+import com.markerhub.config.RabbitConfig;
 import com.markerhub.entity.*;
 import com.markerhub.service.BlogService;
 import com.markerhub.service.UserService;
 import com.markerhub.utils.JwtUtils;
 import com.markerhub.utils.MyUtils;
+import com.markerhub.ws.mq.dto.impl.*;
 import io.jsonwebtoken.Claims;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.Headers;
@@ -43,6 +47,16 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 @Validated
 public class CooperateController {
+
+    RabbitTemplate rabbitTemplate;
+
+    @Autowired
+    public void setRabbitTemplate(RabbitTemplate rabbitTemplate) {
+        this.rabbitTemplate = rabbitTemplate;
+    }
+
+    @Value("${serverIpHost}")
+    private String serverIpHost;
 
     BlogService blogService;
 
@@ -91,7 +105,18 @@ public class CooperateController {
             users.add(value);
         });
 
-        simpMessagingTemplate.convertAndSendToUser(blogId.toString(),"/topic/users", users);
+
+        InitOrDestroyMessageDto dto = new InitOrDestroyMessageDto();
+
+        InitOrDestroyMessageDto.Data data = new InitOrDestroyMessageDto.Data();
+        data.setUsers(users);
+        data.setBlogId(blogId.toString());
+        dto.setData(data);
+
+        rabbitTemplate.convertAndSend(
+                RabbitConfig.WS_FANOUT_EXCHANGE,RabbitConfig.WS_BINDING_KEY + RabbitConfig.serverIpHost,
+                dto);
+
     }
 
 
@@ -116,38 +141,74 @@ public class CooperateController {
                 users.add(value);
             });
 
-            simpMessagingTemplate.convertAndSendToUser(blogId.toString(),"/topic/popUser", users);
+
+            InitOrDestroyMessageDto dto = new InitOrDestroyMessageDto();
+
+            InitOrDestroyMessageDto.Data data = new InitOrDestroyMessageDto.Data();
+            data.setUsers(users);
+            data.setBlogId(blogId.toString());
+            dto.setData(data);
+
+            rabbitTemplate.convertAndSend(
+                    RabbitConfig.WS_FANOUT_EXCHANGE,RabbitConfig.WS_BINDING_KEY + RabbitConfig.serverIpHost,
+                    dto);
 
             log.info("{}号用户退出{}号编辑室", userId, blogId);
 
         }
     }
 
-    @MessageMapping("/chat/{from}/{to}")
-    public void chat(String msg, @DestinationVariable String from, @DestinationVariable Long to) {
+    @MessageMapping("/chat/{from}/{to}/{blogId}")
+    public void chat(String msg, @DestinationVariable String from, @DestinationVariable Long to, @DestinationVariable Long blogId) {
 
         Message message = new Message();
+        message.setBlogId(blogId);
         message.setMessage(msg);
         message.setFrom(from);
         message.setTo(to);
 
-        simpMessagingTemplate.convertAndSendToUser(to.toString(), "/queue/chat", message);
+        ChatDto dto = new ChatDto();
+        dto.setMessage(message);
+
+        UserEntityVo userEntityVo = MyUtils.jsonToObj(redisTemplate.opsForHash().get(Const.CO_PREFIX + blogId, to.toString()), UserEntityVo.class);
+        if (userEntityVo != null) {
+            String toServerIpHost = userEntityVo.getServerIpHost();
+
+            rabbitTemplate.convertAndSend(
+                    RabbitConfig.WS_TOPIC_EXCHANGE,RabbitConfig.WS_BINDING_KEY + toServerIpHost,
+                    dto);
+        }
+
     }
 
 
-    @MessageMapping("/sync/{from}")
-    public void syncContent(@DestinationVariable Long from, String content) {
+    @MessageMapping("/sync/{from}/{blogId}")
+    public void syncContent(@DestinationVariable Long from, String content, @DestinationVariable Long blogId) {
         Content msg = new Content();
         msg.setContent(content);
         msg.setFrom(from);
+        msg.setBlogId(blogId);
 
-        simpMessagingTemplate.convertAndSend("/topic/content", msg);
+        SyncContentDto dto = new SyncContentDto();
+        dto.setContent(msg);
+
+
+        rabbitTemplate.convertAndSend(
+                RabbitConfig.WS_FANOUT_EXCHANGE,RabbitConfig.WS_BINDING_KEY  + RabbitConfig.serverIpHost,
+                dto);
     }
 
 
     @MessageMapping("/taskOver/{from}")
     public void taskOver(@DestinationVariable Long from) {
-        simpMessagingTemplate.convertAndSend("/topic/over", from);
+
+        TaskOverDto dto = new TaskOverDto();
+        dto.setFrom(from.toString());
+
+        rabbitTemplate.convertAndSend(
+                RabbitConfig.WS_FANOUT_EXCHANGE,RabbitConfig.WS_BINDING_KEY  + RabbitConfig.serverIpHost,
+                dto);
+
     }
 
     @GetMapping("/coStatus/{blogId}")
@@ -194,6 +255,7 @@ public class CooperateController {
         BeanUtils.copyProperties(user, userVo);
 
         userVo.setNumber(coNumber);
+        userVo.setServerIpHost(serverIpHost);
 
         if (!redisTemplate.opsForHash().hasKey(Const.CO_PREFIX + blogId, userId.toString())) {
             redisTemplate.opsForHash().put(Const.CO_PREFIX + blogId, userId.toString(), userVo);
@@ -207,12 +269,22 @@ public class CooperateController {
 
         entries.forEach((k, v) -> {
             UserEntityVo value = MyUtils.jsonToObj(v, UserEntityVo.class);
+            value.setServerIpHost(null);
             users.add(value);
         });
 
         users.sort(Comparator.comparingInt(UserEntityVo::getNumber));
 
-        simpMessagingTemplate.convertAndSendToUser(blogId.toString(),"/topic/users", users);
+        InitOrDestroyMessageDto dto = new InitOrDestroyMessageDto();
+
+        InitOrDestroyMessageDto.Data data = new InitOrDestroyMessageDto.Data();
+        data.setUsers(users);
+        data.setBlogId(blogId.toString());
+        dto.setData(data);
+
+        rabbitTemplate.convertAndSend(
+                RabbitConfig.WS_FANOUT_EXCHANGE,RabbitConfig.WS_BINDING_KEY  + RabbitConfig.serverIpHost,
+                dto);
 
         log.info("{}号用户加入{}号编辑室", userId, blogId);
 

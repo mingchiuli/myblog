@@ -1,4 +1,4 @@
-package com.markerhub.controller;
+package com.markerhub.log.controller;
 
 import com.markerhub.common.lang.Result;
 import lombok.extern.slf4j.Slf4j;

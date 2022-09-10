@@ -42,7 +42,6 @@ public class LogInterceptor implements ChannelInterceptor {
     @Override
     public Message<?> preSend(Message<?> message, MessageChannel channel) {
 
-
         StompHeaderAccessor accessor = MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class);
 
         if (accessor != null) {
@@ -63,8 +62,6 @@ public class LogInterceptor implements ChannelInterceptor {
                 if (claim == null || jwtUtils.isTokenExpired(claim.getExpiration())) {
                     throw new AuthenticationException("token验证失败");
                 }
-
-
 
                 String username = claim.getSubject();
                 UserEntity user = userService.getOne(new QueryWrapper<UserEntity>().select("id", "role").eq("username", username));

@@ -8,8 +8,10 @@ import org.springframework.amqp.rabbit.connection.CorrelationData;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.data.redis.core.RedisTemplate;
 import javax.annotation.PostConstruct;
 
@@ -26,9 +28,23 @@ import javax.annotation.PostConstruct;
 @Slf4j
 public class RabbitConfig {
 
+    public static String serverIpHost;
+    @Value("${serverIpHost}")
+    public void setServerIpHost(String serverIpHost) {
+        RabbitConfig.serverIpHost = serverIpHost;
+    }
+
     public static final String ES_QUEUE = "ex_queue";
     public static final String ES_EXCHANGE = "ex_exchange";
     public static final String ES_BINDING_KEY = "ex_exchange";
+
+    public static String WS_QUEUE = "wx_queue_";
+    public static final String WS_QUEUE_ORIGIN = "wx_queue";
+    public static final String WS_TOPIC_EXCHANGE = "wx_topic_exchange";
+    public static final String WS_FANOUT_EXCHANGE = "wx_fanout_exchange";
+    public static final String WS_BINDING_KEY = "wx_exchange_";
+    public static final String WS_BINDING_KEYS = "wx_exchange";
+
 
     public static final String LOG_QUEUE = "log_queue";
     public static final String LOG_EXCHANGE = "log_exchange";
@@ -46,6 +62,34 @@ public class RabbitConfig {
     @Autowired
     public void setRabbitTemplate(RabbitTemplate rabbitTemplate) {
         this.rabbitTemplate = rabbitTemplate;
+    }
+
+    @Bean("WS_QUEUE")
+    public Queue wsQueue() {
+        WS_QUEUE += serverIpHost;
+        return new Queue(WS_QUEUE);
+    }
+
+    @Bean("WS_FANOUT_EXCHANGE")
+    public FanoutExchange wsfExchange() {
+        return new FanoutExchange(WS_FANOUT_EXCHANGE);
+    }
+
+    @Bean
+    public Binding wsFanoutBinding(@Qualifier("WS_QUEUE") Queue wsQueue, @Qualifier("WS_FANOUT_EXCHANGE") FanoutExchange wsExchange) {
+        return BindingBuilder.bind(wsQueue).to(wsExchange);
+    }
+
+    //ES交换机
+    @Bean("WS_TOPIC_EXCHANGE")
+    public TopicExchange wsExchange() {
+        return new TopicExchange(WS_TOPIC_EXCHANGE);
+    }
+
+    //绑定ES队列和ES交换机
+    @Bean
+    public Binding wsTopicBinding(@Qualifier("WS_QUEUE") Queue wsQueue, @Qualifier("WS_TOPIC_EXCHANGE") TopicExchange wsExchange) {
+        return BindingBuilder.bind(wsQueue).to(wsExchange).with(WS_BINDING_KEY + serverIpHost);
     }
 
     //ES队列
