@@ -1,14 +1,17 @@
 package com.markerhub.ws.mq.dto.impl;
 
+import com.markerhub.ws.mq.dto.Container;
 import com.markerhub.ws.mq.dto.MessageDto;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 
 import java.io.Serializable;
 
 @Data
-public class TaskOverDto implements MessageDto<String>, Serializable {
+@AllArgsConstructor
+public class TaskOverDto implements MessageDto, Serializable {
 
-    private String from;
+    private Container<String> from;
 
     @Override
     public String getMethodName() {
@@ -16,7 +19,7 @@ public class TaskOverDto implements MessageDto<String>, Serializable {
     }
 
     @Override
-    public String getData() {
+    public Container<String> getData() {
         return from;
     }
 }

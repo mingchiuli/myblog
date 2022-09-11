@@ -14,8 +14,10 @@ import com.markerhub.service.BlogService;
 import com.markerhub.service.UserService;
 import com.markerhub.utils.JwtUtils;
 import com.markerhub.utils.MyUtils;
+import com.markerhub.ws.mq.dto.Container;
 import com.markerhub.ws.mq.dto.impl.*;
 import io.jsonwebtoken.Claims;
+import lombok.Builder;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.BeanUtils;
@@ -105,13 +107,9 @@ public class CooperateController {
             users.add(value);
         });
 
-
-        InitOrDestroyMessageDto dto = new InitOrDestroyMessageDto();
-
-        InitOrDestroyMessageDto.Data data = new InitOrDestroyMessageDto.Data();
-        data.setUsers(users);
-        data.setBlogId(blogId.toString());
-        dto.setData(data);
+        String idStr = blogId.toString();
+        InitOrDestroyMessageDto dto = MyUtils.transferToDto(InitOrDestroyMessageDto.Bind.class, InitOrDestroyMessageDto.class,
+                new Object[]{idStr, users}, new Class[]{idStr.getClass(), users.getClass()});
 
         rabbitTemplate.convertAndSend(
                 RabbitConfig.WS_FANOUT_EXCHANGE,RabbitConfig.WS_BINDING_KEY + RabbitConfig.serverIpHost,
@@ -141,13 +139,9 @@ public class CooperateController {
                 users.add(value);
             });
 
-
-            InitOrDestroyMessageDto dto = new InitOrDestroyMessageDto();
-
-            InitOrDestroyMessageDto.Data data = new InitOrDestroyMessageDto.Data();
-            data.setUsers(users);
-            data.setBlogId(blogId.toString());
-            dto.setData(data);
+            String idStr = blogId.toString();
+            InitOrDestroyMessageDto dto = MyUtils.transferToDto(InitOrDestroyMessageDto.Bind.class, InitOrDestroyMessageDto.class,
+                    new Object[]{idStr, users}, new Class[]{idStr.getClass(), users.getClass()});
 
             rabbitTemplate.convertAndSend(
                     RabbitConfig.WS_FANOUT_EXCHANGE,RabbitConfig.WS_BINDING_KEY + RabbitConfig.serverIpHost,
@@ -161,38 +155,32 @@ public class CooperateController {
     @MessageMapping("/chat/{from}/{to}/{blogId}")
     public void chat(String msg, @DestinationVariable String from, @DestinationVariable Long to, @DestinationVariable Long blogId) {
 
-        Message message = new Message();
-        message.setBlogId(blogId);
-        message.setMessage(msg);
-        message.setFrom(from);
-        message.setTo(to);
-
-        ChatDto dto = new ChatDto();
-        dto.setMessage(message);
-
+//        Message data = Message.builder().message(msg).blogId(blogId).from(from).to(to).build();
+//        Container<Message> container = new Container<>();
+//        container.setData(data);
+//        ChatDto dto = ChatDto.builder().message(container).build();
+//        ChatDto dto = MyUtils.transferToDto(Message.class, ChatDto.class, to, blogId, from);
+//
         UserEntityVo userEntityVo = MyUtils.jsonToObj(redisTemplate.opsForHash().get(Const.CO_PREFIX + blogId, to.toString()), UserEntityVo.class);
         if (userEntityVo != null) {
             String toServerIpHost = userEntityVo.getServerIpHost();
-
+            String idStr = blogId.toString();
+            String toStr = to.toString();
+            ChatDto dto = MyUtils.transferToDto(Message.class, ChatDto.class, new Object[]{msg, from, toStr, idStr},
+                    new Class[]{msg.getClass(), from.getClass(), toStr.getClass(), idStr.getClass()});
             rabbitTemplate.convertAndSend(
                     RabbitConfig.WS_TOPIC_EXCHANGE,RabbitConfig.WS_BINDING_KEY + toServerIpHost,
                     dto);
         }
-
     }
 
 
     @MessageMapping("/sync/{from}/{blogId}")
     public void syncContent(@DestinationVariable Long from, String content, @DestinationVariable Long blogId) {
-        Content msg = new Content();
-        msg.setContent(content);
-        msg.setFrom(from);
-        msg.setBlogId(blogId);
-
-        SyncContentDto dto = new SyncContentDto();
-        dto.setContent(msg);
-
-
+        String fromStr = from.toString();
+        String idStr = blogId.toString();
+        SyncContentDto dto = MyUtils.transferToDto(Content.class, SyncContentDto.class,
+                new Object[]{fromStr, content, idStr}, new Class[]{fromStr.getClass(), content.getClass(), idStr.getClass()});
         rabbitTemplate.convertAndSend(
                 RabbitConfig.WS_FANOUT_EXCHANGE,RabbitConfig.WS_BINDING_KEY  + RabbitConfig.serverIpHost,
                 dto);
@@ -201,10 +189,8 @@ public class CooperateController {
 
     @MessageMapping("/taskOver/{from}")
     public void taskOver(@DestinationVariable Long from) {
-
-        TaskOverDto dto = new TaskOverDto();
-        dto.setFrom(from.toString());
-
+        String fromStr = from.toString();
+        TaskOverDto dto = MyUtils.transferToDto(String.class, TaskOverDto.class, new Object[]{fromStr}, new Class[]{fromStr.getClass()});
         rabbitTemplate.convertAndSend(
                 RabbitConfig.WS_FANOUT_EXCHANGE,RabbitConfig.WS_BINDING_KEY  + RabbitConfig.serverIpHost,
                 dto);
@@ -275,13 +261,9 @@ public class CooperateController {
 
         users.sort(Comparator.comparingInt(UserEntityVo::getNumber));
 
-        InitOrDestroyMessageDto dto = new InitOrDestroyMessageDto();
-
-        InitOrDestroyMessageDto.Data data = new InitOrDestroyMessageDto.Data();
-        data.setUsers(users);
-        data.setBlogId(blogId.toString());
-        dto.setData(data);
-
+        String idStr = blogId.toString();
+        InitOrDestroyMessageDto dto = MyUtils.transferToDto(InitOrDestroyMessageDto.Bind.class, InitOrDestroyMessageDto.class,
+                new Object[]{idStr, users}, new Class[]{idStr.getClass(), users.getClass()});
         rabbitTemplate.convertAndSend(
                 RabbitConfig.WS_FANOUT_EXCHANGE,RabbitConfig.WS_BINDING_KEY  + RabbitConfig.serverIpHost,
                 dto);

@@ -3,6 +3,7 @@ package com.markerhub.ws.mq;
 import com.markerhub.common.vo.Content;
 import com.markerhub.common.vo.Message;
 import com.markerhub.common.vo.UserEntityVo;
+import com.markerhub.ws.mq.dto.Container;
 import com.markerhub.ws.mq.dto.impl.InitOrDestroyMessageDto;
 import com.markerhub.ws.mq.dto.MessageDto;
 import lombok.extern.slf4j.Slf4j;
@@ -56,34 +57,39 @@ public class WSMessageHandler {
     }
 
 
-    public void processMessage(MessageDto<Object> msg) {
+    public void processMessage(MessageDto msg) {
 
         String methodName = msg.getMethodName();
 
         switch (methodName) {
             case "init":
             case "pushUser":
-                InitOrDestroyMessageDto.Data dataV1 = (InitOrDestroyMessageDto.Data)msg.getData();
+                Container<InitOrDestroyMessageDto.Bind> containerV1 = msg.getData();
+                InitOrDestroyMessageDto.Bind dataV1 = containerV1.getData();
                 String blogIdV1 = dataV1.getBlogId();
                 ArrayList<UserEntityVo> usersV1 = dataV1.getUsers();
                 simpMessagingTemplate.convertAndSendToUser(blogIdV1,"/topic/users", usersV1);
                 break;
             case "taskOver":
-                String from = (String) msg.getData();
+                Container<String> containerV2 = msg.getData();
+                String from = containerV2.getData();
                 simpMessagingTemplate.convertAndSend("/topic/over", from);
                 break;
             case "syncContent":
-                Content content = (Content) msg.getData();
+                Container<Content> containerV3 = msg.getData();
+                Content content = containerV3.getData();
                 simpMessagingTemplate.convertAndSend("/topic/content/" + content.getBlogId(), content);
                 break;
             case "chat":
-                Message message = (Message) msg.getData();
-                Long id = message.getBlogId();
-                Long to = message.getTo();
-                simpMessagingTemplate.convertAndSendToUser(to.toString(), "/" + id + "/queue/chat", message);
+                Container<Message> containerV4 = msg.getData();
+                Message message = containerV4.getData();
+                String id = message.getBlogId();
+                String to = message.getTo();
+                simpMessagingTemplate.convertAndSendToUser(to, "/" + id + "/queue/chat", message);
                 break;
             case "destroy":
-                InitOrDestroyMessageDto.Data dataV2 = (InitOrDestroyMessageDto.Data)msg.getData();
+                Container<InitOrDestroyMessageDto.Bind> containerV5 = msg.getData();
+                InitOrDestroyMessageDto.Bind dataV2 = containerV5.getData();
                 String blogIdV2 = dataV2.getBlogId();
                 ArrayList<UserEntityVo> usersV2 = dataV2.getUsers();
                 simpMessagingTemplate.convertAndSendToUser(blogIdV2,"/topic/popUser", usersV2);

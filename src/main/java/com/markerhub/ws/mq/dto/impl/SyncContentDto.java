@@ -1,15 +1,20 @@
 package com.markerhub.ws.mq.dto.impl;
 
 import com.markerhub.common.vo.Content;
+import com.markerhub.ws.mq.dto.Container;
 import com.markerhub.ws.mq.dto.MessageDto;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 
 @Data
-public class SyncContentDto implements Serializable, MessageDto<Content> {
+@AllArgsConstructor
+public class SyncContentDto implements Serializable, MessageDto {
 
-    Content content;
+    Container<Content> content;
 
     @Override
     public String getMethodName() {
@@ -17,7 +22,7 @@ public class SyncContentDto implements Serializable, MessageDto<Content> {
     }
 
     @Override
-    public Content getData() {
+    public Container<Content> getData() {
         return content;
     }
 }

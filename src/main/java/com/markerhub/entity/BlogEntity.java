@@ -10,12 +10,8 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
-import com.markerhub.common.valid.ListValue;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-
+import lombok.*;
 import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.Positive;
 
 /**
  * <p>

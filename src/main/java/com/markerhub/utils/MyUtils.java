@@ -5,10 +5,13 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.markerhub.common.lang.Const;
 import com.markerhub.common.vo.BlogEntityVo;
+import com.markerhub.common.vo.UserEntityVo;
 import com.markerhub.entity.BlogEntity;
 import com.markerhub.entity.UserEntity;
 import com.markerhub.search.model.BlogPostDocument;
 import com.markerhub.service.UserService;
+import com.markerhub.ws.mq.dto.Container;
+import com.markerhub.ws.mq.dto.impl.InitOrDestroyMessageDto;
 import io.jsonwebtoken.Claims;
 import lombok.SneakyThrows;
 import org.springframework.beans.BeanUtils;
@@ -24,6 +27,9 @@ import org.springframework.util.StringUtils;
 import javax.servlet.http.HttpServletRequest;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.AnnotatedType;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -282,4 +288,11 @@ public class MyUtils {
         blog.setLink("");
     }
 
+    @SneakyThrows
+    public static <B, T> T transferToDto(Class<B> bClass, Class<T> tClass, Object[] args, Class<?>[] argsType) {
+        B bInstance = bClass.getDeclaredConstructor(argsType).newInstance(args);
+        Container<B> container = new Container<>();
+        container.setData(bInstance);
+        return tClass.getDeclaredConstructor(container.getClass()).newInstance(container);
+    }
 }

@@ -1,7 +1,7 @@
 package com.markerhub.ws.mq.dto;
 
-public interface MessageDto<T> {
+public interface MessageDto {
     String getMethodName();
 
-    T getData();
+    <T> Container<T> getData();
 }
