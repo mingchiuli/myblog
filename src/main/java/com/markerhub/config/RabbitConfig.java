@@ -39,11 +39,9 @@ public class RabbitConfig {
     public static final String ES_BINDING_KEY = "ex_exchange";
 
     public static String WS_QUEUE = "wx_queue_";
-    public static final String WS_QUEUE_ORIGIN = "wx_queue";
     public static final String WS_TOPIC_EXCHANGE = "wx_topic_exchange";
     public static final String WS_FANOUT_EXCHANGE = "wx_fanout_exchange";
     public static final String WS_BINDING_KEY = "wx_exchange_";
-    public static final String WS_BINDING_KEYS = "wx_exchange";
 
 
     public static final String LOG_QUEUE = "log_queue";

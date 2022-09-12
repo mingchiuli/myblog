@@ -1,10 +1,13 @@
 package com.markerhub.utils;
 
+import com.markerhub.common.bloom.handler.BloomHandler;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
+
+import java.util.Map;
 
 
 /**
@@ -36,5 +39,9 @@ public class SpringUtils implements ApplicationContextAware {
 
         return applicationContext.getBean(clazz);
 
+    }
+
+    public static <T> Map<String, T> getHandlers(Class<T> clazz) {
+        return applicationContext.getBeansOfType(clazz);
     }
 }

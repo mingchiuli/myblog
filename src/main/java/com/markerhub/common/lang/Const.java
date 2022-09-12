@@ -19,14 +19,9 @@ public class Const {
     public final static String READ_RECENT = "blogReadRecent:";
 
     public final static String HOT_BLOGS_PREFIX = "hot_blogs*";
-    public final static String HOT_USERS_PREFIX = "hot_users*";
-    public final static String HOT_DELETED_PREFIX = "hot_deleted*";
-    public final static String HOT_BLOG_PREFIX = "hot_blog*";
 
     //url相关，不相关上传路径
     public final static String UPLOAD_IMG_PATH = "/upload/img/";
-
-    public static final String ROLE_PREFIX = "role:";
 
     public static final String CO_PREFIX = "co_blogId:";
 
@@ -45,18 +40,14 @@ public class Const {
     public static final String ADMIN = "admin";
     public static final String BOY = "boy";
     public static final String GIRL = "girl";
-    public static final String GUEST = "guest";
 
 
     public static final Integer WEB_SIZE = 9;
 
     public static final String HOT_BLOGS = "hot_blogs";
-    public static final String HOT_USERS = "hot_users";
-    public static final String HOT_DELETED = "hot_deleted";
     public static final String HOT_BLOG = "hot_blog";
 
     public static final String BLOG_STATUS = "blog_status";
-    public static final String BLOG_STATUS_PREFIX = "blog_status*";
 
     public static final String CONSUME_MONITOR = "consume:";
 
@@ -69,5 +60,4 @@ public class Const {
     public final static String BLOOM_FILTER_YEARS = "bloom_filter_years";
 
 
-    public static final String ROLE_CACHE = "role_cache";
 }
