@@ -66,7 +66,7 @@ public class BloomAspect {
         Map<String, BloomHandler> bloomHandlers = cacheHandlers;
         for (BloomHandler handler : bloomHandlers.values()) {
             if (methodName.equals(handler.methodName())) {
-                handler.handler(args);
+                handler.doHand(args);
                 break;
             }
         }

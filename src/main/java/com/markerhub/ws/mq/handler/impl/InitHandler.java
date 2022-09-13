@@ -27,7 +27,7 @@ public class InitHandler implements WSHandler {
     }
 
     @Override
-    public void handler(MessageDto msg) {
+    public void doHand(MessageDto msg) {
         Container<InitOrDestroyMessageDto.Bind> containerV1 = msg.getData();
         InitOrDestroyMessageDto.Bind dataV1 = containerV1.getData();
         String blogIdV1 = dataV1.getBlogId();

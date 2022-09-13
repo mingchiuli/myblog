@@ -22,7 +22,7 @@ public class SyncContentHandler implements WSHandler {
     }
 
     @Override
-    public void handler(MessageDto msg) {
+    public void doHand(MessageDto msg) {
         Container<Content> containerV3 = msg.getData();
         Content content = containerV3.getData();
         simpMessagingTemplate.convertAndSend("/topic/content/" + content.getBlogId(), content);

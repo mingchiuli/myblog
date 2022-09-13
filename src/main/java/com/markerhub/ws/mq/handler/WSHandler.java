@@ -4,5 +4,5 @@ import com.markerhub.ws.mq.dto.MessageDto;
 
 public interface WSHandler {
     String methodName();
-    void handler(MessageDto msg);
+    void doHand(MessageDto msg);
 }

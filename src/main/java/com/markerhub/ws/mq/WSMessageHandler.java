@@ -67,7 +67,7 @@ public class WSMessageHandler {
 
         for (WSHandler handler : handlers.values()) {
             if (methodName.equals(handler.methodName())) {
-                handler.handler(msg);
+                handler.doHand(msg);
                 break;
             }
         }
