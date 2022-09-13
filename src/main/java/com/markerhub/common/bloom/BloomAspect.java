@@ -30,6 +30,8 @@ import java.util.Map;
 @Order(1)
 public class BloomAspect {
 
+    Map<String, BloomHandler> cacheHandlers;
+
     BlogService blogService;
 
     @Autowired
@@ -57,7 +59,11 @@ public class BloomAspect {
         //参数
         Object[] args = jp.getArgs();
 
-        Map<String, BloomHandler> bloomHandlers = SpringUtils.getHandlers(BloomHandler.class);
+        if (cacheHandlers == null) {
+            cacheHandlers = SpringUtils.getHandlers(BloomHandler.class);
+        }
+
+        Map<String, BloomHandler> bloomHandlers = cacheHandlers;
         for (BloomHandler handler : bloomHandlers.values()) {
             if (methodName.equals(handler.methodName())) {
                 handler.handler(args);

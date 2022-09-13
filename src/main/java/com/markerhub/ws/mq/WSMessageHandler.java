@@ -20,6 +20,8 @@ import java.util.Map;
 @Component
 public class WSMessageHandler {
 
+    Map<String, WSHandler> cacheHandlers;
+
     RedisTemplate<String, Object> redisTemplate;
 
     @Autowired
@@ -56,7 +58,12 @@ public class WSMessageHandler {
 
     public void processMessage(MessageDto msg) {
         String methodName = msg.getMethodName();
-        Map<String, WSHandler> handlers = SpringUtils.getHandlers(WSHandler.class);
+
+        if (cacheHandlers == null) {
+            cacheHandlers = SpringUtils.getHandlers(WSHandler.class);
+        }
+
+        Map<String, WSHandler> handlers = cacheHandlers;
 
         for (WSHandler handler : handlers.values()) {
             if (methodName.equals(handler.methodName())) {

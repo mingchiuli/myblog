@@ -1,6 +1,7 @@
 package com.markerhub.utils;
 
 import com.markerhub.common.bloom.handler.BloomHandler;
+import com.markerhub.common.cache.Cache;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
