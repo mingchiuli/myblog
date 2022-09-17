@@ -20,7 +20,7 @@ import java.util.Map;
 @Component
 public class WSMessageHandler {
 
-    Map<String, WSHandler> cacheHandlers;
+    volatile Map<String, WSHandler> cacheHandlers;
 
     RedisTemplate<String, Object> redisTemplate;
 
@@ -60,12 +60,14 @@ public class WSMessageHandler {
         String methodName = msg.getMethodName();
 
         if (cacheHandlers == null) {
-            cacheHandlers = SpringUtils.getHandlers(WSHandler.class);
+            synchronized (this) {
+                if (cacheHandlers == null) {
+                    cacheHandlers = SpringUtils.getHandlers(WSHandler.class);
+                }
+            }
         }
 
-        Map<String, WSHandler> handlers = cacheHandlers;
-
-        for (WSHandler handler : handlers.values()) {
+        for (WSHandler handler : cacheHandlers.values()) {
             if (methodName.equals(handler.methodName())) {
                 handler.doHand(msg);
                 break;

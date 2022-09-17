@@ -30,7 +30,7 @@ import java.util.Map;
 @Order(1)
 public class BloomAspect {
 
-    Map<String, BloomHandler> cacheHandlers;
+    volatile Map<String, BloomHandler> cacheHandlers;
 
     BlogService blogService;
 
@@ -60,11 +60,14 @@ public class BloomAspect {
         Object[] args = jp.getArgs();
 
         if (cacheHandlers == null) {
-            cacheHandlers = SpringUtils.getHandlers(BloomHandler.class);
+            synchronized (this) {
+                if (cacheHandlers == null) {
+                    cacheHandlers = SpringUtils.getHandlers(BloomHandler.class);
+                }
+            }
         }
 
-        Map<String, BloomHandler> bloomHandlers = cacheHandlers;
-        for (BloomHandler handler : bloomHandlers.values()) {
+        for (BloomHandler handler : cacheHandlers.values()) {
             if (methodName.equals(handler.methodName())) {
                 handler.doHand(args);
                 break;
