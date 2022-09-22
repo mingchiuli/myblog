@@ -6,8 +6,11 @@ import com.markerhub.common.lang.Const;
 import com.markerhub.service.BlogService;
 import com.markerhub.utils.MyUtils;
 import com.markerhub.utils.SpringUtils;
+import io.lettuce.core.RedisCommandTimeoutException;
+import io.lettuce.core.RedisException;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import net.sf.jsqlparser.expression.operators.relational.EqualsTo;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.Signature;
 import org.aspectj.lang.annotation.Aspect;
@@ -69,8 +72,11 @@ public class BloomAspect {
 
         for (BloomHandler handler : cacheHandlers.values()) {
             if (methodName.equals(handler.methodName())) {
-                handler.doHand(args);
-                break;
+                try {
+                    handler.doHand(args);
+                } catch (RedisException e) {
+                    log.info(e.toString());
+                }
             }
         }
     }
