@@ -2,6 +2,7 @@ package com.markerhub.common.cache;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.markerhub.common.lang.Result;
+import io.lettuce.core.RedisException;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
@@ -85,7 +86,7 @@ public class CacheAspect {
         //防止redis挂了以后db也访问不了
         try {
             o = redisTemplate.opsForValue().get(redisKey);
-        } catch (Exception e) {
+        } catch (RedisException e) {
             return pjp.proceed();
         }
 
