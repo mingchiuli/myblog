@@ -20,7 +20,7 @@ import java.time.LocalDateTime;
  * @create 2022-01-29 2:57 PM
  */
 @Data
-@Document(indexName = "websitecollect")
+@Document(indexName = "webinfo")
 public class WebsCollectDocument implements Serializable {
     @Id
     private String id;

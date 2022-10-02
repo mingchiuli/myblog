@@ -19,7 +19,7 @@ import java.time.LocalDateTime;
  * @create 2021-12-12 6:55 AM
  */
 @Data
-@Document(indexName = "vueblogpost")
+@Document(indexName = "bloginfo")
 public class BlogPostDocument implements Serializable {
 
     @Id
