@@ -168,13 +168,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserEntity> impleme
         boolean update = update(new UpdateWrapper<UserEntity>().eq("id", id).set("status", 1).set("role", ""));
         log.info("锁定账号{}结果:{}", id, update);
         Assert.isTrue(update, "锁定失败");
-        redisTemplate.delete(Const.USER_PREFIX + one.getUsername());
-//        //再对缓存进行更新赋值操作
-//        UserEntity user = getById(id);
-//        String jwt = jwtUtils.generateToken(user.getUsername());
-//
-//        //替换掉原来的user会话
-//        MyUtils.setUserToCache(jwt, user, (long) (6 * 60 * 60));
     }
 
     @Override
@@ -192,13 +185,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserEntity> impleme
      */
     @Override
     public List<GrantedAuthority> getUserRole(String username){
-        String redisKey = Const.USER_PREFIX + username;
-        String role = (String) redisTemplate.opsForValue().get(redisKey);
-        if (role != null) {
-            return AuthorityUtils.createAuthorityList("ROLE_" + role);
-        }
-        role = getOne(new QueryWrapper<UserEntity>().select("role").eq("username", username)).getRole();
-        redisTemplate.opsForValue().set(redisKey, role, 5, TimeUnit.MINUTES);
+        String role = getOne(new QueryWrapper<UserEntity>().select("role").eq("username", username)).getRole();
         return AuthorityUtils.createAuthorityList("ROLE_" + role);
     }
 
