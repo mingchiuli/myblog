@@ -1,5 +1,6 @@
 package com.markerhub.common.cache;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.markerhub.common.lang.Result;
 import io.lettuce.core.RedisException;
@@ -78,6 +79,7 @@ public class CacheAspect {
         Cache annotation = method.getAnnotation(Cache.class);
         long expire = annotation.expire();
         String name = annotation.name();
+        Class<?> returnType = method.getReturnType();
 
         String redisKey = name + "::" + className + "::" + methodName + params;
 
@@ -91,7 +93,7 @@ public class CacheAspect {
         }
 
         if (o != null) {
-            return objectMapper.convertValue(o, Result.class);
+            return objectMapper.convertValue(o, returnType);
         }
 
         String lock = (LOCK +  methodName + params).intern();
@@ -104,7 +106,7 @@ public class CacheAspect {
 
             if (r != null) {
                 log.info("线程{}释放锁{}", Thread.currentThread().getName(), lock);
-                return objectMapper.convertValue(r, Result.class);
+                return objectMapper.convertValue(r, returnType);
             }
             //执行目标方法
             Object proceed = pjp.proceed();

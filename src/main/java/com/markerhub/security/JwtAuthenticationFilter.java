@@ -97,32 +97,8 @@ public class JwtAuthenticationFilter extends BasicAuthenticationFilter {
 		}
 
 		String username = claim.getSubject();
-		// 获取用户的权限等信息
 
-		UserEntity user;
-
-		HashSet<Object> set = new HashSet<>(2);
-
-		set.add(Const.USER_OBJECT);
-		set.add(Const.TOKEN);
-
-		List<Object> multiGet = redisTemplate.opsForHash().multiGet(Const.USER_PREFIX + username, set);
-		LinkedHashMap<String, Object> userInfo = (LinkedHashMap<String, Object>) multiGet.get(0);
-		String originToken = (String) multiGet.get(1);
-
-
-		if (StringUtils.hasLength(originToken) && !jwt.equals(originToken)) {
-			throw new AuthenticationException("你已被强制下线");
-		}
-
-		if (userInfo != null) {
-			user = MyUtils.jsonToObj(userInfo, UserEntity.class);
-		} else {
-			user = sysUserService.getOne(new QueryWrapper<UserEntity>().eq("username", username));
-		}
-		MyUtils.setUserToCache(jwt, user, (long) (60));
-
-		return new UsernamePasswordAuthenticationToken(user.getUsername(), null, sysUserService.getUserRole(user.getId()));
+		return new UsernamePasswordAuthenticationToken(username, null, sysUserService.getUserRole(username));
 
 	}
 }

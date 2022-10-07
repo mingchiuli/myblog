@@ -69,7 +69,7 @@ public class MyUtils {
 
         RedisTemplate<String, Object> redisTemplate = (RedisTemplate<String, Object>) SpringUtils.getBean("redisTemplate");
 
-        redisTemplate.opsForHash().increment(Const.READ_SUM, "" + id , 1);
+        redisTemplate.opsForHash().increment(Const.READ_SUM, String.valueOf(id) , 1);
 
         Object recentRead = redisTemplate.opsForValue().get(Const.READ_RECENT + id);
 

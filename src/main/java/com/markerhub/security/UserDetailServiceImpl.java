@@ -43,6 +43,6 @@ public class UserDetailServiceImpl implements UserDetailsService {
 		boolean accountNonLocked = sysUser.getStatus() == 0;
 
 		//通过User去自动比较用户名和密码
-		return new User(sysUser.getUsername(), sysUser.getPassword(), true,true,true, accountNonLocked, sysUserService.getUserRole(sysUser.getId()));
+		return new User(sysUser.getUsername(), sysUser.getPassword(), true,true,true, accountNonLocked, sysUserService.getUserRole(sysUser.getUsername()));
 	}
 }

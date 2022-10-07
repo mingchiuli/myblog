@@ -3,6 +3,7 @@ package com.markerhub.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.markerhub.common.cache.Cache;
 import com.markerhub.common.dto.PasswordDto;
 import com.markerhub.common.lang.Const;
 import com.markerhub.common.vo.UserEntityVo;
@@ -30,6 +31,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 /**
  * <p>
@@ -106,8 +108,10 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserEntity> impleme
             if (Boolean.TRUE.equals(redisTemplate.hasKey(Const.USER_PREFIX + record.getUsername())) && record.getStatus() == 0) {
                 record.setMonitor(1);
             }
-            String name = roleService.getOne(new QueryWrapper<RoleEntity>().select("name").eq("code", record.getRole())).getName();
-            record.setRole(name);
+            if (StringUtils.hasLength(record.getRole())) {
+                String name = roleService.getOne(new QueryWrapper<RoleEntity>().select("name").eq("code", record.getRole())).getName();
+                record.setRole(name);
+            }
         });
 
         Page<UserEntityVo> userVoPage = new Page<>();
@@ -148,11 +152,10 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserEntity> impleme
             if (Const.ADMIN.equals(role)) {
                 throw new RuntimeException("不准删除管理员");
             }
-            UserEntity user = getById(id);
             boolean b = removeById(id);
-            if (b) {
-                MyUtils.setUserToCache(UUID.randomUUID().toString(), user, 604800L);
-            }
+//            if (b) {
+//                MyUtils.setUserToCache(UUID.randomUUID().toString(), user, 604800L);
+//            }
             Assert.isTrue(b, "删除[" + id + "]失败");
         }
 
@@ -161,17 +164,17 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserEntity> impleme
     @Override
     public void roleKick(Long id) {
         //先进行锁定
-        boolean update = update(new UpdateWrapper<UserEntity>().eq("id", id).set("status", 1));
-
+        UserEntity one = getOne(new QueryWrapper<UserEntity>().select("username").eq("id", id));
+        boolean update = update(new UpdateWrapper<UserEntity>().eq("id", id).set("status", 1).set("role", ""));
         log.info("锁定账号{}结果:{}", id, update);
-
         Assert.isTrue(update, "锁定失败");
-        //再对缓存进行更新赋值操作
-        UserEntity user = getById(id);
-        String jwt = jwtUtils.generateToken(user.getUsername());
-
-        //替换掉原来的user会话
-        MyUtils.setUserToCache(jwt, user, (long) (6 * 60 * 60));
+        redisTemplate.delete(Const.USER_PREFIX + one.getUsername());
+//        //再对缓存进行更新赋值操作
+//        UserEntity user = getById(id);
+//        String jwt = jwtUtils.generateToken(user.getUsername());
+//
+//        //替换掉原来的user会话
+//        MyUtils.setUserToCache(jwt, user, (long) (6 * 60 * 60));
     }
 
     @Override
@@ -184,12 +187,18 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserEntity> impleme
 
     /**
      * 获取用户权限信息（角色权限）
-     * @param userId 用户id
+     * @param username 用户
      * @return List<GrantedAuthority>
      */
     @Override
-    public List<GrantedAuthority> getUserRole(Long userId){
-        String role = getOne(new QueryWrapper<UserEntity>().select("role").eq("id", userId)).getRole();
+    public List<GrantedAuthority> getUserRole(String username){
+        String redisKey = Const.USER_PREFIX + username;
+        String role = (String) redisTemplate.opsForValue().get(redisKey);
+        if (role != null) {
+            return AuthorityUtils.createAuthorityList("ROLE_" + role);
+        }
+        role = getOne(new QueryWrapper<UserEntity>().select("role").eq("username", username)).getRole();
+        redisTemplate.opsForValue().set(redisKey, role, 5, TimeUnit.MINUTES);
         return AuthorityUtils.createAuthorityList("ROLE_" + role);
     }
 

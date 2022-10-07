@@ -59,7 +59,7 @@ public class LoginSuccessHandler implements AuthenticationSuccessHandler {
 		UserEntity user = userService.getOne(new QueryWrapper<UserEntity>().select("id", "username", "avatar", "email", "role").eq("username", authentication.getName()));
 		userService.update(new UpdateWrapper<UserEntity>().set("last_login", LocalDateTime.now()).eq("username", authentication.getName()));
 
-		MyUtils.setUserToCache(jwt, user, (long) (5 * 60));
+//		MyUtils.setUserToCache(jwt, user, (long) (5 * 60));
 
 		HashMap<String, Object> map = new HashMap<>();
 		map.put("user", user);
