@@ -11,11 +11,22 @@ import com.markerhub.common.valid.ListValue;
 import com.markerhub.common.vo.BlogPostDocumentVo;
 import com.markerhub.common.vo.BlogEntityVo;
 import com.markerhub.entity.BlogEntity;
+import com.markerhub.search.model.BlogPostDocument;
+import com.markerhub.search.model.WebsCollectDocument;
+import com.markerhub.search.model.WebsitePostDocument;
 import com.markerhub.service.BlogService;
 import lombok.extern.slf4j.Slf4j;
 import org.elasticsearch.ResourceNotFoundException;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.elasticsearch.core.ElasticsearchRestTemplate;
+import org.springframework.data.elasticsearch.core.IndexOperations;
+import org.springframework.data.elasticsearch.core.SearchHit;
+import org.springframework.data.elasticsearch.core.document.Document;
+import org.springframework.data.elasticsearch.core.mapping.IndexCoordinates;
+import org.springframework.data.elasticsearch.core.query.NativeSearchQuery;
+import org.springframework.data.elasticsearch.core.query.NativeSearchQueryBuilder;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.util.FileCopyUtils;
@@ -25,6 +36,9 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.servlet.http.HttpServletRequest;
 import java.io.File;
 import java.io.IOException;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.*;
 
 /**
@@ -38,6 +52,52 @@ import java.util.*;
 @RestController
 @Validated
 public class BlogController {
+
+    @Autowired
+    ElasticsearchRestTemplate elasticsearchRestTemplate;
+
+    @GetMapping("/index")
+    public void aVoid() {
+        IndexOperations bloginfo = elasticsearchRestTemplate.indexOps(IndexCoordinates.of("bloginfo"));
+        if (bloginfo.exists()) {
+            bloginfo.delete();
+        }
+        IndexOperations indexOperations = elasticsearchRestTemplate.indexOps(BlogPostDocument.class);
+        indexOperations.create();
+        Document mapping = indexOperations.createMapping(BlogPostDocument.class);
+        indexOperations.putMapping(mapping);
+
+        blogService.list().forEach(blog -> {
+            BlogPostDocument document = new BlogPostDocument();
+            BeanUtils.copyProperties(blog, document, "username", "readSum", "readRecent", "created");
+            ZonedDateTime time = ZonedDateTime.of(blog.getCreated(), ZoneId.of("Asia/Shanghai"));
+            document.setCreated(time);
+            elasticsearchRestTemplate.save(document);
+        });
+
+
+        IndexOperations indexOperations2 = elasticsearchRestTemplate.indexOps(WebsitePostDocument.class);
+        indexOperations2.create();
+        Document mapping2 = indexOperations2.createMapping(WebsitePostDocument.class);
+        indexOperations2.putMapping(mapping2);
+
+
+        NativeSearchQuery searchQueryCount = new NativeSearchQueryBuilder().build();
+        for (SearchHit<WebsCollectDocument> search : elasticsearchRestTemplate.search(searchQueryCount, WebsCollectDocument.class).getSearchHits()) {
+            WebsCollectDocument content = search.getContent();
+            WebsitePostDocument document = new WebsitePostDocument();
+            BeanUtils.copyProperties(content, document, "created");
+            ZonedDateTime time = ZonedDateTime.of(search.getContent().getCreated(), ZoneId.of("Asia/Shanghai"));
+            document.setCreated(time);
+            elasticsearchRestTemplate.save(document);
+        }
+
+        IndexOperations webinfo = elasticsearchRestTemplate.indexOps(IndexCoordinates.of("webinfo"));
+        if (webinfo.exists()) {
+            webinfo.delete();
+        }
+
+    }
 
 
     RedisTemplate<String, Object> redisTemplate;

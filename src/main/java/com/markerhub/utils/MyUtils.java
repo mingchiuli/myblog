@@ -32,6 +32,8 @@ import java.lang.reflect.AnnotatedType;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
@@ -261,7 +263,8 @@ public class MyUtils {
         BeanUtils.copyProperties(blog, blogPostDocument, "username", "readSum", "readRecent", "created");
 
         //ES中保存的时间是格林尼治标准时间，如果直接存入ES，用kibana分析的时候会自动加8小时
-        blogPostDocument.setCreated(blog.getCreated().minusHours(Const.GMT_PLUS_8));
+//        blogPostDocument.setCreated(blog.getCreated().minusHours(Const.GMT_PLUS_8));
+        blogPostDocument.setCreated(ZonedDateTime.now());
         return blogPostDocument;
     }
 
@@ -270,7 +273,8 @@ public class MyUtils {
 
         BeanUtils.copyProperties(hit.getContent(), blog, "created");
 
-        blog.setCreated(hit.getContent().getCreated().plusHours(Const.GMT_PLUS_8));
+//        blog.setCreated(hit.getContent().getCreated().plusHours(Const.GMT_PLUS_8));
+        blog.setCreated(hit.getContent().getCreated().toLocalDateTime());
         String username = userService.getOne(new QueryWrapper<UserEntity>().select("username").eq("id", hit.getContent().getUserId())).getUsername();
         blog.setUsername(username);
     }

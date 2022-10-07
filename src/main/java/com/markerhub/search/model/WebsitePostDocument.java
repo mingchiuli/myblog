@@ -4,45 +4,41 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
-import com.fasterxml.jackson.datatype.jsr310.deser.key.ZonedDateTimeKeyDeserializer;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
-import com.fasterxml.jackson.datatype.jsr310.ser.ZonedDateTimeSerializer;
-import com.fasterxml.jackson.datatype.jsr310.ser.ZonedDateTimeWithZoneIdSerializer;
 import lombok.Data;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.elasticsearch.annotations.DateFormat;
 import org.springframework.data.elasticsearch.annotations.Document;
 import org.springframework.data.elasticsearch.annotations.Field;
 import org.springframework.data.elasticsearch.annotations.FieldType;
+import javax.validation.constraints.NotBlank;
 import java.io.Serializable;
-import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
 
 /**
  * @author mingchiuli
- * @create 2021-12-12 6:55 AM
+ * @create 2022-01-29 2:57 PM
  */
 @Data
-@Document(indexName = "bloginfo")
-public class BlogPostDocument implements Serializable {
-
+@Document(indexName = "websiteinfo")
+public class WebsitePostDocument implements Serializable {
     @Id
-    private Long id;
-    @Field(type = FieldType.Long)
-    private Long userId;
+    private String id;
     @Field(type = FieldType.Keyword)
     private Integer status;
     @Field(type = FieldType.Text, searchAnalyzer = "ik_smart", analyzer = "ik_max_word")
+    @NotBlank(message = "标题不能为空")
     private String title;
     @Field(type = FieldType.Text, searchAnalyzer = "ik_smart", analyzer = "ik_max_word")
+    @NotBlank(message = "描述不能为空")
     private String description;
-    @Field(type = FieldType.Text, searchAnalyzer = "ik_smart", analyzer = "ik_max_word")
-    private String content;
     @Field(type = FieldType.Text)
+    @NotBlank(message = "链接不能为空")
     private String link;
-
 
     @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
     @Field(type = FieldType.Date, format = DateFormat.date_optional_time)
     private ZonedDateTime created;
+
+
 }

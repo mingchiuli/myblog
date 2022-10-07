@@ -3,6 +3,7 @@ package com.markerhub.common.vo;
 import lombok.Data;
 import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 
 /**
  * @author mingchiuli
@@ -18,7 +19,7 @@ public class BlogPostDocumentVo implements Serializable {
     private String description;
     private String content;
     private String link;
-    private LocalDateTime created;
+    private ZonedDateTime created;
     private Float score;
     private String highlight;
 

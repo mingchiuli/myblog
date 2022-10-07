@@ -254,10 +254,7 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, BlogEntity> impleme
 
         Page<BlogPostDocumentVo> page = MyUtils.hitsToPage(search, BlogPostDocumentVo.class, currentPage, Const.PAGE_SIZE, count);
 
-        for (BlogPostDocumentVo record : page.getRecords()) {
-            record.setContent(null);
-            record.setCreated(record.getCreated().plusHours(Const.GMT_PLUS_8));
-        }
+        page.getRecords().forEach(record -> record.setContent(null));
 
         return page;
     }
@@ -314,10 +311,7 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, BlogEntity> impleme
 
         Page<BlogPostDocumentVo> page = MyUtils.hitsToPage(search, BlogPostDocumentVo.class, currentPage, Const.PAGE_SIZE, count);
 
-        for (BlogPostDocumentVo record : page.getRecords()) {
-            record.setContent(null);
-            record.setCreated(record.getCreated().plusHours(Const.GMT_PLUS_8));
-        }
+        page.getRecords().forEach(record -> record.setContent(null));
 
         return page;
     }

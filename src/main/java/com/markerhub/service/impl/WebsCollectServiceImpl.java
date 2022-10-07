@@ -3,8 +3,8 @@ package com.markerhub.service.impl;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.markerhub.common.lang.Const;
-import com.markerhub.common.vo.WebsCollectDocumentVo;
-import com.markerhub.search.model.WebsCollectDocument;
+import com.markerhub.common.vo.WebsitePostDocumentVo;
+import com.markerhub.search.model.WebsitePostDocument;
 import com.markerhub.service.UserService;
 import com.markerhub.service.WebsCollectService;
 import com.markerhub.utils.JwtUtils;
@@ -29,6 +29,7 @@ import org.springframework.data.elasticsearch.core.query.UpdateQuery;
 import org.springframework.data.elasticsearch.core.query.UpdateResponse;
 import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadPoolExecutor;
 
@@ -83,19 +84,19 @@ public class WebsCollectServiceImpl implements WebsCollectService {
     }
 
     @Override
-    public void addWebsite(WebsCollectDocument document) {
+    public void addWebsite(WebsitePostDocument document) {
 
-        document.setCreated(LocalDateTime.now().minusHours(Const.GMT_PLUS_8));
-
-        WebsCollectDocument res =  elasticsearchRestTemplate.save(document);
+//        document.setCreated(LocalDateTime.now().minusHours(Const.GMT_PLUS_8));
+        document.setCreated(ZonedDateTime.now());
+        WebsitePostDocument res =  elasticsearchRestTemplate.save(document);
 
         log.info("新增网页搜藏结果:{}", res);
     }
 
     @SneakyThrows
     @Override
-    public void modifyWebsite(WebsCollectDocument document) {
-        document.setCreated(document.getCreated().minusHours(Const.GMT_PLUS_8));
+    public void modifyWebsite(WebsitePostDocument document) {
+//        document.setCreated(document.getCreated().minusHours(Const.GMT_PLUS_8));
 
         String obj = objectMapper.writeValueAsString(document);
         Document doc = Document.parse(obj);
@@ -105,7 +106,7 @@ public class WebsCollectServiceImpl implements WebsCollectService {
                 .withDocument(doc)
                 .build();
 
-        IndexCoordinates indexCoordinates = elasticsearchRestTemplate.getIndexCoordinatesFor(WebsCollectDocument.class);
+        IndexCoordinates indexCoordinates = elasticsearchRestTemplate.getIndexCoordinatesFor(WebsitePostDocument.class);
 
         UpdateResponse update = elasticsearchRestTemplate.update(query, indexCoordinates);
 
@@ -116,7 +117,7 @@ public class WebsCollectServiceImpl implements WebsCollectService {
 
     @SneakyThrows
     @Override
-    public Page<WebsCollectDocumentVo> searchWebsiteAuth(Integer currentPage, String keyword) {
+    public Page<WebsitePostDocumentVo> searchWebsiteAuth(Integer currentPage, String keyword) {
         MultiMatchQueryBuilder multiMatchQueryBuilder = QueryBuilders.multiMatchQuery(keyword, "title", "description");
 
         CompletableFuture<Long> countFuture = CompletableFuture.supplyAsync(() -> {
@@ -125,11 +126,11 @@ public class WebsCollectServiceImpl implements WebsCollectService {
                             .must(multiMatchQueryBuilder))
                     .build();
 
-            return elasticsearchRestTemplate.count(searchQueryCount, WebsCollectDocument.class);
+            return elasticsearchRestTemplate.count(searchQueryCount, WebsitePostDocument.class);
         }, executor);
 
 
-        CompletableFuture<SearchHits<WebsCollectDocument>> searchHitsFuture = CompletableFuture.supplyAsync(() -> {
+        CompletableFuture<SearchHits<WebsitePostDocument>> searchHitsFuture = CompletableFuture.supplyAsync(() -> {
             NativeSearchQuery searchQueryHits = new NativeSearchQueryBuilder()
                     .withQuery(QueryBuilders.boolQuery()
                             .must(multiMatchQueryBuilder))
@@ -139,24 +140,24 @@ public class WebsCollectServiceImpl implements WebsCollectService {
                             .field("title").field("description").preTags("<b style='color:red'>").postTags("</b>"))
                     .build();
 
-            return elasticsearchRestTemplate.search(searchQueryHits, WebsCollectDocument.class);
+            return elasticsearchRestTemplate.search(searchQueryHits, WebsitePostDocument.class);
         }, executor);
 
         CompletableFuture.allOf(countFuture, searchHitsFuture).get();
 
         long count = countFuture.get();
-        SearchHits<WebsCollectDocument> search = searchHitsFuture.get();
+        SearchHits<WebsitePostDocument> search = searchHitsFuture.get();
 
-        Page<WebsCollectDocumentVo> page = MyUtils.hitsToPage(search, WebsCollectDocumentVo.class, currentPage, Const.WEB_SIZE, count);
+        Page<WebsitePostDocumentVo> page = MyUtils.hitsToPage(search, WebsitePostDocumentVo.class, currentPage, Const.WEB_SIZE, count);
 
-        page.getRecords().forEach(record -> record.setCreated(record.getCreated().plusHours(Const.GMT_PLUS_8)));
+//        page.getRecords().forEach(record -> record.setCreated(record.getCreated().plusHours(Const.GMT_PLUS_8)));
 
         return page;
     }
 
     @SneakyThrows
     @Override
-    public Page<WebsCollectDocument> searchRecent(Integer currentPage) {
+    public Page<WebsitePostDocument> searchRecent(Integer currentPage) {
 
         CompletableFuture<Long> countFuture = CompletableFuture.supplyAsync(() -> {
             NativeSearchQuery searchQueryCount = new NativeSearchQueryBuilder()
@@ -164,10 +165,10 @@ public class WebsCollectServiceImpl implements WebsCollectService {
                     //页码从0开始
                     .build();
 
-            return elasticsearchRestTemplate.count(searchQueryCount, WebsCollectDocument.class);
+            return elasticsearchRestTemplate.count(searchQueryCount, WebsitePostDocument.class);
         }, executor);
 
-        CompletableFuture<SearchHits<WebsCollectDocument>> searchHitsFuture = CompletableFuture.supplyAsync(() -> {
+        CompletableFuture<SearchHits<WebsitePostDocument>> searchHitsFuture = CompletableFuture.supplyAsync(() -> {
             NativeSearchQuery searchQueryHits = new NativeSearchQueryBuilder()
                     .withQuery(QueryBuilders.termQuery("status", 0))
                     .withSorts(SortBuilders.fieldSort("created").order(SortOrder.DESC))
@@ -175,23 +176,23 @@ public class WebsCollectServiceImpl implements WebsCollectService {
                     //页码从0开始
                     .build();
 
-            return elasticsearchRestTemplate.search(searchQueryHits, WebsCollectDocument.class);
+            return elasticsearchRestTemplate.search(searchQueryHits, WebsitePostDocument.class);
         }, executor);
 
         CompletableFuture.allOf(countFuture, searchHitsFuture).get();
 
         long count = countFuture.get();
-        SearchHits<WebsCollectDocument> search = searchHitsFuture.get();
+        SearchHits<WebsitePostDocument> search = searchHitsFuture.get();
 
-        Page<WebsCollectDocument> page = MyUtils.hitsToPage(search, currentPage, Const.WEB_SIZE, count);
+        Page<WebsitePostDocument> page = MyUtils.hitsToPage(search, currentPage, Const.WEB_SIZE, count);
 
-        page.getRecords().forEach(record -> record.setCreated(record.getCreated().plusHours(Const.GMT_PLUS_8)));
+//        page.getRecords().forEach(record -> record.setCreated(record.getCreated().plusHours(Const.GMT_PLUS_8)));
         return page;
     }
 
     @SneakyThrows
     @Override
-    public Page<WebsCollectDocumentVo> searchWebsite(Integer currentPage, String keyword) {
+    public Page<WebsitePostDocumentVo> searchWebsite(Integer currentPage, String keyword) {
         MultiMatchQueryBuilder multiMatchQueryBuilder = QueryBuilders.multiMatchQuery(keyword, "title", "description");
 
         CompletableFuture<Long> countFuture = CompletableFuture.supplyAsync(() -> {
@@ -201,10 +202,10 @@ public class WebsCollectServiceImpl implements WebsCollectService {
                             .filter(QueryBuilders.termQuery("status", 0)))
                     .build();
 
-            return elasticsearchRestTemplate.count(searchQueryCount, WebsCollectDocument.class);
+            return elasticsearchRestTemplate.count(searchQueryCount, WebsitePostDocument.class);
         }, executor);
 
-        CompletableFuture<SearchHits<WebsCollectDocument>> searchHitsFuture = CompletableFuture.supplyAsync(() -> {
+        CompletableFuture<SearchHits<WebsitePostDocument>> searchHitsFuture = CompletableFuture.supplyAsync(() -> {
             NativeSearchQuery searchQueryHits = new NativeSearchQueryBuilder()
                     .withQuery(QueryBuilders.boolQuery()
                             .must(multiMatchQueryBuilder)
@@ -215,18 +216,18 @@ public class WebsCollectServiceImpl implements WebsCollectService {
                             .field("title").field("description").preTags("<b style='color:red'>").postTags("</b>"))
                     .build();
 
-            return elasticsearchRestTemplate.search(searchQueryHits, WebsCollectDocument.class);
+            return elasticsearchRestTemplate.search(searchQueryHits, WebsitePostDocument.class);
         }, executor);
 
         CompletableFuture.allOf(countFuture, searchHitsFuture).get();
 
         long count = countFuture.get();
-        SearchHits<WebsCollectDocument> search = searchHitsFuture.get();
+        SearchHits<WebsitePostDocument> search = searchHitsFuture.get();
 
 
-        Page<WebsCollectDocumentVo> page = MyUtils.hitsToPage(search, WebsCollectDocumentVo.class, currentPage, Const.WEB_SIZE, count);
+        Page<WebsitePostDocumentVo> page = MyUtils.hitsToPage(search, WebsitePostDocumentVo.class, currentPage, Const.WEB_SIZE, count);
 
-        page.getRecords().forEach(record -> record.setCreated(record.getCreated().plusHours(Const.GMT_PLUS_8)));
+//        page.getRecords().forEach(record -> record.setCreated(record.getCreated().plusHours(Const.GMT_PLUS_8)));
         return page;
     }
 
