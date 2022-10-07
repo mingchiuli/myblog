@@ -42,7 +42,7 @@ public class BlogPostDocument implements Serializable {
     private String link;
 
 
-    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
+    @JsonFormat(pattern = "uuuu-MM-dd'T'HH:mm:ss.SSSXXX")
     @Field(type = FieldType.Date, format = DateFormat.date_optional_time)
     private ZonedDateTime created;
 }

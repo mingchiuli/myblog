@@ -36,7 +36,7 @@ public class WebsitePostDocument implements Serializable {
     @NotBlank(message = "链接不能为空")
     private String link;
 
-    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
+    @JsonFormat(pattern = "uuuu-MM-dd'T'HH:mm:ss.SSSXXX")
     @Field(type = FieldType.Date, format = DateFormat.date_optional_time)
     private ZonedDateTime created;
 

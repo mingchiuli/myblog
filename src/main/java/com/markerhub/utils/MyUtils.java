@@ -264,7 +264,7 @@ public class MyUtils {
 
         //ES中保存的时间是格林尼治标准时间，如果直接存入ES，用kibana分析的时候会自动加8小时
 //        blogPostDocument.setCreated(blog.getCreated().minusHours(Const.GMT_PLUS_8));
-        blogPostDocument.setCreated(ZonedDateTime.now());
+        blogPostDocument.setCreated(ZonedDateTime.of(blog.getCreated(), ZoneId.of("Asia/Shanghai")));
         return blogPostDocument;
     }
 
