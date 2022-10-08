@@ -1,14 +1,10 @@
 package com.markerhub.security;
 
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.markerhub.common.exception.AuthenticationException;
 import com.markerhub.common.lang.Const;
 import com.markerhub.common.lang.Result;
-import com.markerhub.entity.UserEntity;
 import com.markerhub.service.UserService;
 import com.markerhub.utils.JwtUtils;
-import com.markerhub.utils.MyUtils;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,9 +20,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 public class JwtAuthenticationFilter extends BasicAuthenticationFilter {
 
@@ -97,6 +91,9 @@ public class JwtAuthenticationFilter extends BasicAuthenticationFilter {
 		}
 
 		String username = claim.getSubject();
+
+		//维护在线状态
+		redisTemplate.opsForValue().setIfAbsent(Const.USER_PREFIX + username, 1, 3, TimeUnit.MINUTES);
 
 		return new UsernamePasswordAuthenticationToken(username, null, sysUserService.getUserRole(username));
 

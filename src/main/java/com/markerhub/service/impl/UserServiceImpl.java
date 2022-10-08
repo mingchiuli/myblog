@@ -153,9 +153,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserEntity> impleme
                 throw new RuntimeException("不准删除管理员");
             }
             boolean b = removeById(id);
-//            if (b) {
-//                MyUtils.setUserToCache(UUID.randomUUID().toString(), user, 604800L);
-//            }
             Assert.isTrue(b, "删除[" + id + "]失败");
         }
 
@@ -164,10 +161,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserEntity> impleme
     @Override
     public void roleKick(Long id) {
         //先进行锁定
-        UserEntity one = getOne(new QueryWrapper<UserEntity>().select("username").eq("id", id));
+        String username = getOne(new QueryWrapper<UserEntity>().select("username").eq("id", id)).getUsername();
         boolean update = update(new UpdateWrapper<UserEntity>().eq("id", id).set("status", 1).set("role", ""));
         log.info("锁定账号{}结果:{}", id, update);
         Assert.isTrue(update, "锁定失败");
+        redisTemplate.delete(Const.USER_PREFIX + username);
     }
 
     @Override
