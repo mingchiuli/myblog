@@ -24,8 +24,6 @@ public class UserDetailServiceImpl implements UserDetailsService {
 
 	UserService sysUserService;
 
-	UserService userService;
-
 	public UserDetailServiceImpl(RedisTemplate<String, Object> redisTemplate, UserService sysUserService) {
 		this.redisTemplate = redisTemplate;
 		this.sysUserService = sysUserService;
@@ -58,7 +56,7 @@ public class UserDetailServiceImpl implements UserDetailsService {
 	 * @return List<GrantedAuthority>
 	 */
 	private List<GrantedAuthority> getUserRole(String username){
-		List<String> userRole = userService.getUserRole(username);
+		List<String> userRole = sysUserService.getUserRole(username);
 		return AuthorityUtils.createAuthorityList(userRole.toArray(new String[0]));
 	}
 }
