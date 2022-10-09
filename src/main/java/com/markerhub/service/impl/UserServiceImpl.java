@@ -104,7 +104,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserEntity> impleme
         });
 
         userVos.forEach(record -> {
-            if (Boolean.TRUE.equals(redisTemplate.hasKey(prefix + "\"" + record.getUsername() + "\"")) && record.getStatus() == 0) {
+            if (Boolean.TRUE.equals(redisTemplate.hasKey(prefix + record.getUsername())) && record.getStatus() == 0) {
                 record.setMonitor(1);
             }
             if (StringUtils.hasLength(record.getRole())) {
@@ -164,7 +164,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserEntity> impleme
         boolean update = update(new UpdateWrapper<UserEntity>().eq("id", id).set("status", 1).set("role", ""));
         log.info("锁定账号{}结果:{}", id, update);
         Assert.isTrue(update, "锁定失败");
-        redisTemplate.delete(prefix + "\"" + username + "\"");
+        redisTemplate.delete(prefix +  username);
     }
 
     @Override
