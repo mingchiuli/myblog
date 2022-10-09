@@ -3,6 +3,7 @@ package com.markerhub.config;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
@@ -19,8 +20,9 @@ public class RedisConfig {
      * 去掉key前面的乱码
      * @return
      */
-    @Bean("redisTemplate")
-    public RedisTemplate<String, Object> redisTemplateInit(RedisConnectionFactory redisConnectionFactory, ObjectMapper objectMapper) {
+    @Bean
+    @Primary
+    public RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory redisConnectionFactory, ObjectMapper objectMapper) {
         //设置序列化Key的实例化对象
         RedisTemplate<String, Object> redisTemplate = new RedisTemplate<>();
         redisTemplate.setConnectionFactory(redisConnectionFactory);

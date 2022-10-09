@@ -67,7 +67,7 @@ public class MyUtils {
      */
     public static void setReadCount(Long id) {
 
-        RedisTemplate<String, Object> redisTemplate = (RedisTemplate<String, Object>) SpringUtils.getBean("redisTemplate");
+        RedisTemplate<String, Object> redisTemplate = SpringUtils.getBean(RedisTemplate.class);
 
         redisTemplate.opsForHash().increment(Const.READ_SUM, String.valueOf(id) , 1);
 
@@ -89,7 +89,7 @@ public class MyUtils {
      */
     public static void setUserToCache(String token, UserEntity user, Long time) {
 
-        RedisTemplate<String, Object> redisTemplate = (RedisTemplate<String, Object>) SpringUtils.getBean("redisTemplate");
+        RedisTemplate<String, Object> redisTemplate = SpringUtils.getBean(RedisTemplate.class);
 
         HashMap<String, Object> map = new HashMap<>();
         map.put(Const.USER_OBJECT, user);
@@ -172,7 +172,7 @@ public class MyUtils {
      */
     public static void setRead(Page<BlogEntityVo> page) {
 
-        RedisTemplate<String, Object> redisTemplate = (RedisTemplate<String, Object>) SpringUtils.getBean("redisTemplate");
+        RedisTemplate<String, Object> redisTemplate = SpringUtils.getBean(RedisTemplate.class);
 
         List<BlogEntityVo> blogs = page.getRecords();
         ArrayList<Object> ids = new ArrayList<>();
