@@ -129,7 +129,7 @@ public class CacheAspect {
             }
             //执行目标方法
             Object proceed = pjp.proceed();
-            redisTemplate.opsForValue().set(redisKey, proceed, expire, TimeUnit.MINUTES);
+            redisTemplate.opsForValue().set(redisKey, proceed, expire, TimeUnit.SECONDS);
             log.info("线程{}查库并释放锁{}", Thread.currentThread().getName(), lock);
             return proceed;
         }

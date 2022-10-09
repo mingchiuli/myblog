@@ -28,7 +28,6 @@ import org.springframework.data.elasticsearch.core.query.NativeSearchQueryBuilde
 import org.springframework.data.elasticsearch.core.query.UpdateQuery;
 import org.springframework.data.elasticsearch.core.query.UpdateResponse;
 import org.springframework.stereotype.Service;
-import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -86,7 +85,6 @@ public class WebsCollectServiceImpl implements WebsCollectService {
     @Override
     public void addWebsite(WebsitePostDocument document) {
 
-//        document.setCreated(LocalDateTime.now().minusHours(Const.GMT_PLUS_8));
         document.setCreated(ZonedDateTime.now());
         WebsitePostDocument res =  elasticsearchRestTemplate.save(document);
 
@@ -96,7 +94,6 @@ public class WebsCollectServiceImpl implements WebsCollectService {
     @SneakyThrows
     @Override
     public void modifyWebsite(WebsitePostDocument document) {
-//        document.setCreated(document.getCreated().minusHours(Const.GMT_PLUS_8));
 
         String obj = objectMapper.writeValueAsString(document);
         Document doc = Document.parse(obj);
@@ -150,7 +147,6 @@ public class WebsCollectServiceImpl implements WebsCollectService {
 
         Page<WebsitePostDocumentVo> page = MyUtils.hitsToPage(search, WebsitePostDocumentVo.class, currentPage, Const.WEB_SIZE, count);
 
-//        page.getRecords().forEach(record -> record.setCreated(record.getCreated().plusHours(Const.GMT_PLUS_8)));
 
         return page;
     }
@@ -186,7 +182,6 @@ public class WebsCollectServiceImpl implements WebsCollectService {
 
         Page<WebsitePostDocument> page = MyUtils.hitsToPage(search, currentPage, Const.WEB_SIZE, count);
 
-//        page.getRecords().forEach(record -> record.setCreated(record.getCreated().plusHours(Const.GMT_PLUS_8)));
         return page;
     }
 
@@ -227,7 +222,6 @@ public class WebsCollectServiceImpl implements WebsCollectService {
 
         Page<WebsitePostDocumentVo> page = MyUtils.hitsToPage(search, WebsitePostDocumentVo.class, currentPage, Const.WEB_SIZE, count);
 
-//        page.getRecords().forEach(record -> record.setCreated(record.getCreated().plusHours(Const.GMT_PLUS_8)));
         return page;
     }
 

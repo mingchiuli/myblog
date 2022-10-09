@@ -33,6 +33,6 @@ public interface UserService extends IService<UserEntity> {
 
     void getPassword(PasswordDto passwordDto);
 
-    List<GrantedAuthority> getUserRole(String username);
+    List<String> getUserRole(String username);
 
 }

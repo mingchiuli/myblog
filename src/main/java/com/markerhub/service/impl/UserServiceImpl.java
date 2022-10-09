@@ -14,14 +14,11 @@ import com.markerhub.service.RoleService;
 import com.markerhub.service.UserService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.markerhub.utils.JwtUtils;
-import com.markerhub.utils.MyUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,8 +27,7 @@ import org.springframework.util.StringUtils;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
-import java.util.concurrent.TimeUnit;
+
 
 /**
  * <p>
@@ -44,6 +40,10 @@ import java.util.concurrent.TimeUnit;
 @Service
 @Slf4j
 public class UserServiceImpl extends ServiceImpl<UserMapper, UserEntity> implements UserService {
+
+    String pattern = "getUserRole::UserServiceImpl::getUserRole::*";
+    String prefix = "getUserRole::UserServiceImpl::getUserRole::";
+
 
     BCryptPasswordEncoder bCryptPasswordEncoder;
 
@@ -105,7 +105,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserEntity> impleme
         });
 
         userVos.forEach(record -> {
-            if (Boolean.TRUE.equals(redisTemplate.hasKey(Const.USER_PREFIX + record.getUsername())) && record.getStatus() == 0) {
+            String pattern = "getUserRole::UserServiceImpl::getUserRole::*";
+
+            if (Boolean.TRUE.equals(redisTemplate.hasKey(pattern)) && record.getStatus() == 0) {
                 record.setMonitor(1);
             }
             if (StringUtils.hasLength(record.getRole())) {
@@ -165,7 +167,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserEntity> impleme
         boolean update = update(new UpdateWrapper<UserEntity>().eq("id", id).set("status", 1).set("role", ""));
         log.info("锁定账号{}结果:{}", id, update);
         Assert.isTrue(update, "锁定失败");
-        redisTemplate.delete(Const.USER_PREFIX + username);
+        redisTemplate.delete(prefix + username);
     }
 
     @Override
@@ -176,15 +178,16 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserEntity> impleme
         Assert.isTrue(update, "修改密码失败");
     }
 
-    /**
-     * 获取用户权限信息（角色权限）
-     * @param username 用户
-     * @return List<GrantedAuthority>
-     */
     @Override
-    public List<GrantedAuthority> getUserRole(String username){
+    @Cache(name = "getUserRole")
+    public List<String> getUserRole(String username) {
         String role = getOne(new QueryWrapper<UserEntity>().select("role").eq("username", username)).getRole();
-        return AuthorityUtils.createAuthorityList("ROLE_" + role);
+        String[] rs = role.split(",");
+        ArrayList<String> roles = new ArrayList<>(rs.length);
+        for (String r : rs) {
+            roles.add("ROLE_" + r);
+        }
+        return roles;
     }
 
 }

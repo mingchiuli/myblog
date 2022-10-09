@@ -1,7 +1,6 @@
 package com.markerhub.security;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.markerhub.common.lang.Const;
 import com.markerhub.common.lang.Result;
 import com.markerhub.service.UserService;
 import com.markerhub.utils.JwtUtils;
@@ -12,6 +11,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.util.StringUtils;
@@ -20,7 +20,6 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.concurrent.TimeUnit;
 
 public class JwtAuthenticationFilter extends BasicAuthenticationFilter {
 
@@ -92,10 +91,6 @@ public class JwtAuthenticationFilter extends BasicAuthenticationFilter {
 
 		String username = claim.getSubject();
 
-		//维护在线状态
-		redisTemplate.opsForValue().setIfAbsent(Const.USER_PREFIX + username, 1, 3, TimeUnit.MINUTES);
-
-		return new UsernamePasswordAuthenticationToken(username, null, sysUserService.getUserRole(username));
-
+		return new UsernamePasswordAuthenticationToken(username, null, AuthorityUtils.createAuthorityList(sysUserService.getUserRole(username).toArray(new String[0])));
 	}
 }

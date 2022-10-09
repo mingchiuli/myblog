@@ -23,14 +23,14 @@ public class GlobalExceptionHandler {
     @ResponseStatus(HttpStatus.UNAUTHORIZED)
     @ExceptionHandler(value = AuthenticationException.class)
     public Result handler(AuthenticationException e) {
-        log.error("权限异常:{}", e.getMessage());
+        log.error("权限异常:{}", e);
         return Result.fail(401, e.getMessage(), null);
     }
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(value = MethodArgumentNotValidException.class)
     public Result handler(MethodArgumentNotValidException e) {
-        log.error("实体校验异常------------{}", e.getMessage());
+        log.error("实体校验异常------------{}", e);
         BindingResult bindingResult = e.getBindingResult();
         ObjectError objectError = bindingResult.getAllErrors().stream().findFirst().get();
         return Result.fail(objectError.getDefaultMessage());
@@ -39,14 +39,14 @@ public class GlobalExceptionHandler {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(value = IllegalArgumentException.class)
     public Result handler(IllegalArgumentException e) {
-        log.error("Assert断言异常------------{}", e.getMessage());
+        log.error("Assert断言异常------------{}", e);
         return Result.fail(e.getMessage());
     }
 
     @ExceptionHandler(value = AccessDeniedException.class)
     @ResponseStatus(HttpStatus.FORBIDDEN)
     public Result exceptionHandler(AccessDeniedException e){
-        log.error("权限异常------------{}",e.getMessage());
+        log.error("权限异常------------{}",e);
         return Result.fail(e.getMessage());
     }
 

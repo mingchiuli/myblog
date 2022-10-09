@@ -14,6 +14,8 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+
+import java.util.Arrays;
 import java.util.List;
 
 public class UserDetailServiceImpl implements UserDetailsService {
@@ -21,6 +23,8 @@ public class UserDetailServiceImpl implements UserDetailsService {
 	RedisTemplate<String, Object> redisTemplate;
 
 	UserService sysUserService;
+
+	UserService userService;
 
 	public UserDetailServiceImpl(RedisTemplate<String, Object> redisTemplate, UserService sysUserService) {
 		this.redisTemplate = redisTemplate;
@@ -43,6 +47,18 @@ public class UserDetailServiceImpl implements UserDetailsService {
 		boolean accountNonLocked = sysUser.getStatus() == 0;
 
 		//通过User去自动比较用户名和密码
-		return new User(sysUser.getUsername(), sysUser.getPassword(), true,true,true, accountNonLocked, sysUserService.getUserRole(sysUser.getUsername()));
+		return new User(sysUser.getUsername(), sysUser.getPassword(), true,true,true, accountNonLocked, getUserRole(sysUser.getUsername()));
+	}
+
+
+
+	/**
+	 * 获取用户权限信息（角色权限）
+	 * @param username 用户
+	 * @return List<GrantedAuthority>
+	 */
+	private List<GrantedAuthority> getUserRole(String username){
+		List<String> userRole = userService.getUserRole(username);
+		return AuthorityUtils.createAuthorityList(userRole.toArray(new String[0]));
 	}
 }
