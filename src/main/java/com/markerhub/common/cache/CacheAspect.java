@@ -1,8 +1,7 @@
 package com.markerhub.common.cache;
 
-import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.markerhub.common.lang.Result;
 import io.lettuce.core.RedisException;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -16,6 +15,8 @@ import org.springframework.core.annotation.Order;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 import java.lang.reflect.Method;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -79,7 +80,25 @@ public class CacheAspect {
         Cache annotation = method.getAnnotation(Cache.class);
         long expire = annotation.expire();
         String name = annotation.name();
-        Class<?> returnType = method.getReturnType();
+
+        Type genericReturnType = method.getGenericReturnType();
+
+        JavaType javaType;
+
+        if (genericReturnType instanceof ParameterizedType) {
+            ParameterizedType parameterizedType = (ParameterizedType) genericReturnType;
+            Class<?> rawType = (Class<?>) parameterizedType.getRawType();
+            Type[] actualTypeArguments = parameterizedType.getActualTypeArguments();
+
+            Class<?>[] classes = new Class<?>[actualTypeArguments.length];
+            for (int i = 0; i < classes.length; i++) {
+                classes[i] = (Class<?>) actualTypeArguments[i];
+            }
+
+            javaType = objectMapper.getTypeFactory().constructParametricType(rawType, classes);
+        } else {
+            javaType = objectMapper.getTypeFactory().constructType(genericReturnType);
+        }
 
         String redisKey = name + "::" + className + "::" + methodName + params;
 
@@ -93,7 +112,7 @@ public class CacheAspect {
         }
 
         if (o != null) {
-            return objectMapper.convertValue(o, returnType);
+            return objectMapper.convertValue(o, javaType);
         }
 
         String lock = (LOCK +  methodName + params).intern();
@@ -106,7 +125,7 @@ public class CacheAspect {
 
             if (r != null) {
                 log.info("线程{}释放锁{}", Thread.currentThread().getName(), lock);
-                return objectMapper.convertValue(r, returnType);
+                return objectMapper.convertValue(r, javaType);
             }
             //执行目标方法
             Object proceed = pjp.proceed();
