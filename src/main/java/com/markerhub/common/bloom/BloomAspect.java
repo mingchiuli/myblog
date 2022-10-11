@@ -1,16 +1,9 @@
 package com.markerhub.common.bloom;
 
 import com.markerhub.common.bloom.handler.BloomHandler;
-import com.markerhub.common.exception.NoFoundException;
-import com.markerhub.common.lang.Const;
 import com.markerhub.service.BlogService;
-import com.markerhub.utils.MyUtils;
 import com.markerhub.utils.SpringUtils;
-import io.lettuce.core.RedisCommandTimeoutException;
-import io.lettuce.core.RedisException;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import net.sf.jsqlparser.expression.operators.relational.EqualsTo;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.Signature;
 import org.aspectj.lang.annotation.Aspect;
@@ -52,7 +45,6 @@ public class BloomAspect {
     @Pointcut("@annotation(com.markerhub.common.bloom.Bloom)")
     public void pt() {}
 
-    @SneakyThrows
     @Before("pt()")
     public void before(JoinPoint jp) {
 
@@ -74,7 +66,7 @@ public class BloomAspect {
             if (methodName.equals(handler.methodName())) {
                 try {
                     handler.doHand(args);
-                } catch (RedisException e) {
+                } catch (RuntimeException e) {
                     log.info(e.toString());
                 }
             }
