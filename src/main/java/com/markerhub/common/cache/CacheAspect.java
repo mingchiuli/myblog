@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.annotation.Order;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
@@ -103,7 +104,7 @@ public class CacheAspect {
             javaType = objectMapper.getTypeFactory().constructType(genericReturnType);
         }
 
-        String redisKey = name + "::" + className + "::" + methodName + params;
+        String redisKey = StringUtils.hasLength(name) ? name + "::" + className + "::" + methodName + params : className + "::" + methodName + params;
 
         Object o;
 
@@ -118,22 +119,19 @@ public class CacheAspect {
             return objectMapper.convertValue(o, javaType);
         }
 
-        String lock = (LOCK +  methodName + params).intern();
+        String lock = (LOCK + className + methodName + params).intern();
 
         //防止缓存击穿
         synchronized (lock) {
-            log.info("线程{}拿到锁{}", Thread.currentThread().getName(), lock);
             //双重检查
             Object r = redisTemplate.opsForValue().get(redisKey);
 
             if (r != null) {
-                log.info("线程{}释放锁{}", Thread.currentThread().getName(), lock);
                 return objectMapper.convertValue(r, javaType);
             }
             //执行目标方法
             Object proceed = pjp.proceed();
             redisTemplate.opsForValue().set(redisKey, proceed, expire, TimeUnit.SECONDS);
-            log.info("线程{}查库并释放锁{}", Thread.currentThread().getName(), lock);
             return proceed;
         }
 
