@@ -99,12 +99,11 @@ public class MyUtils {
         if (Boolean.FALSE.equals(redisTemplate.hasKey(Const.USER_PREFIX + user.getUsername()))) {
             redisTemplate.execute(new SessionCallback<>() {
                 @Override
-                public Object execute(@NonNull RedisOperations operations) throws DataAccessException {
+                public List<Object> execute(@NonNull RedisOperations operations) throws DataAccessException {
                     operations.multi();
                     operations.opsForHash().putAll(Const.USER_PREFIX + user.getUsername(), map);
                     operations.expire(Const.USER_PREFIX + user.getUsername(), time, TimeUnit.SECONDS);
-                    operations.exec();
-                    return null;
+                    return operations.exec();
                 }
             });
         }
