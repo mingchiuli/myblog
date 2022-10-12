@@ -3,6 +3,7 @@ package com.markerhub.common.bloom;
 import com.markerhub.common.bloom.handler.BloomHandler;
 import com.markerhub.service.BlogService;
 import com.markerhub.utils.SpringUtils;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.Signature;
@@ -14,6 +15,7 @@ import org.springframework.core.annotation.Order;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 
+import java.lang.reflect.Method;
 import java.util.Map;
 
 /**
@@ -45,14 +47,9 @@ public class BloomAspect {
     @Pointcut("@annotation(com.markerhub.common.bloom.Bloom)")
     public void pt() {}
 
+    @SneakyThrows
     @Before("pt()")
     public void before(JoinPoint jp) {
-
-        Signature signature = jp.getSignature();
-        //方法名
-        String methodName = signature.getName();
-        //参数
-        Object[] args = jp.getArgs();
 
         if (cacheHandlers == null) {
             synchronized (this) {
@@ -62,8 +59,22 @@ public class BloomAspect {
             }
         }
 
+        Signature signature = jp.getSignature();
+        //方法名
+        String methodName = signature.getName();
+        //参数
+        Object[] args = jp.getArgs();
+        Class<?>[] classes = new Class[args.length];
+        for (int i = 0; i < args.length; i++) {
+            classes[i] = args[i].getClass();
+        }
+        Method method = jp.getSignature().getDeclaringType().getMethod(methodName, classes);
+
+        Bloom bloom = method.getAnnotation(Bloom.class);
+        BloomEnum name = bloom.name();
+
         for (BloomHandler handler : cacheHandlers.values()) {
-            if (methodName.equals(handler.methodName())) {
+            if (name.equals(handler.mark())) {
                 try {
                     handler.doHand(args);
                 } catch (RuntimeException e) {

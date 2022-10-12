@@ -1,5 +1,6 @@
 package com.markerhub.common.bloom.handler.impl;
 
+import com.markerhub.common.bloom.BloomEnum;
 import com.markerhub.common.bloom.handler.BloomHandler;
 import com.markerhub.common.exception.NoFoundException;
 import com.markerhub.common.lang.Const;
@@ -18,8 +19,8 @@ public class DetailHandler implements BloomHandler {
     }
 
     @Override
-    public String methodName() {
-        return "detail";
+    public BloomEnum mark() {
+        return BloomEnum.DETAIL;
     }
 
     @Override
