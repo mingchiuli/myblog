@@ -27,8 +27,8 @@ public class PushUserHandler implements WSHandler {
 
     @Override
     public void doHand(MessageDto msg) {
-        Container<InitDto.Bind> containerV1 = msg.getData();
-        InitDto.Bind dataV1 = containerV1.getData();
+        Container<PushUserDto.Bind> containerV1 = msg.getData();
+        PushUserDto.Bind dataV1 = containerV1.getData();
         String blogIdV1 = dataV1.getBlogId();
         ArrayList<UserEntityVo> usersV1 = dataV1.getUsers();
         simpMessagingTemplate.convertAndSendToUser(blogIdV1,"/topic/users", usersV1);

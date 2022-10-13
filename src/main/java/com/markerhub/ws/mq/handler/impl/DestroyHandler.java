@@ -29,8 +29,8 @@ public class DestroyHandler implements WSHandler {
 
     @Override
     public void doHand(MessageDto msg) {
-        Container<InitDto.Bind> containerV5 = msg.getData();
-        InitDto.Bind dataV2 = containerV5.getData();
+        Container<DestroyDto.Bind> containerV5 = msg.getData();
+        DestroyDto.Bind dataV2 = containerV5.getData();
         String blogIdV2 = dataV2.getBlogId();
         ArrayList<UserEntityVo> usersV2 = dataV2.getUsers();
         simpMessagingTemplate.convertAndSendToUser(blogIdV2,"/topic/popUser", usersV2);
