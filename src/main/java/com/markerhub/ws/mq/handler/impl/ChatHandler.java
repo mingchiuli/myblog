@@ -1,8 +1,9 @@
 package com.markerhub.ws.mq.handler.impl;
 
 import com.markerhub.common.vo.Message;
-import com.markerhub.ws.mq.dto.Container;
-import com.markerhub.ws.mq.dto.MessageDto;
+import com.markerhub.ws.dto.Container;
+import com.markerhub.ws.dto.MessageDto;
+import com.markerhub.ws.dto.impl.ChatDto;
 import com.markerhub.ws.mq.handler.WSHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -20,7 +21,7 @@ public class ChatHandler implements WSHandler {
 
     @Override
     public String methodName() {
-        return "chat";
+        return ChatDto.mark;
     }
 
     @Override

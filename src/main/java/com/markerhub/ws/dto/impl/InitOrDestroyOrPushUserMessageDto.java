@@ -1,8 +1,8 @@
-package com.markerhub.ws.mq.dto.impl;
+package com.markerhub.ws.dto.impl;
 
 import com.markerhub.common.vo.UserEntityVo;
-import com.markerhub.ws.mq.dto.Container;
-import com.markerhub.ws.mq.dto.MessageDto;
+import com.markerhub.ws.dto.Container;
+import com.markerhub.ws.dto.MessageDto;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
@@ -11,12 +11,14 @@ import java.util.ArrayList;
 
 @Data
 @AllArgsConstructor
-public class InitOrDestroyMessageDto implements Serializable, MessageDto {
+public class InitOrDestroyOrPushUserMessageDto implements Serializable, MessageDto {
     Container<Bind> data;
+
+    public static String mark = "init";
 
     @Override
     public String getMethodName() {
-        return "init";
+        return mark;
     }
 
     @Override

@@ -1,4 +1,4 @@
-package com.markerhub.ws.mq.dto;
+package com.markerhub.ws.dto;
 
 public interface MessageDto {
     String getMethodName();

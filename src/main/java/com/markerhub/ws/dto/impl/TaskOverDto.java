@@ -1,7 +1,7 @@
-package com.markerhub.ws.mq.dto.impl;
+package com.markerhub.ws.dto.impl;
 
-import com.markerhub.ws.mq.dto.Container;
-import com.markerhub.ws.mq.dto.MessageDto;
+import com.markerhub.ws.dto.Container;
+import com.markerhub.ws.dto.MessageDto;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
@@ -13,9 +13,11 @@ public class TaskOverDto implements MessageDto, Serializable {
 
     private Container<String> from;
 
+    public static String mark = "taskOver";
+
     @Override
     public String getMethodName() {
-        return "taskOver";
+        return mark;
     }
 
     @Override

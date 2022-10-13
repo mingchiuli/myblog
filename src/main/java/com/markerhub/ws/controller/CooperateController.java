@@ -14,7 +14,7 @@ import com.markerhub.service.BlogService;
 import com.markerhub.service.UserService;
 import com.markerhub.utils.JwtUtils;
 import com.markerhub.utils.MyUtils;
-import com.markerhub.ws.mq.dto.impl.*;
+import com.markerhub.ws.dto.impl.*;
 import io.jsonwebtoken.Claims;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -106,7 +106,7 @@ public class CooperateController {
         });
 
         String idStr = blogId.toString();
-        InitOrDestroyMessageDto dto = MyUtils.transferToDto(InitOrDestroyMessageDto.Bind.class, InitOrDestroyMessageDto.class,
+        InitOrDestroyOrPushUserMessageDto dto = MyUtils.transferToDto(InitOrDestroyOrPushUserMessageDto.Bind.class, InitOrDestroyOrPushUserMessageDto.class,
                 new Object[]{idStr, users}, new Class[]{idStr.getClass(), users.getClass()});
 
         rabbitTemplate.convertAndSend(
@@ -138,7 +138,7 @@ public class CooperateController {
             });
 
             String idStr = blogId.toString();
-            InitOrDestroyMessageDto dto = MyUtils.transferToDto(InitOrDestroyMessageDto.Bind.class, InitOrDestroyMessageDto.class,
+            InitOrDestroyOrPushUserMessageDto dto = MyUtils.transferToDto(InitOrDestroyOrPushUserMessageDto.Bind.class, InitOrDestroyOrPushUserMessageDto.class,
                     new Object[]{idStr, users}, new Class[]{idStr.getClass(), users.getClass()});
 
             rabbitTemplate.convertAndSend(
@@ -253,7 +253,7 @@ public class CooperateController {
         users.sort(Comparator.comparingInt(UserEntityVo::getNumber));
 
         String idStr = blogId.toString();
-        InitOrDestroyMessageDto dto = MyUtils.transferToDto(InitOrDestroyMessageDto.Bind.class, InitOrDestroyMessageDto.class,
+        InitOrDestroyOrPushUserMessageDto dto = MyUtils.transferToDto(InitOrDestroyOrPushUserMessageDto.Bind.class, InitOrDestroyOrPushUserMessageDto.class,
                 new Object[]{idStr, users}, new Class[]{idStr.getClass(), users.getClass()});
         rabbitTemplate.convertAndSend(
                 RabbitConfig.WS_FANOUT_EXCHANGE,RabbitConfig.WS_BINDING_KEY  + RabbitConfig.serverIpHost,

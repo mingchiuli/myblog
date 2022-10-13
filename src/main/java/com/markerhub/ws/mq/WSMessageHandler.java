@@ -1,7 +1,7 @@
 package com.markerhub.ws.mq;
 
 import com.markerhub.utils.SpringUtils;
-import com.markerhub.ws.mq.dto.MessageDto;
+import com.markerhub.ws.dto.MessageDto;
 import com.markerhub.ws.mq.handler.WSHandler;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.Queue;

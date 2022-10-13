@@ -1,8 +1,9 @@
 package com.markerhub.ws.mq.handler.impl;
 
 import com.markerhub.common.vo.Content;
-import com.markerhub.ws.mq.dto.Container;
-import com.markerhub.ws.mq.dto.MessageDto;
+import com.markerhub.ws.dto.Container;
+import com.markerhub.ws.dto.MessageDto;
+import com.markerhub.ws.dto.impl.SyncContentDto;
 import com.markerhub.ws.mq.handler.WSHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -18,7 +19,7 @@ public class SyncContentHandler implements WSHandler {
     }
     @Override
     public String methodName() {
-        return "syncContent";
+        return SyncContentDto.mark;
     }
 
     @Override
