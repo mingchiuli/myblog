@@ -14,10 +14,8 @@ import com.markerhub.service.BlogService;
 import com.markerhub.service.UserService;
 import com.markerhub.utils.JwtUtils;
 import com.markerhub.utils.MyUtils;
-import com.markerhub.ws.mq.dto.Container;
 import com.markerhub.ws.mq.dto.impl.*;
 import io.jsonwebtoken.Claims;
-import lombok.Builder;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.BeanUtils;
@@ -154,13 +152,6 @@ public class CooperateController {
 
     @MessageMapping("/chat/{from}/{to}/{blogId}")
     public void chat(String msg, @DestinationVariable String from, @DestinationVariable Long to, @DestinationVariable Long blogId) {
-
-//        Message data = Message.builder().message(msg).blogId(blogId).from(from).to(to).build();
-//        Container<Message> container = new Container<>();
-//        container.setData(data);
-//        ChatDto dto = ChatDto.builder().message(container).build();
-//        ChatDto dto = MyUtils.transferToDto(Message.class, ChatDto.class, to, blogId, from);
-//
         UserEntityVo userEntityVo = MyUtils.jsonToObj(redisTemplate.opsForHash().get(Const.CO_PREFIX + blogId, to.toString()), UserEntityVo.class);
         if (userEntityVo != null) {
             String toServerIpHost = userEntityVo.getServerIpHost();

@@ -4,9 +4,7 @@ import com.markerhub.common.vo.Content;
 import com.markerhub.ws.mq.dto.Container;
 import com.markerhub.ws.mq.dto.MessageDto;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 
