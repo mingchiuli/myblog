@@ -106,7 +106,7 @@ public class CooperateController {
         });
 
         String idStr = blogId.toString();
-        InitOrDestroyOrPushUserMessageDto dto = MyUtils.transferToDto(InitOrDestroyOrPushUserMessageDto.Bind.class, InitOrDestroyOrPushUserMessageDto.class,
+        PushUserDto dto = MyUtils.transferToDto(PushUserDto.Bind.class, PushUserDto.class,
                 new Object[]{idStr, users}, new Class[]{idStr.getClass(), users.getClass()});
 
         rabbitTemplate.convertAndSend(
@@ -138,7 +138,7 @@ public class CooperateController {
             });
 
             String idStr = blogId.toString();
-            InitOrDestroyOrPushUserMessageDto dto = MyUtils.transferToDto(InitOrDestroyOrPushUserMessageDto.Bind.class, InitOrDestroyOrPushUserMessageDto.class,
+            DestroyDto dto = MyUtils.transferToDto(DestroyDto.Bind.class, DestroyDto.class,
                     new Object[]{idStr, users}, new Class[]{idStr.getClass(), users.getClass()});
 
             rabbitTemplate.convertAndSend(
@@ -253,7 +253,7 @@ public class CooperateController {
         users.sort(Comparator.comparingInt(UserEntityVo::getNumber));
 
         String idStr = blogId.toString();
-        InitOrDestroyOrPushUserMessageDto dto = MyUtils.transferToDto(InitOrDestroyOrPushUserMessageDto.Bind.class, InitOrDestroyOrPushUserMessageDto.class,
+        InitDto dto = MyUtils.transferToDto(InitDto.Bind.class, InitDto.class,
                 new Object[]{idStr, users}, new Class[]{idStr.getClass(), users.getClass()});
         rabbitTemplate.convertAndSend(
                 RabbitConfig.WS_FANOUT_EXCHANGE,RabbitConfig.WS_BINDING_KEY  + RabbitConfig.serverIpHost,
