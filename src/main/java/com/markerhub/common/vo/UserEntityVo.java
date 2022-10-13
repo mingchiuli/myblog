@@ -2,6 +2,7 @@ package com.markerhub.common.vo;
 
 import com.markerhub.entity.UserEntity;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import java.io.Serializable;
 
@@ -10,6 +11,7 @@ import java.io.Serializable;
  * @create 2022-06-06 11:17 AM
  */
 @Data
+@EqualsAndHashCode(callSuper=true)
 public class UserEntityVo extends UserEntity implements Serializable {
 
     private Integer monitor;
