@@ -67,9 +67,6 @@ public class ScheduledTask {
                 builder.append("::");
                 builder.append(blog.getId());
 
-//                builder = new StringBuilder(Arrays.toString(DigestUtil.md5(builder.toString())));
-//                builder = new StringBuilder(builder.toString());
-
                 String contentPrefix = Const.HOT_BLOG + "::BlogController::detail" + builder;
                 String statusPrefix = Const.BLOG_STATUS + "::BlogController::getBlogStatus" + builder;
 

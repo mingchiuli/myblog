@@ -203,14 +203,9 @@ public class CooperateController {
         entries.forEach((k, v) -> {
             UserEntityVo user = MyUtils.jsonToObj(v, UserEntityVo.class);
             switch (user.getNumber()) {
-                case 0:
-                    number.setIndex0(Boolean.TRUE);
-                    break;
-                case 1:
-                    number.setIndex1(Boolean.TRUE);
-                    break;
-                case 2:
-                    number.setIndex2(Boolean.TRUE);
+                case 0 -> number.setIndex0(Boolean.TRUE);
+                case 1 -> number.setIndex1(Boolean.TRUE);
+                case 2 -> number.setIndex2(Boolean.TRUE);
             }
         });
 

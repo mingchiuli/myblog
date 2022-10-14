@@ -89,8 +89,7 @@ public class CacheAspect {
 
         JavaType javaType;
 
-        if (genericReturnType instanceof ParameterizedType) {
-            ParameterizedType parameterizedType = (ParameterizedType) genericReturnType;
+        if (genericReturnType instanceof ParameterizedType parameterizedType) {
             Class<?> rawType = (Class<?>) parameterizedType.getRawType();
             Type[] actualTypeArguments = parameterizedType.getActualTypeArguments();
 
