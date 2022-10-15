@@ -1,6 +1,7 @@
 package com.markerhub.config;
 
 import com.markerhub.common.lang.Const;
+import com.markerhub.search.mq.BlogIndexEnum;
 import com.markerhub.search.mq.PostMQIndexMessage;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.*;
@@ -143,11 +144,13 @@ public class RabbitConfig {
                     //如果服务器没有收到，就重发
                     CorrelationData newCorrelationData = new CorrelationData();
 
+
+
                     redisTemplate.opsForValue().set(Const.CONSUME_MONITOR + newCorrelationData.getId(), method + "_" + id);
                     rabbitTemplate.convertAndSend(
                             RabbitConfig.ES_EXCHANGE,
                             RabbitConfig.ES_BINDING_KEY,
-                            new PostMQIndexMessage(Long.valueOf(id), method), newCorrelationData);
+                            new PostMQIndexMessage(Long.valueOf(id), BlogIndexEnum.valueOf(method)), newCorrelationData);
                     //删除之前的键
                     redisTemplate.delete(Const.CONSUME_MONITOR + uuid);
                 }

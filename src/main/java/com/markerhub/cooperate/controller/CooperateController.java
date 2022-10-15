@@ -1,4 +1,4 @@
-package com.markerhub.ws.controller;
+package com.markerhub.cooperate.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.markerhub.common.valid.CooperateBlogId;
@@ -14,7 +14,7 @@ import com.markerhub.service.BlogService;
 import com.markerhub.service.UserService;
 import com.markerhub.utils.JwtUtils;
 import com.markerhub.utils.MyUtils;
-import com.markerhub.ws.dto.impl.*;
+import com.markerhub.cooperate.dto.impl.*;
 import io.jsonwebtoken.Claims;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;

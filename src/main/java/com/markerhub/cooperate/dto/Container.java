@@ -1,4 +1,4 @@
-package com.markerhub.ws.dto;
+package com.markerhub.cooperate.dto;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;

@@ -1,8 +1,9 @@
-package com.markerhub.ws.mq;
+package com.markerhub.cooperate.mq;
 
+import com.markerhub.cooperate.CooperateEnum;
 import com.markerhub.utils.SpringUtils;
-import com.markerhub.ws.dto.MessageDto;
-import com.markerhub.ws.mq.handler.WSHandler;
+import com.markerhub.cooperate.dto.MessageDto;
+import com.markerhub.cooperate.mq.handler.WSHandler;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
@@ -20,7 +21,9 @@ import java.util.Map;
 @Component
 public class WSMessageHandler {
 
-    volatile Map<String, WSHandler> cacheHandlers;
+    private static class CacheHandlers {
+        private static final Map<String, WSHandler> cacheHandlers = SpringUtils.getHandlers(WSHandler.class);
+    }
 
     RedisTemplate<String, Object> redisTemplate;
 
@@ -57,18 +60,10 @@ public class WSMessageHandler {
 
 
     public void processMessage(MessageDto msg) {
-        String methodName = msg.getMethodName();
+        CooperateEnum methodName = msg.getMethodName();
 
-        if (cacheHandlers == null) {
-            synchronized (this) {
-                if (cacheHandlers == null) {
-                    cacheHandlers = SpringUtils.getHandlers(WSHandler.class);
-                }
-            }
-        }
-
-        for (WSHandler handler : cacheHandlers.values()) {
-            if (methodName.equals(handler.methodName())) {
+        for (WSHandler handler : CacheHandlers.cacheHandlers.values()) {
+            if (handler.methodName().equals(methodName)) {
                 handler.doHand(msg);
                 break;
             }

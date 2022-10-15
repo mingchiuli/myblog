@@ -1,10 +1,10 @@
-package com.markerhub.ws.mq.handler.impl;
+package com.markerhub.cooperate.mq.handler.impl;
 
 import com.markerhub.common.vo.Content;
-import com.markerhub.ws.dto.Container;
-import com.markerhub.ws.dto.MessageDto;
-import com.markerhub.ws.dto.impl.SyncContentDto;
-import com.markerhub.ws.mq.handler.WSHandler;
+import com.markerhub.cooperate.CooperateEnum;
+import com.markerhub.cooperate.dto.Container;
+import com.markerhub.cooperate.dto.MessageDto;
+import com.markerhub.cooperate.mq.handler.WSHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Component;
@@ -18,8 +18,8 @@ public class SyncContentHandler implements WSHandler {
         this.simpMessagingTemplate = simpMessagingTemplate;
     }
     @Override
-    public String methodName() {
-        return SyncContentDto.mark;
+    public CooperateEnum methodName() {
+        return CooperateEnum.SYNC_CONTENT;
     }
 
     @Override

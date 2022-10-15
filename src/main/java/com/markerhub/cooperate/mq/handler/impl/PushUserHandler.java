@@ -1,11 +1,11 @@
-package com.markerhub.ws.mq.handler.impl;
+package com.markerhub.cooperate.mq.handler.impl;
 
 import com.markerhub.common.vo.UserEntityVo;
-import com.markerhub.ws.dto.Container;
-import com.markerhub.ws.dto.MessageDto;
-import com.markerhub.ws.dto.impl.InitDto;
-import com.markerhub.ws.dto.impl.PushUserDto;
-import com.markerhub.ws.mq.handler.WSHandler;
+import com.markerhub.cooperate.CooperateEnum;
+import com.markerhub.cooperate.dto.Container;
+import com.markerhub.cooperate.dto.MessageDto;
+import com.markerhub.cooperate.dto.impl.PushUserDto;
+import com.markerhub.cooperate.mq.handler.WSHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Component;
@@ -21,8 +21,8 @@ public class PushUserHandler implements WSHandler {
     }
 
     @Override
-    public String methodName() {
-        return PushUserDto.mark;
+    public CooperateEnum methodName() {
+        return CooperateEnum.PUSH_USER;
     }
 
     @Override

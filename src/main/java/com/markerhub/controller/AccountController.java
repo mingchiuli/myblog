@@ -58,8 +58,6 @@ public class AccountController {
     @GetMapping("/captcha")
     public Result captcha() throws IOException {
 
-
-
         String key = UUID.randomUUID().toString();
         String code = producer.createText();
 

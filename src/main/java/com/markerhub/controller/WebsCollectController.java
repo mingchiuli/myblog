@@ -5,7 +5,6 @@ import com.markerhub.common.cache.Cache;
 import com.markerhub.common.lang.Result;
 import com.markerhub.common.vo.WebsitePostDocumentVo;
 import com.markerhub.search.model.WebsitePostDocument;
-import com.markerhub.search.model.WebsitePostDocument;
 import com.markerhub.service.UserService;
 import com.markerhub.service.WebsCollectService;
 import com.markerhub.utils.JwtUtils;

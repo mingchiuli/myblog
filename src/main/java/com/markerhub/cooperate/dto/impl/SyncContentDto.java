@@ -1,8 +1,9 @@
-package com.markerhub.ws.dto.impl;
+package com.markerhub.cooperate.dto.impl;
 
 import com.markerhub.common.vo.Content;
-import com.markerhub.ws.dto.Container;
-import com.markerhub.ws.dto.MessageDto;
+import com.markerhub.cooperate.CooperateEnum;
+import com.markerhub.cooperate.dto.Container;
+import com.markerhub.cooperate.dto.MessageDto;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
@@ -14,11 +15,9 @@ public class SyncContentDto implements Serializable, MessageDto {
 
     Container<Content> content;
 
-    public static String mark = "syncContent";
-
     @Override
-    public String getMethodName() {
-        return mark;
+    public CooperateEnum getMethodName() {
+        return CooperateEnum.SYNC_CONTENT;
     }
 
     @Override

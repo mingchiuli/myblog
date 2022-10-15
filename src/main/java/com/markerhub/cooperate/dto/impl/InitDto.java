@@ -1,8 +1,9 @@
-package com.markerhub.ws.dto.impl;
+package com.markerhub.cooperate.dto.impl;
 
 import com.markerhub.common.vo.UserEntityVo;
-import com.markerhub.ws.dto.Container;
-import com.markerhub.ws.dto.MessageDto;
+import com.markerhub.cooperate.CooperateEnum;
+import com.markerhub.cooperate.dto.Container;
+import com.markerhub.cooperate.dto.MessageDto;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
@@ -11,14 +12,12 @@ import java.util.ArrayList;
 
 @Data
 @AllArgsConstructor
-public class DestroyDto implements Serializable, MessageDto {
+public class InitDto implements Serializable, MessageDto {
     Container<Bind> data;
 
-    public static String mark = "destroy";
-
     @Override
-    public String getMethodName() {
-        return mark;
+    public CooperateEnum getMethodName() {
+        return CooperateEnum.INIT;
     }
 
     @Override

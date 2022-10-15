@@ -16,6 +16,7 @@ import com.markerhub.entity.UserEntity;
 import com.markerhub.mapper.BlogMapper;
 import com.markerhub.mapper.UserMapper;
 import com.markerhub.search.model.BlogPostDocument;
+import com.markerhub.search.mq.BlogIndexEnum;
 import com.markerhub.search.mq.PostMQIndexMessage;
 import com.markerhub.service.BlogService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -339,12 +340,12 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, BlogEntity> impleme
         //通知消息给mq,更新并删除缓存
         CorrelationData correlationData = new CorrelationData();
         //防止重复消费
-        redisTemplate.opsForValue().set(Const.CONSUME_MONITOR + correlationData.getId(), PostMQIndexMessage.UPDATE + "_" + blog.getId(), 30, TimeUnit.MINUTES);
+        redisTemplate.opsForValue().set(Const.CONSUME_MONITOR + correlationData.getId(), BlogIndexEnum.UPDATE.name() + "_" + blog.getId(), 30, TimeUnit.MINUTES);
 
         rabbitTemplate.convertAndSend(
                 RabbitConfig.ES_EXCHANGE,
                 RabbitConfig.ES_BINDING_KEY,
-                new PostMQIndexMessage(blog.getId(), PostMQIndexMessage.UPDATE), correlationData);
+                new PostMQIndexMessage(blog.getId(), BlogIndexEnum.UPDATE), correlationData);
 
     }
 
@@ -372,12 +373,12 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, BlogEntity> impleme
         //通知消息给mq，创建
         //防止重复消费
         CorrelationData correlationData = new CorrelationData();
-        redisTemplate.opsForValue().set(Const.CONSUME_MONITOR + correlationData.getId(), PostMQIndexMessage.CREATE + "_" + blog.getId(), 30, TimeUnit.MINUTES);
+        redisTemplate.opsForValue().set(Const.CONSUME_MONITOR + correlationData.getId(), BlogIndexEnum.CREATE.name() + "_" + blog.getId(), 30, TimeUnit.MINUTES);
 
         rabbitTemplate.convertAndSend(
                 RabbitConfig.ES_EXCHANGE,
                 RabbitConfig.ES_BINDING_KEY,
-                new PostMQIndexMessage(blog.getId(), PostMQIndexMessage.CREATE), correlationData);
+                new PostMQIndexMessage(blog.getId(), BlogIndexEnum.CREATE), correlationData);
 
 
         return blog.getId();
@@ -451,12 +452,12 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, BlogEntity> impleme
         //通知消息给mq,更新
         CorrelationData correlationData = new CorrelationData();
         //防止重复消费
-        redisTemplate.opsForValue().set(Const.CONSUME_MONITOR + correlationData.getId(), PostMQIndexMessage.CREATE + "_" + id, 30, TimeUnit.MINUTES);
+        redisTemplate.opsForValue().set(Const.CONSUME_MONITOR + correlationData.getId(), BlogIndexEnum.CREATE.name() + "_" + id, 30, TimeUnit.MINUTES);
 
         rabbitTemplate.convertAndSend(
                 RabbitConfig.ES_EXCHANGE,
                 RabbitConfig.ES_BINDING_KEY,
-                new PostMQIndexMessage(id, PostMQIndexMessage.CREATE), correlationData);
+                new PostMQIndexMessage(id, BlogIndexEnum.CREATE), correlationData);
 
     }
 
@@ -474,12 +475,12 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, BlogEntity> impleme
         //通知消息给mq,更新并删除缓存
         CorrelationData correlationData = new CorrelationData();
         //防止重复消费
-        redisTemplate.opsForValue().set(Const.CONSUME_MONITOR + correlationData.getId(), PostMQIndexMessage.UPDATE + "_" + id, 30, TimeUnit.MINUTES);
+        redisTemplate.opsForValue().set(Const.CONSUME_MONITOR + correlationData.getId(), BlogIndexEnum.UPDATE.name() + "_" + id, 30, TimeUnit.MINUTES);
 
         rabbitTemplate.convertAndSend(
                 RabbitConfig.ES_EXCHANGE,
                 RabbitConfig.ES_BINDING_KEY,
-                new PostMQIndexMessage(id, PostMQIndexMessage.UPDATE), correlationData);
+                new PostMQIndexMessage(id, BlogIndexEnum.UPDATE), correlationData);
     }
 
     @Override
@@ -575,12 +576,12 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, BlogEntity> impleme
             //通知消息给mq,更新并删除缓存
             CorrelationData correlationData = new CorrelationData();
             //防止重复消费
-            redisTemplate.opsForValue().set(Const.CONSUME_MONITOR + correlationData.getId(), PostMQIndexMessage.REMOVE + "_" + id, 30, TimeUnit.MINUTES);
+            redisTemplate.opsForValue().set(Const.CONSUME_MONITOR + correlationData.getId(), BlogIndexEnum.REMOVE.name() + "_" + id, 30, TimeUnit.MINUTES);
 
             rabbitTemplate.convertAndSend(
                     RabbitConfig.ES_EXCHANGE,
                     RabbitConfig.ES_BINDING_KEY,
-                    new PostMQIndexMessage(id, PostMQIndexMessage.REMOVE), correlationData);
+                    new PostMQIndexMessage(id, BlogIndexEnum.REMOVE), correlationData);
         });
     }
 

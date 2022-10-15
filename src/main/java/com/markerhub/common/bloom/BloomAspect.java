@@ -28,7 +28,9 @@ import java.util.Map;
 @Order(1)
 public class BloomAspect {
 
-    volatile Map<String, BloomHandler> cacheHandlers;
+    private static class CacheHandlers {
+        private static final Map<String, BloomHandler> cacheHandlers = SpringUtils.getHandlers(BloomHandler.class);
+    }
 
     BlogService blogService;
 
@@ -50,15 +52,6 @@ public class BloomAspect {
     @SneakyThrows
     @Before("pt()")
     public void before(JoinPoint jp) {
-
-        if (cacheHandlers == null) {
-            synchronized (this) {
-                if (cacheHandlers == null) {
-                    cacheHandlers = SpringUtils.getHandlers(BloomHandler.class);
-                }
-            }
-        }
-
         Signature signature = jp.getSignature();
         //方法名
         String methodName = signature.getName();
@@ -73,8 +66,8 @@ public class BloomAspect {
         Bloom bloom = method.getAnnotation(Bloom.class);
         BloomEnum name = bloom.name();
 
-        for (BloomHandler handler : cacheHandlers.values()) {
-            if (name.equals(handler.mark())) {
+        for (BloomHandler handler : CacheHandlers.cacheHandlers.values()) {
+            if (handler.mark().equals(name)) {
                 try {
                     handler.doHand(args);
                 } catch (RuntimeException e) {
