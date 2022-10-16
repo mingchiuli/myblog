@@ -3,8 +3,6 @@ package com.markerhub.cooperate.controller;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.markerhub.common.valid.CooperateBlogId;
 import com.markerhub.common.vo.CoNumberList;
-import com.markerhub.common.vo.Content;
-import com.markerhub.common.vo.Message;
 import com.markerhub.common.lang.Const;
 import com.markerhub.common.lang.Result;
 import com.markerhub.common.vo.UserEntityVo;
@@ -157,7 +155,7 @@ public class CooperateController {
             String toServerIpHost = userEntityVo.getServerIpHost();
             String idStr = blogId.toString();
             String toStr = to.toString();
-            ChatDto dto = MyUtils.transferToDto(Message.class, ChatDto.class, new Object[]{msg, from, toStr, idStr},
+            ChatDto dto = MyUtils.transferToDto(ChatDto.Message.class, ChatDto.class, new Object[]{msg, from, toStr, idStr},
                     new Class[]{msg.getClass(), from.getClass(), toStr.getClass(), idStr.getClass()});
             rabbitTemplate.convertAndSend(
                     RabbitConfig.WS_TOPIC_EXCHANGE,RabbitConfig.WS_BINDING_KEY + toServerIpHost,
@@ -170,7 +168,7 @@ public class CooperateController {
     public void syncContent(@DestinationVariable Long from, String content, @DestinationVariable Long blogId) {
         String fromStr = from.toString();
         String idStr = blogId.toString();
-        SyncContentDto dto = MyUtils.transferToDto(Content.class, SyncContentDto.class,
+        SyncContentDto dto = MyUtils.transferToDto(SyncContentDto.Content.class, SyncContentDto.class,
                 new Object[]{fromStr, content, idStr}, new Class[]{fromStr.getClass(), content.getClass(), idStr.getClass()});
         rabbitTemplate.convertAndSend(
                 RabbitConfig.WS_FANOUT_EXCHANGE,RabbitConfig.WS_BINDING_KEY  + RabbitConfig.serverIpHost,
