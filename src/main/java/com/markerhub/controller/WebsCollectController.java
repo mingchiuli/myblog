@@ -73,7 +73,6 @@ public class WebsCollectController {
         WebsitePostDocument document = elasticsearchRestTemplate.get(id, WebsitePostDocument.class);
 
         if (document != null) {
-//            document.setCreated(document.getCreated().plusHours(Const.GMT_PLUS_8));
             return Result.succ(document);
         } else {
             return Result.fail("查询失败");

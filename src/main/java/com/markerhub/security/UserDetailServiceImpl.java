@@ -31,21 +31,14 @@ public class UserDetailServiceImpl implements UserDetailsService {
 
 	@Override
 	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-
 		UserEntity sysUser = sysUserService.getOne(new QueryWrapper<UserEntity>().eq("username", username));
 
 		if (sysUser == null) {
 			throw new UsernameNotFoundException("用户名不正确");
 		}
 
-		if (Boolean.TRUE.equals(redisTemplate.hasKey(Const.USER_PREFIX + sysUser.getUsername())) && sysUser.getStatus() == 0) {
-			throw new AuthenticationException("用户已登录");
-		}
-
-		boolean accountNonLocked = sysUser.getStatus() == 0;
-
 		//通过User去自动比较用户名和密码
-		return new User(sysUser.getUsername(), sysUser.getPassword(), true,true,true, accountNonLocked, getUserRole(sysUser.getUsername()));
+		return new User(sysUser.getUsername(), sysUser.getPassword(), true,true,true, sysUser.getStatus() == 0, getUserRole(sysUser.getUsername()));
 	}
 
 

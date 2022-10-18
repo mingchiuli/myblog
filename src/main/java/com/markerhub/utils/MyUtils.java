@@ -77,32 +77,15 @@ public class MyUtils {
     }
 
 
-    /**
-     * 把用户信息放置在redis里
-     * @param token
-     * @param user
-     */
-    public static void setUserToCache(String token, UserEntity user, Long time) {
-
-        RedisTemplate<String, Object> redisTemplate = SpringUtils.getBean(RedisTemplate.class);
-
-        HashMap<String, Object> map = new HashMap<>();
-        map.put(Const.USER_OBJECT, user);
-        map.put(Const.TOKEN, token);
-
-        //续10分钟
-        if (Boolean.FALSE.equals(redisTemplate.hasKey(Const.USER_PREFIX + user.getUsername()))) {
-            redisTemplate.execute(new SessionCallback<>() {
-                @Override
-                public List<Object> execute(@NonNull RedisOperations operations) throws DataAccessException {
-                    operations.multi();
-                    operations.opsForHash().putAll(Const.USER_PREFIX + user.getUsername(), map);
-                    operations.expire(Const.USER_PREFIX + user.getUsername(), time, TimeUnit.SECONDS);
-                    return operations.exec();
-                }
-            });
-        }
-    }
+    //    redisTemplate.execute(new SessionCallback<>() {
+//        @Override
+//        public List<Object> execute(@NonNull RedisOperations operations) throws DataAccessException {
+//            operations.multi();
+//            operations.opsForHash().putAll(Const.USER_PREFIX + user.getUsername(), map);
+//            operations.expire(Const.USER_PREFIX + user.getUsername(), time, TimeUnit.SECONDS);
+//            return operations.exec();
+//        }
+//    });
 
 
     /**

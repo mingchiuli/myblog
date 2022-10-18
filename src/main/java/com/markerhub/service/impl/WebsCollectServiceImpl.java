@@ -76,7 +76,6 @@ public class WebsCollectServiceImpl implements WebsCollectService {
         this.elasticsearchRestTemplate = elasticsearchRestTemplate;
     }
 
-
     @Override
     public String getJWT() {
         return jwtUtils.generateToken("tokentooler");
@@ -145,10 +144,7 @@ public class WebsCollectServiceImpl implements WebsCollectService {
         long count = countFuture.get();
         SearchHits<WebsitePostDocument> search = searchHitsFuture.get();
 
-        Page<WebsitePostDocumentVo> page = MyUtils.hitsToPage(search, WebsitePostDocumentVo.class, currentPage, Const.WEB_SIZE, count);
-
-
-        return page;
+        return MyUtils.hitsToPage(search, WebsitePostDocumentVo.class, currentPage, Const.WEB_SIZE, count);
     }
 
     @SneakyThrows
@@ -180,9 +176,7 @@ public class WebsCollectServiceImpl implements WebsCollectService {
         long count = countFuture.get();
         SearchHits<WebsitePostDocument> search = searchHitsFuture.get();
 
-        Page<WebsitePostDocument> page = MyUtils.hitsToPage(search, currentPage, Const.WEB_SIZE, count);
-
-        return page;
+        return MyUtils.hitsToPage(search, currentPage, Const.WEB_SIZE, count);
     }
 
     @SneakyThrows
@@ -219,10 +213,7 @@ public class WebsCollectServiceImpl implements WebsCollectService {
         long count = countFuture.get();
         SearchHits<WebsitePostDocument> search = searchHitsFuture.get();
 
-
-        Page<WebsitePostDocumentVo> page = MyUtils.hitsToPage(search, WebsitePostDocumentVo.class, currentPage, Const.WEB_SIZE, count);
-
-        return page;
+        return MyUtils.hitsToPage(search, WebsitePostDocumentVo.class, currentPage, Const.WEB_SIZE, count);
     }
 
 

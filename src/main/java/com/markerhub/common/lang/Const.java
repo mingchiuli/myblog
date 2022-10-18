@@ -8,10 +8,6 @@ public class Const {
 
     public final static String CAPTCHA_KEY = "captcha:";
 
-    public final static String USER_PREFIX = "user:";
-
-    public final static String USER_OBJECT = "userObj";
-
     public final static String TOKEN = "token";
 
     public final static String READ_SUM = "blogsReadSum";
@@ -34,8 +30,6 @@ public class Const {
     public static final String READ_TOKEN = "read_token";
 
     public static final Integer PAGE_SIZE = 5;
-
-    public static final Integer GMT_PLUS_8 = 8;
 
     public static final String ADMIN = "admin";
     public static final String BOY = "boy";

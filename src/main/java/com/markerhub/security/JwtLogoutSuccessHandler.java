@@ -54,9 +54,7 @@ public class JwtLogoutSuccessHandler implements LogoutSuccessHandler {
 
 		if (authentication != null) {
 			securityContextLogoutHandler.logout(request, response, authentication);
-			redisTemplate.delete(Const.USER_PREFIX + authentication.getName());
 		}
-
 
 		response.setContentType("application/json;charset=UTF-8");
 		ServletOutputStream outputStream = response.getOutputStream();
