@@ -41,6 +41,7 @@ vueblog:
     max-size: 100
     keep-alive-time: 10
   addResourceHandler: /upload/**
+  imgFoldName: img
 
 #logging:
 #  level:

@@ -24,7 +24,6 @@ logging:
 
 vueblog:
   uploadPath: /users/mingchiuli/desktop/
-  imgFoldName: img
   addResourceLocations: file:/users/mingchiuli/desktop/
   serverIpHost: 127.0.0.1
   jwt:
