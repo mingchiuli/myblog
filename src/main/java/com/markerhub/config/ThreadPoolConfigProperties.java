@@ -2,7 +2,6 @@ package com.markerhub.config;
 
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.stereotype.Component;
 
 
 //跟配置文件绑定

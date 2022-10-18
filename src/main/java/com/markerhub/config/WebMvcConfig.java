@@ -17,10 +17,10 @@ public class WebMvcConfig implements WebMvcConfigurer {
      * @param registry
      */
 
-    @Value("${addResourceHandler}")
+    @Value("${vueblog.addResourceHandler}")
     private String addResourceHandler;
 
-    @Value("${addResourceLocations}")
+    @Value("${vueblog.addResourceLocations}")
     private String addResourceLocations;
 
 

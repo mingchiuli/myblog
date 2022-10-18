@@ -18,7 +18,6 @@ public class RedisConfig {
 
     /**
      * 去掉key前面的乱码
-     * @return
      */
     @Bean
     @Primary

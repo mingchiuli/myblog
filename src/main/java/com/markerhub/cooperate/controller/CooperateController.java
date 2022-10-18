@@ -53,7 +53,7 @@ public class CooperateController {
         this.rabbitTemplate = rabbitTemplate;
     }
 
-    @Value("${serverIpHost}")
+    @Value("${vueblog.serverIpHost}")
     private String serverIpHost;
 
     BlogService blogService;

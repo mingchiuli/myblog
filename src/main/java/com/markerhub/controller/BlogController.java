@@ -56,10 +56,10 @@ public class BlogController {
     }
 
 
-    @Value("${uploadPath}")
+    @Value("${vueblog.uploadPath}")
     private String baseFolderPath;
 
-    @Value("${imgFoldName}")
+    @Value("${vueblog.imgFoldName}")
     private String img;
 
 

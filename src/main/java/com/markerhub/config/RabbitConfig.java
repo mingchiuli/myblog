@@ -30,7 +30,7 @@ import javax.annotation.PostConstruct;
 public class RabbitConfig {
 
     public static String serverIpHost;
-    @Value("${serverIpHost}")
+    @Value("${vueblog.serverIpHost}")
     public void setServerIpHost(String serverIpHost) {
         RabbitConfig.serverIpHost = serverIpHost;
     }

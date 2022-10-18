@@ -19,21 +19,19 @@ spring:
     host: 127.0.0.1
     port: 5672
 
-uploadPath: /users/mingchiuli/desktop/
-
-imgFoldName: img
-
-addResourceLocations: file:/users/mingchiuli/desktop/
-
-
 logging:
   config: classpath:logback-spring.xml
 
-markerhub:
+vueblog:
+  uploadPath: /users/mingchiuli/desktop/
+  imgFoldName: img
+  addResourceLocations: file:/users/mingchiuli/desktop/
+  serverIpHost: 127.0.0.1
   jwt:
     secret: ti8n3439n439t43ld9nv9343ddfer09h
     #    七天
     expire: 604800
     header: Authorization
 
-serverIpHost: 127.0.0.1
+
+
