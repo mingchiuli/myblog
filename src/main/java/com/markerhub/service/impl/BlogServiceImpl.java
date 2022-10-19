@@ -149,7 +149,6 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, BlogEntity> impleme
     public Page<BlogEntity> listByYear(Integer currentPage, Integer year) {
 
         Page<BlogEntity> page = new Page<>(currentPage, Const.PAGE_SIZE);
-
         QueryWrapper<BlogEntity> queryWrapper = new QueryWrapper<>();
         LocalDateTime start = LocalDateTime.of(year, 1, 1, 0, 0, 0);
         LocalDateTime end = LocalDateTime.of(year, 12, 31, 23, 59, 59);
@@ -459,12 +458,11 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, BlogEntity> impleme
     @Override
     @Transactional
     public void changeBlogStatus(Long id, Integer status) {
-        LocalDateTime created = getById(id).getCreated();
-
-        boolean update = update(new UpdateWrapper<BlogEntity>().eq("id", id).set("status", status).set("created", created));
+        BlogEntity blog = getById(id);
+        blog.setStatus(status);
+        boolean update = saveOrUpdate(blog);
 
         log.info("更改文章状态:{}", update);
-
         Assert.isTrue(update, "修改失败");
 
         //通知消息给mq,更新并删除缓存
