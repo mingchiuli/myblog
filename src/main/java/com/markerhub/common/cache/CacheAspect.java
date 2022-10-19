@@ -10,7 +10,9 @@ import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Pointcut;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.NestedRuntimeException;
 import org.springframework.core.annotation.Order;
+import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
@@ -110,7 +112,7 @@ public class CacheAspect {
         //防止redis挂了以后db也访问不了
         try {
             o = redisTemplate.opsForValue().get(redisKey);
-        } catch (RuntimeException e) {
+        } catch (NestedRuntimeException e) {
             return pjp.proceed();
         }
 
