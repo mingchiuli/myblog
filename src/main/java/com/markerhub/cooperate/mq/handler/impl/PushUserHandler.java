@@ -1,7 +1,6 @@
 package com.markerhub.cooperate.mq.handler.impl;
 
 import com.markerhub.common.vo.UserEntityVo;
-import com.markerhub.cooperate.CooperateEnum;
 import com.markerhub.cooperate.dto.Container;
 import com.markerhub.cooperate.dto.MessageDto;
 import com.markerhub.cooperate.dto.impl.PushUserDto;
@@ -21,12 +20,12 @@ public class PushUserHandler implements WSHandler {
     }
 
     @Override
-    public CooperateEnum methodName() {
-        return CooperateEnum.PUSH_USER;
+    public boolean supports(MessageDto msg) {
+        return msg instanceof PushUserDto;
     }
 
     @Override
-    public void doHand(MessageDto msg) {
+    public void handler(MessageDto msg) {
         Container<PushUserDto.Bind> containerV1 = msg.getData();
         PushUserDto.Bind dataV1 = containerV1.getData();
         String blogIdV1 = dataV1.getBlogId();

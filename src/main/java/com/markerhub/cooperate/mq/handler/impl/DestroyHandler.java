@@ -1,7 +1,6 @@
 package com.markerhub.cooperate.mq.handler.impl;
 
 import com.markerhub.common.vo.UserEntityVo;
-import com.markerhub.cooperate.CooperateEnum;
 import com.markerhub.cooperate.dto.Container;
 import com.markerhub.cooperate.dto.MessageDto;
 import com.markerhub.cooperate.dto.impl.DestroyDto;
@@ -23,12 +22,12 @@ public class DestroyHandler implements WSHandler {
     }
 
     @Override
-    public CooperateEnum methodName() {
-        return CooperateEnum.DESTROY;
+    public boolean supports(MessageDto msg) {
+        return msg instanceof DestroyDto;
     }
 
     @Override
-    public void doHand(MessageDto msg) {
+    public void handler(MessageDto msg) {
         Container<DestroyDto.Bind> containerV5 = msg.getData();
         DestroyDto.Bind dataV2 = containerV5.getData();
         String blogIdV2 = dataV2.getBlogId();

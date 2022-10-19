@@ -1,6 +1,5 @@
 package com.markerhub.cooperate.mq;
 
-import com.markerhub.cooperate.CooperateEnum;
 import com.markerhub.utils.SpringUtils;
 import com.markerhub.cooperate.dto.MessageDto;
 import com.markerhub.cooperate.mq.handler.WSHandler;
@@ -60,11 +59,9 @@ public class WSMessageHandler {
 
 
     public void processMessage(MessageDto msg) {
-        CooperateEnum methodName = msg.getMethodName();
-
         for (WSHandler handler : CacheHandlers.cacheHandlers.values()) {
-            if (handler.methodName().equals(methodName)) {
-                handler.doHand(msg);
+            if (handler.supports(msg)) {
+                handler.handler(msg);
                 break;
             }
         }

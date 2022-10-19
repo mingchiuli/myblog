@@ -1,6 +1,5 @@
 package com.markerhub.common.bloom.handler.impl;
 
-import com.markerhub.common.bloom.BloomEnum;
 import com.markerhub.common.bloom.handler.BloomHandler;
 import com.markerhub.common.exception.NoFoundException;
 import com.markerhub.common.lang.Const;
@@ -19,12 +18,12 @@ public class ListHandler implements BloomHandler {
     }
 
     @Override
-    public BloomEnum mark() {
-        return BloomEnum.LIST;
+    public boolean supports(Class<?> clazz) {
+        return clazz.equals(ListHandler.class);
     }
 
     @Override
-    public void doHand(Object[] args) {
+    public void handler(Object[] args) {
         Integer i = (Integer) args[0];
         if (Boolean.FALSE.equals(redisTemplate.opsForValue().getBit(Const.BLOOM_FILTER_PAGE, i))) {
             throw new NoFoundException("没有" + i + "页！");

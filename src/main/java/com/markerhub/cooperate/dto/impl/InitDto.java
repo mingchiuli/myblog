@@ -1,7 +1,6 @@
 package com.markerhub.cooperate.dto.impl;
 
 import com.markerhub.common.vo.UserEntityVo;
-import com.markerhub.cooperate.CooperateEnum;
 import com.markerhub.cooperate.dto.Container;
 import com.markerhub.cooperate.dto.MessageDto;
 import lombok.AllArgsConstructor;
@@ -14,11 +13,6 @@ import java.util.ArrayList;
 @AllArgsConstructor
 public class InitDto implements Serializable, MessageDto {
     Container<Bind> data;
-
-    @Override
-    public CooperateEnum getMethodName() {
-        return CooperateEnum.INIT;
-    }
 
     @Override
     public Container<Bind> getData() {

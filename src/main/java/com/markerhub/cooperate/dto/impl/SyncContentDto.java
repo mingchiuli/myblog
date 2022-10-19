@@ -1,6 +1,5 @@
 package com.markerhub.cooperate.dto.impl;
 
-import com.markerhub.cooperate.CooperateEnum;
 import com.markerhub.cooperate.dto.Container;
 import com.markerhub.cooperate.dto.MessageDto;
 import lombok.AllArgsConstructor;
@@ -15,11 +14,6 @@ import java.io.Serializable;
 public class SyncContentDto implements Serializable, MessageDto {
 
     Container<Content> content;
-
-    @Override
-    public CooperateEnum getMethodName() {
-        return CooperateEnum.SYNC_CONTENT;
-    }
 
     @Override
     public Container<Content> getData() {

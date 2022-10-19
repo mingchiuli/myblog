@@ -1,6 +1,5 @@
 package com.markerhub.cooperate.mq.handler.impl;
 
-import com.markerhub.cooperate.CooperateEnum;
 import com.markerhub.cooperate.dto.Container;
 import com.markerhub.cooperate.dto.MessageDto;
 import com.markerhub.cooperate.dto.impl.ChatDto;
@@ -20,12 +19,12 @@ public class ChatHandler implements WSHandler {
     }
 
     @Override
-    public CooperateEnum methodName() {
-        return CooperateEnum.CHAT;
+    public boolean supports(MessageDto msg) {
+        return msg instanceof ChatDto;
     }
 
     @Override
-    public void doHand(MessageDto msg) {
+    public void handler(MessageDto msg) {
         Container<ChatDto.Message> containerV4 = msg.getData();
         ChatDto.Message message = containerV4.getData();
         String id = message.getBlogId();

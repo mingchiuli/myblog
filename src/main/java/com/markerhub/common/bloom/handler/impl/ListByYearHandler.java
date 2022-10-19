@@ -1,6 +1,5 @@
 package com.markerhub.common.bloom.handler.impl;
 
-import com.markerhub.common.bloom.BloomEnum;
 import com.markerhub.common.bloom.handler.BloomHandler;
 import com.markerhub.common.exception.NoFoundException;
 import com.markerhub.common.lang.Const;
@@ -18,12 +17,12 @@ public class ListByYearHandler implements BloomHandler {
     }
 
     @Override
-    public BloomEnum mark() {
-        return BloomEnum.LIST_BY_YEAR;
+    public boolean supports(Class<?> clazz) {
+        return clazz.equals(ListByYearHandler.class);
     }
 
     @Override
-    public void doHand(Object[] args) {
+    public void handler(Object[] args) {
         Integer currentPage = (Integer) args[0];
         Integer yearMark = (Integer) args[1];
         if (Boolean.FALSE.equals(redisTemplate.opsForValue().getBit(Const.BLOOM_FILTER_PAGE + yearMark, currentPage))) {

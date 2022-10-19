@@ -1,7 +1,6 @@
 package com.markerhub.cooperate.mq.handler.impl;
 
 import com.markerhub.common.vo.UserEntityVo;
-import com.markerhub.cooperate.CooperateEnum;
 import com.markerhub.cooperate.dto.Container;
 import com.markerhub.cooperate.dto.MessageDto;
 import com.markerhub.cooperate.dto.impl.InitDto;
@@ -23,12 +22,12 @@ public class InitHandler implements WSHandler {
     }
 
     @Override
-    public CooperateEnum methodName() {
-        return CooperateEnum.INIT;
+    public boolean supports(MessageDto msg) {
+        return msg instanceof InitDto;
     }
 
     @Override
-    public void doHand(MessageDto msg) {
+    public void handler(MessageDto msg) {
         Container<InitDto.Bind> containerV1 = msg.getData();
         InitDto.Bind dataV1 = containerV1.getData();
         String blogIdV1 = dataV1.getBlogId();

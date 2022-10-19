@@ -3,7 +3,7 @@ package com.markerhub.controller;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.markerhub.common.bloom.Bloom;
-import com.markerhub.common.bloom.BloomEnum;
+import com.markerhub.common.bloom.handler.impl.*;
 import com.markerhub.common.cache.Cache;
 import com.markerhub.common.lang.Const;
 import com.markerhub.common.lang.Result;
@@ -162,7 +162,7 @@ public class BlogController {
 
     @GetMapping("/blogsByYear/{year}/{currentPage}")
     @Cache(name = Const.HOT_BLOGS)//缓存页面信息
-    @Bloom(name = BloomEnum.LIST_BY_YEAR)
+    @Bloom(name = ListByYearHandler.class)
     public Result listByYear(@PathVariable(name = "currentPage") Integer currentPage, @PathVariable(name = "year") Integer year) {
         Page<BlogEntity> pageData = blogService.listByYear(currentPage, year);
         return Result.succ(pageData);
@@ -170,7 +170,7 @@ public class BlogController {
 
     @GetMapping("/getCountByYear/{year}")
     @Cache(name = Const.HOT_BLOGS)
-    @Bloom(name = BloomEnum.GET_COUNT_BY_YEAR)
+    @Bloom(name = GetCountByYearHandler.class)
     public Result getCountByYear(@PathVariable(name = "year") Integer year) {
         Integer count = blogService.getYearCount(year);
         return Result.succ(count);
@@ -181,7 +181,7 @@ public class BlogController {
      * @param currentPage
      * @return
      */
-    @Bloom(name = BloomEnum.LIST)
+    @Bloom(name = ListHandler.class)
     @Cache(name = Const.HOT_BLOGS)//缓存页面信息
     @GetMapping("/blogs/{currentPage}")
     public Result list(@PathVariable(name = "currentPage") Integer currentPage) {
@@ -198,7 +198,7 @@ public class BlogController {
 
     @GetMapping("/blog/{id}")
     @Cache(name = Const.HOT_BLOG)
-    @Bloom(name = BloomEnum.DETAIL)
+    @Bloom(name = DetailHandler.class)
     public Result detail(@PathVariable(name = "id") @BlogAuthentication Long id) {
         BlogEntity blog = blogService.getBlogDetail(id);
         return Result.succ(blog);
@@ -369,7 +369,7 @@ public class BlogController {
     /**
      * 获取文章状态
      */
-    @Bloom(name = BloomEnum.GET_BLOG_STATUS)
+    @Bloom(name = GetBlogStatusHandler.class)
     @GetMapping("/blogStatus/{blogId}")
     @Cache(name = Const.BLOG_STATUS)
     public Result getBlogStatus(@PathVariable Long blogId) {

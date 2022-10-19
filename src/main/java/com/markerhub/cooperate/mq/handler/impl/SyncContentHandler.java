@@ -1,6 +1,5 @@
 package com.markerhub.cooperate.mq.handler.impl;
 
-import com.markerhub.cooperate.CooperateEnum;
 import com.markerhub.cooperate.dto.Container;
 import com.markerhub.cooperate.dto.MessageDto;
 import com.markerhub.cooperate.dto.impl.SyncContentDto;
@@ -17,13 +16,14 @@ public class SyncContentHandler implements WSHandler {
     public void setSimpMessagingTemplate(SimpMessagingTemplate simpMessagingTemplate) {
         this.simpMessagingTemplate = simpMessagingTemplate;
     }
+
     @Override
-    public CooperateEnum methodName() {
-        return CooperateEnum.SYNC_CONTENT;
+    public boolean supports(MessageDto msg) {
+        return msg instanceof SyncContentDto;
     }
 
     @Override
-    public void doHand(MessageDto msg) {
+    public void handler(MessageDto msg) {
         Container<SyncContentDto.Content> containerV3 = msg.getData();
         SyncContentDto.Content content = containerV3.getData();
         simpMessagingTemplate.convertAndSend("/topic/content/" + content.getBlogId(), content);

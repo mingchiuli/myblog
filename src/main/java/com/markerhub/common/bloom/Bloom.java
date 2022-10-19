@@ -1,5 +1,7 @@
 package com.markerhub.common.bloom;
 
+import com.markerhub.common.bloom.handler.BloomHandler;
+
 import java.lang.annotation.*;
 
 /**
@@ -10,5 +12,5 @@ import java.lang.annotation.*;
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 public @interface Bloom {
-    BloomEnum name();
+    Class<?> name();
 }

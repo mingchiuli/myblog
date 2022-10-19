@@ -63,12 +63,12 @@ public class BloomAspect {
         Method method = jp.getSignature().getDeclaringType().getMethod(methodName, classes);
 
         Bloom bloom = method.getAnnotation(Bloom.class);
-        BloomEnum name = bloom.name();
+        Class<?> aClass = bloom.name();
 
         for (BloomHandler handler : CacheHandlers.cacheHandlers.values()) {
-            if (handler.mark().equals(name)) {
+            if (handler.supports(aClass)) {
                 try {
-                    handler.doHand(args);
+                    handler.handler(args);
                 } catch (RuntimeException e) {
                     log.info(e.toString());
                 }
