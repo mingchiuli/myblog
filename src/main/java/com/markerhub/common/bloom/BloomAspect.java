@@ -69,6 +69,7 @@ public class BloomAspect {
             if (handler.supports(aClass)) {
                 try {
                     handler.handler(args);
+                    break;
                 } catch (RuntimeException e) {
                     log.info(e.toString());
                 }
