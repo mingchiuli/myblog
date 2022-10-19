@@ -3,8 +3,6 @@ package com.markerhub.common.bloom;
 import com.markerhub.common.bloom.handler.BloomHandler;
 import com.markerhub.service.BlogService;
 import com.markerhub.utils.SpringUtils;
-import io.lettuce.core.RedisCommandTimeoutException;
-import io.lettuce.core.RedisConnectionException;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.JoinPoint;
@@ -15,7 +13,6 @@ import org.aspectj.lang.annotation.Pointcut;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.NestedRuntimeException;
 import org.springframework.core.annotation.Order;
-import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 import java.lang.reflect.Method;
@@ -75,7 +72,7 @@ public class BloomAspect {
                     handler.handle(args);
                     break;
                 } catch (NestedRuntimeException e) {
-                    log.info(e.toString());
+                    log.error(e.toString());
                 }
             }
         }
