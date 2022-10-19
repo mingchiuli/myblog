@@ -11,6 +11,7 @@ import org.springframework.security.config.annotation.authentication.configurati
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
@@ -37,6 +38,13 @@ public class SecurityConfig {
     UserService sysUserService;
 
     AuthenticationConfiguration authenticationConfiguration;
+
+    UserDetailsService userDetailsService;
+
+    @Autowired
+    public void setUserDetailsService(UserDetailsService userDetailsService) {
+        this.userDetailsService = userDetailsService;
+    }
 
     @Autowired
     public void setAuthenticationConfiguration(AuthenticationConfiguration authenticationConfiguration) {
@@ -143,7 +151,7 @@ public class SecurityConfig {
                 .addFilter(jwtAuthenticationFilter())
                 .addFilterBefore(captchaFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(jwtAuthenticationFilter(), LogoutFilter.class)
-                .userDetailsService(new UserDetailServiceImpl(redisTemplate, sysUserService));
+                .userDetailsService(userDetailsService);
 
         return http.build();
 

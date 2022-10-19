@@ -13,19 +13,26 @@ import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
 import java.util.List;
 
+@Component
 public class UserDetailServiceImpl implements UserDetailsService {
 
 	RedisTemplate<String, Object> redisTemplate;
 
 	UserService sysUserService;
 
-	public UserDetailServiceImpl(RedisTemplate<String, Object> redisTemplate, UserService sysUserService) {
+	@Autowired
+	public void setRedisTemplate(RedisTemplate<String, Object> redisTemplate) {
 		this.redisTemplate = redisTemplate;
+	}
+
+	@Autowired
+	public void setSysUserService(UserService sysUserService) {
 		this.sysUserService = sysUserService;
 	}
 
