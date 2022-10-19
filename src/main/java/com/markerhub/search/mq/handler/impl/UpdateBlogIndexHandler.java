@@ -75,7 +75,7 @@ public class UpdateBlogIndexHandler implements BlogIndexHandler {
 
         if (Boolean.TRUE.equals(redisTemplate.hasKey(Const.CONSUME_MONITOR + updateUUID))) {
             Long updateId = message.getPostId();
-            BlogEntity blogExisted = blogService.getById(updateId);
+            BlogEntity blog = blogService.getById(updateId);
 
                     /*
                      Redis流程
@@ -86,7 +86,6 @@ public class UpdateBlogIndexHandler implements BlogIndexHandler {
             redisTemplate.delete(contentPrefix);
 
             //删除博客所在页的缓存
-            BlogEntity blog = blogMapper.selectById(updateId);
             //年份
             int year = blog.getCreated().getYear();
             /*
@@ -118,7 +117,7 @@ public class UpdateBlogIndexHandler implements BlogIndexHandler {
              * ES流程
              */
 
-            BlogPostDocument postDocument = MyUtils.blogToDocument(blogExisted);
+            BlogPostDocument postDocument = MyUtils.blogToDocument(blog);
 
             String obj = objectMapper.writeValueAsString(postDocument);
             Document document = Document.parse(obj);

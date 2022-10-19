@@ -141,6 +141,7 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, BlogEntity> impleme
     }
 
     @Override
+    @Transactional
     public boolean recover(BlogEntity blog) {
         return blogMapper.recover(blog);
     }
@@ -419,7 +420,6 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, BlogEntity> impleme
     }
 
     @Override
-    @Transactional
     public void recoverBlog(Long id, Long userId) {
         String key = userId + Const.QUERY_DELETED + id;
         LinkedHashMap<String, Object> value = (LinkedHashMap<String, Object>) redisTemplate.opsForValue().get(key);
@@ -456,7 +456,6 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, BlogEntity> impleme
     }
 
     @Override
-    @Transactional
     public void changeBlogStatus(Long id, Integer status) {
         BlogEntity blog = getById(id);
         blog.setStatus(status);
@@ -524,39 +523,32 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, BlogEntity> impleme
     }
 
     @Override
-    @Transactional
     public void deleteBlogs(Long[] ids) {
         ArrayList<Long> idList = new ArrayList<>(List.of(ids));
+        List<BlogEntity> blogEntities = listByIds(idList);
+        boolean b = removeByIds(idList);
+        log.info("数据库批量删除博客结果:{}", b);
 
-        idList.forEach(id -> {
-            BlogEntity blog = getById(id);
-            //删除文章
-            boolean remove = removeById(id);
-
-            log.info("数据库删除{}号博客结果:{}", id, remove);
-
-            Assert.isTrue(remove, "删除失败");
-
+        blogEntities.forEach(blogEntity -> {
             //更改bloomFilter
-            redisTemplate.opsForValue().setBit(Const.BLOOM_FILTER_BLOG, blog.getId(), false);
-
+            redisTemplate.opsForValue().setBit(Const.BLOOM_FILTER_BLOG, blogEntity.getId(), false);
             redisTemplate.execute(new SessionCallback<>() {
                 @Override
-                public Object execute(@NonNull RedisOperations operations) throws DataAccessException {
+                public List<Object> execute(@NonNull RedisOperations operations) throws DataAccessException {
                     operations.multi();
-                    operations.opsForHash().delete(Const.READ_SUM, id.toString());
-                    operations.delete(Const.READ_RECENT + id);
-                    operations.opsForValue().set(blog.getUserId() + Const.QUERY_DELETED + id, blog, 7 * 24 * 60, TimeUnit.MINUTES);
-                    operations.exec();
-                    return null;
+                    operations.opsForHash().delete(Const.READ_SUM, blogEntity.getId().toString());
+                    operations.delete(Const.READ_RECENT + blogEntity.getId());
+                    operations.opsForValue().set(blogEntity.getUserId() + Const.QUERY_DELETED + blogEntity.getId(), blogEntity, 7 * 24 * 60, TimeUnit.MINUTES);
+                    return operations.exec();
                 }
             });
+
 
             /*
              * 直接删除对应的文件夹，提高效率
              */
 
-            String createdTime = blog.getCreated().toString();
+            String createdTime = blogEntity.getCreated().toString();
             String created = createdTime
                     .replaceAll("-", "")
                     .replaceAll("T", "")
@@ -569,12 +561,12 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, BlogEntity> impleme
             //通知消息给mq,更新并删除缓存
             CorrelationData correlationData = new CorrelationData();
             //防止重复消费
-            redisTemplate.opsForValue().set(Const.CONSUME_MONITOR + correlationData.getId(), BlogIndexEnum.REMOVE.name() + "_" + id, 30, TimeUnit.MINUTES);
+            redisTemplate.opsForValue().set(Const.CONSUME_MONITOR + correlationData.getId(), BlogIndexEnum.REMOVE.name() + "_" +  blogEntity.getId(), 30, TimeUnit.MINUTES);
 
             rabbitTemplate.convertAndSend(
                     RabbitConfig.ES_EXCHANGE,
                     RabbitConfig.ES_BINDING_KEY,
-                    new PostMQIndexMessage(id, BlogIndexEnum.REMOVE), correlationData);
+                    new PostMQIndexMessage(blogEntity.getId(), BlogIndexEnum.REMOVE), correlationData);
         });
     }
 

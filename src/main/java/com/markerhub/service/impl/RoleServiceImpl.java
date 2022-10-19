@@ -68,7 +68,7 @@ public class RoleServiceImpl extends ServiceImpl<RoleMapper, RoleEntity>
     public void deleteRole(Long[] ids) {
         removeByIds(List.of(ids));
         // 删除中间表
-        roleMenuService.remove(new QueryWrapper<RoleMenuEntity>().in("role_id",  ids));
+        roleMenuService.remove(new QueryWrapper<RoleMenuEntity>().in("role_id", (Object) ids));
     }
 
     @Override

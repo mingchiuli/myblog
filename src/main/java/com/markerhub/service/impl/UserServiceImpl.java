@@ -47,7 +47,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserEntity> impleme
     BCryptPasswordEncoder bCryptPasswordEncoder;
 
     @Autowired
-    @Lazy
     public void setBCryptPasswordEncoder(BCryptPasswordEncoder bCryptPasswordEncoder) {
         this.bCryptPasswordEncoder = bCryptPasswordEncoder;
     }
@@ -160,11 +159,13 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserEntity> impleme
     @Override
     public void roleKick(Long id) {
         //先进行锁定
-        String username = getOne(new QueryWrapper<UserEntity>().select("username").eq("id", id)).getUsername();
-        boolean update = update(new UpdateWrapper<UserEntity>().eq("id", id).set("status", 1).set("role", ""));
+        UserEntity user = getById(id);
+        user.setStatus(1);
+        user.setRole("");
+        boolean update = saveOrUpdate(user);
         log.info("锁定账号{}结果:{}", id, update);
         Assert.isTrue(update, "锁定失败");
-        redisTemplate.delete(prefix +  username);
+        redisTemplate.delete(prefix +  user.getUsername());
     }
 
     @Override
