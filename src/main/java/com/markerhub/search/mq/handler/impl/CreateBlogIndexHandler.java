@@ -62,17 +62,14 @@ public class CreateBlogIndexHandler implements BlogIndexHandler {
         this.elasticsearchRestTemplate = elasticsearchRestTemplate;
     }
 
-
-
-
     @Override
-    public BlogIndexEnum methodName() {
-        return BlogIndexEnum.CREATE;
+    public boolean supports(BlogIndexEnum blogIndexEnum) {
+        return BlogIndexEnum.CREATE.equals(blogIndexEnum);
     }
 
     @Override
     @SneakyThrows
-    public void doHand(PostMQIndexMessage message, Channel channel, Message msg) {
+    public void handle(PostMQIndexMessage message, Channel channel, Message msg) {
         String createUUID = msg.getMessageProperties().getHeader("spring_returned_message_correlation");
         if (Boolean.TRUE.equals(redisTemplate.hasKey(Const.CONSUME_MONITOR + createUUID))) {
             Long createId = message.getPostId();

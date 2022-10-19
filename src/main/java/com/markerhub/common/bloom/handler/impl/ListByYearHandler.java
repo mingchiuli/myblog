@@ -22,7 +22,7 @@ public class ListByYearHandler implements BloomHandler {
     }
 
     @Override
-    public void handler(Object[] args) {
+    public void handle(Object[] args) {
         Integer currentPage = (Integer) args[0];
         Integer yearMark = (Integer) args[1];
         if (Boolean.FALSE.equals(redisTemplate.opsForValue().getBit(Const.BLOOM_FILTER_PAGE + yearMark, currentPage))) {

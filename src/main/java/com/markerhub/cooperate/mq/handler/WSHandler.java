@@ -4,5 +4,5 @@ import com.markerhub.cooperate.dto.MessageDto;
 
 public interface WSHandler {
     boolean supports(MessageDto msg);
-    void handler(MessageDto msg);
+    void handle(MessageDto msg);
 }

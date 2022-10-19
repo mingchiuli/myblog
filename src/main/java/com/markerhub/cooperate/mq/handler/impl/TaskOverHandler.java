@@ -23,7 +23,7 @@ public class TaskOverHandler implements WSHandler {
     }
 
     @Override
-    public void handler(MessageDto msg) {
+    public void handle(MessageDto msg) {
         Container<String> containerV2 = msg.getData();
         String from = containerV2.getData();
         simpMessagingTemplate.convertAndSend("/topic/over", from);

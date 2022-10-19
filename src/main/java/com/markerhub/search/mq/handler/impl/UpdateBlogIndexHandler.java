@@ -64,13 +64,13 @@ public class UpdateBlogIndexHandler implements BlogIndexHandler {
     }
 
     @Override
-    public BlogIndexEnum methodName() {
-        return BlogIndexEnum.UPDATE;
+    public boolean supports(BlogIndexEnum blogIndexEnum) {
+        return BlogIndexEnum.UPDATE.equals(blogIndexEnum);
     }
 
     @Override
     @SneakyThrows
-    public void doHand(PostMQIndexMessage message, Channel channel, Message msg) {
+    public void handle(PostMQIndexMessage message, Channel channel, Message msg) {
         String updateUUID = msg.getMessageProperties().getHeader("spring_returned_message_correlation");
 
         if (Boolean.TRUE.equals(redisTemplate.hasKey(Const.CONSUME_MONITOR + updateUUID))) {

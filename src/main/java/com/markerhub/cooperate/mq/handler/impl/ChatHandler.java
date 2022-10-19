@@ -24,7 +24,7 @@ public class ChatHandler implements WSHandler {
     }
 
     @Override
-    public void handler(MessageDto msg) {
+    public void handle(MessageDto msg) {
         Container<ChatDto.Message> containerV4 = msg.getData();
         ChatDto.Message message = containerV4.getData();
         String id = message.getBlogId();

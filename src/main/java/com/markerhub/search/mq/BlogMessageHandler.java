@@ -27,8 +27,8 @@ public class BlogMessageHandler {
     @RabbitHandler
     public void handler(PostMQIndexMessage message, Channel channel, Message msg) {
         for (BlogIndexHandler handler : CacheHandlers.cacheHandlers.values()) {
-            if (handler.methodName().equals(message.typeEnum)) {
-                handler.doHand(message, channel, msg);
+            if (handler.supports(message.typeEnum)) {
+                handler.handle(message, channel, msg);
                 break;
             }
         }

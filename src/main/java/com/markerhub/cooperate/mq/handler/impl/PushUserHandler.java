@@ -25,7 +25,7 @@ public class PushUserHandler implements WSHandler {
     }
 
     @Override
-    public void handler(MessageDto msg) {
+    public void handle(MessageDto msg) {
         Container<PushUserDto.Bind> containerV1 = msg.getData();
         PushUserDto.Bind dataV1 = containerV1.getData();
         String blogIdV1 = dataV1.getBlogId();

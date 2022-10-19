@@ -6,7 +6,6 @@ import com.rabbitmq.client.Channel;
 import org.springframework.amqp.core.Message;
 
 public interface BlogIndexHandler {
-    BlogIndexEnum methodName();
-
-    void doHand(PostMQIndexMessage message, Channel channel, Message msg);
+    boolean supports(BlogIndexEnum blogIndexEnum);
+    void handle(PostMQIndexMessage message, Channel channel, Message msg);
 }

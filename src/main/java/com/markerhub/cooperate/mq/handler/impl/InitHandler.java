@@ -8,7 +8,6 @@ import com.markerhub.cooperate.mq.handler.WSHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Component;
-
 import java.util.ArrayList;
 
 @Component
@@ -27,7 +26,7 @@ public class InitHandler implements WSHandler {
     }
 
     @Override
-    public void handler(MessageDto msg) {
+    public void handle(MessageDto msg) {
         Container<InitDto.Bind> containerV1 = msg.getData();
         InitDto.Bind dataV1 = containerV1.getData();
         String blogIdV1 = dataV1.getBlogId();

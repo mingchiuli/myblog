@@ -61,7 +61,7 @@ public class WSMessageHandler {
     public void processMessage(MessageDto msg) {
         for (WSHandler handler : CacheHandlers.cacheHandlers.values()) {
             if (handler.supports(msg)) {
-                handler.handler(msg);
+                handler.handle(msg);
                 break;
             }
         }

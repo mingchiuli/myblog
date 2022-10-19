@@ -68,7 +68,7 @@ public class BloomAspect {
         for (BloomHandler handler : CacheHandlers.cacheHandlers.values()) {
             if (handler.supports(aClass)) {
                 try {
-                    handler.handler(args);
+                    handler.handle(args);
                     break;
                 } catch (RuntimeException e) {
                     log.info(e.toString());

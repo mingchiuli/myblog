@@ -23,7 +23,7 @@ public class DetailHandler implements BloomHandler {
     }
 
     @Override
-    public void handler(Object[] args) {
+    public void handle(Object[] args) {
         Long blogId = (Long) args[0];
         if (Boolean.FALSE.equals(redisTemplate.opsForValue().getBit(Const.BLOOM_FILTER_BLOG, blogId))) {
             throw new NoFoundException("没有"+ blogId + "号博客！");
