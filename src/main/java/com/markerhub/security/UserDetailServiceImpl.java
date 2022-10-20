@@ -1,8 +1,6 @@
 package com.markerhub.security;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.markerhub.common.exception.AuthenticationException;
-import com.markerhub.common.lang.Const;
 import com.markerhub.entity.UserEntity;
 import com.markerhub.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,9 +12,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
-import org.springframework.stereotype.Service;
-
-import java.util.Arrays;
 import java.util.List;
 
 @Component

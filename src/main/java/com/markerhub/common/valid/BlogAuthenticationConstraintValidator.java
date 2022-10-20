@@ -1,7 +1,6 @@
 package com.markerhub.common.valid;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.markerhub.common.exception.AuthenticationException;
 import com.markerhub.entity.BlogEntity;
 import com.markerhub.service.BlogService;
 import org.springframework.beans.factory.annotation.Autowired;

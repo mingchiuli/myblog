@@ -15,8 +15,12 @@ import java.nio.charset.StandardCharsets;
 @Component
 public class LoginFailureHandler implements AuthenticationFailureHandler {
 
-	@Autowired
 	ObjectMapper objectMapper;
+
+	@Autowired
+	public void setObjectMapper(ObjectMapper objectMapper) {
+		this.objectMapper = objectMapper;
+	}
 
 	@Override
 	public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response, AuthenticationException exception) throws IOException {

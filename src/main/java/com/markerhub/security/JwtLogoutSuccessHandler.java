@@ -1,7 +1,6 @@
 package com.markerhub.security;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.markerhub.common.lang.Const;
 import com.markerhub.common.lang.Result;
 import com.markerhub.utils.JwtUtils;
 import org.springframework.beans.factory.annotation.Autowired;

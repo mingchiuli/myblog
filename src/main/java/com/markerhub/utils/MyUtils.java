@@ -8,20 +8,14 @@ import com.markerhub.common.vo.BlogEntityVo;
 import com.markerhub.entity.BlogEntity;
 import com.markerhub.entity.UserEntity;
 import com.markerhub.search.model.BlogPostDocument;
-import com.markerhub.service.BlogService;
 import com.markerhub.service.UserService;
 import com.markerhub.cooperate.dto.Container;
 import io.jsonwebtoken.Claims;
 import lombok.SneakyThrows;
 import org.springframework.beans.BeanUtils;
-import org.springframework.dao.DataAccessException;
 import org.springframework.data.elasticsearch.core.SearchHit;
 import org.springframework.data.elasticsearch.core.SearchHits;
-import org.springframework.data.redis.core.RedisOperations;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.core.SessionCallback;
-import org.springframework.lang.NonNull;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.util.StringUtils;
 import javax.servlet.http.HttpServletRequest;
@@ -32,7 +26,6 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.*;
-import java.util.concurrent.TimeUnit;
 
 
 /**

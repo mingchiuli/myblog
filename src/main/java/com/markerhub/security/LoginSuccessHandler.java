@@ -8,7 +8,6 @@ import com.markerhub.common.lang.Result;
 import com.markerhub.entity.UserEntity;
 import com.markerhub.service.UserService;
 import com.markerhub.utils.JwtUtils;
-import com.markerhub.utils.MyUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
