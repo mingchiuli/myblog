@@ -103,6 +103,10 @@ public class RemoveBlogIndexHandler implements BlogIndexHandler {
             redisTemplate.execute(new DefaultRedisScript<>(luaContentScript, Long.class), list);
             redisTemplate.execute(new DefaultRedisScript<>(luaStatusScript, Long.class), list);
 
+            redisTemplate.opsForValue().setBit(Const.BLOOM_FILTER_BLOG, deleteId, false);
+            redisTemplate.delete(Const.READ_RECENT + deleteId);
+
+
             Set<String> keys = redisTemplate.keys(Const.HOT_BLOGS_PREFIX);
 
             if (keys != null) {
