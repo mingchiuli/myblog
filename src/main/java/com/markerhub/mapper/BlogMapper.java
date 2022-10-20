@@ -32,4 +32,6 @@ public interface BlogMapper extends BaseMapper<BlogEntity> {
 
     List<Integer> searchYears();
 
+    boolean setReadSum(Long id);
+
 }

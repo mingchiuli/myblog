@@ -50,4 +50,6 @@ public class BlogEntity implements Serializable {
     private Integer status;
 
     private String link;
+
+    private Long readCount;
 }

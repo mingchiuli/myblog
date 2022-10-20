@@ -34,4 +34,14 @@ public class ThreadPoolConfig {
                 Executors.defaultThreadFactory(),
                 new ThreadPoolExecutor.AbortPolicy());
     }
+
+    @Bean("readCountThreadPoolExecutor")
+    public ThreadPoolExecutor readCountThreadPoolExecutor(com.markerhub.config.ThreadPoolConfigProperties pool) {
+        return new ThreadPoolExecutor(pool.getCoreSize(),
+                pool.getMaxSize(),
+                pool.getKeepAliveTime(), TimeUnit.SECONDS,
+                new LinkedBlockingDeque<>(1000),
+                Executors.defaultThreadFactory(),
+                new ThreadPoolExecutor.AbortPolicy());
+    }
 }

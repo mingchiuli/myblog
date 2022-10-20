@@ -10,7 +10,7 @@ public class Const {
 
     public final static String TOKEN = "token";
 
-    public final static String READ_SUM = "blogsReadSum";
+//    public final static String READ_SUM = "blogsReadSum";
 
     public final static String READ_RECENT = "blogReadRecent:";
 

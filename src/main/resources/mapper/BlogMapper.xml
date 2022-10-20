@@ -3,9 +3,13 @@
 <mapper namespace="com.markerhub.mapper.BlogMapper">
 
     <insert id="recover" parameterType="com.markerhub.entity.BlogEntity">
-        insert into vueblog.m_blog(id, user_id, title, description, content, created, status, link) values
-                                  (#{id}, #{userId}, #{title}, #{description}, #{content}, #{created}, #{status}, #{link})
+        insert into vueblog.m_blog(id, user_id, title, description, content, created, status, link, read_count) values
+                                  (#{id}, #{userId}, #{title}, #{description}, #{content}, #{created}, #{status}, #{link}, #{readCount})
     </insert>
+
+    <update id="setReadSum">
+        update m_blog set read_count = read_count + 1 where id = #{id}
+    </update>
 
 
     <select id="getYearCount" resultType="java.lang.Integer">
@@ -14,13 +18,13 @@
 
 
     <select id="queryAllBlogs" resultType="com.markerhub.common.vo.BlogEntityVo">
-        select mb.id, username, title, description, content, mb.created, mb.status from vueblog.m_blog mb
+        select mb.id, username, title, description, content, mb.created, mb.status, mb.read_count from vueblog.m_blog mb
             left join vueblog.m_user mu on mb.user_id = mu.id order by created desc ;
     </select>
 
 
     <select id="queryBlogs" resultType="com.markerhub.entity.BlogEntity">
-        select mb.id, username, title, description, content, mb.created, mb.status from vueblog.m_blog mb
+        select mb.id, username, title, description, content, mb.created, mb.status, mb.read_count from vueblog.m_blog mb
             left join vueblog.m_user mu on mb.user_id = mu.id where title like concat('%', #{title}, '%') order by created desc;
     </select>
     <select id="getPageCount" resultType="java.lang.Integer">

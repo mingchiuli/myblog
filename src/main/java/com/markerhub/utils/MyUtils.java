@@ -8,6 +8,7 @@ import com.markerhub.common.vo.BlogEntityVo;
 import com.markerhub.entity.BlogEntity;
 import com.markerhub.entity.UserEntity;
 import com.markerhub.search.model.BlogPostDocument;
+import com.markerhub.service.BlogService;
 import com.markerhub.service.UserService;
 import com.markerhub.cooperate.dto.Container;
 import io.jsonwebtoken.Claims;
@@ -20,6 +21,7 @@ import org.springframework.data.redis.core.RedisOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.SessionCallback;
 import org.springframework.lang.NonNull;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.util.StringUtils;
 import javax.servlet.http.HttpServletRequest;
@@ -57,38 +59,6 @@ public class MyUtils {
     }
 
     /**
-     * 设置文章阅读量数据
-     * @param id
-     */
-    public static void setReadCount(Long id) {
-
-        RedisTemplate<String, Object> redisTemplate = SpringUtils.getBean(RedisTemplate.class);
-
-        redisTemplate.opsForHash().increment(Const.READ_SUM, String.valueOf(id) , 1);
-
-        Object recentRead = redisTemplate.opsForValue().get(Const.READ_RECENT + id);
-
-        if (recentRead == null) {
-            redisTemplate.opsForValue().set(Const.READ_RECENT + id, 1, 7, TimeUnit.DAYS);
-        } else {
-            redisTemplate.opsForValue().increment(Const.READ_RECENT + id, 1);
-        }
-
-    }
-
-
-    //    redisTemplate.execute(new SessionCallback<>() {
-//        @Override
-//        public List<Object> execute(@NonNull RedisOperations operations) throws DataAccessException {
-//            operations.multi();
-//            operations.opsForHash().putAll(Const.USER_PREFIX + user.getUsername(), map);
-//            operations.expire(Const.USER_PREFIX + user.getUsername(), time, TimeUnit.SECONDS);
-//            return operations.exec();
-//        }
-//    });
-
-
-    /**
      * 将ES搜索完成的对象转化为mybatis-plus的page对象
      * @param hits 命中
      * @param currentPage 页码
@@ -117,20 +87,14 @@ public class MyUtils {
 
         for (SearchHit<T> hit : hits.getSearchHits()) {
             E instance = kClass.getDeclaredConstructor().newInstance();
-
             BeanUtils.copyProperties(hit.getContent(), instance);
-
             Map<String, List<String>> highlightFields = hit.getHighlightFields();
-
             StringBuilder sb = new StringBuilder();
-
             highlightFields.forEach((key, value) -> sb.append(value));
-
             Method setMethod =  instance.getClass().getMethod("setScore", Float.class);
             setMethod.invoke(instance, hit.getScore());
             Method setHighlight =  instance.getClass().getMethod("setHighlight", String.class);
             setHighlight.invoke(instance, sb.toString());
-
             list.add(instance);
         }
 
@@ -138,7 +102,6 @@ public class MyUtils {
 
         page.setRecords(list);
         page.setTotal(total);
-
         return page;
     }
 
@@ -150,24 +113,18 @@ public class MyUtils {
     public static void setRead(Page<BlogEntityVo> page) {
 
         RedisTemplate<String, Object> redisTemplate = SpringUtils.getBean(RedisTemplate.class);
-
         List<BlogEntityVo> blogs = page.getRecords();
-        ArrayList<Object> ids = new ArrayList<>();
-
-        for(BlogEntityVo blog : blogs) {
-            ids.add(blog.getId().toString());
-        }
+//        ArrayList<Object> ids = new ArrayList<>();
+//
+//        for(BlogEntityVo blog : blogs) {
+//            ids.add(blog.getId().toString());
+//        }
 
         //为数据设置7日阅读和总阅读数
-        List<Object> listSum = redisTemplate.opsForHash().multiGet(Const.READ_SUM, ids);
-
-        for (int i = 0; i < blogs.size(); i++) {
-            BlogEntityVo blog = blogs.get(i);
-            if (listSum.get(i) != null) {
-                blog.setReadSum((Integer) listSum.get(i));
-                Integer recentNum = (Integer) redisTemplate.opsForValue().get(Const.READ_RECENT + blog.getId());
-                blog.setReadRecent(Objects.requireNonNullElse(recentNum, 0));
-            }
+//        List<Object> listSum = redisTemplate.opsForHash().multiGet(Const.READ_SUM, ids);
+        for (BlogEntityVo blog : blogs) {
+            Integer recentNum = (Integer) redisTemplate.opsForValue().get(Const.READ_RECENT + blog.getId());
+            blog.setReadRecent(Objects.requireNonNullElse(recentNum, 0));
         }
 
         page.setRecords(blogs);
@@ -237,7 +194,7 @@ public class MyUtils {
 
     public static BlogPostDocument blogToDocument(BlogEntity blog) {
         BlogPostDocument blogPostDocument = new BlogPostDocument();
-        BeanUtils.copyProperties(blog, blogPostDocument, "username", "readSum", "readRecent", "created");
+        BeanUtils.copyProperties(blog, blogPostDocument,  "readCount", "created");
 
         //ES中保存的时间是格林尼治标准时间，如果直接存入ES，用kibana分析的时候会自动加8小时
         blogPostDocument.setCreated(ZonedDateTime.of(blog.getCreated(), ZoneId.of("Asia/Shanghai")));
@@ -255,12 +212,12 @@ public class MyUtils {
     }
 
     public static void initBlog(BlogEntity blog) {
-
         UserService userService = SpringUtils.getBean(UserService.class);
         UserEntity user = userService.getOne(new QueryWrapper<UserEntity>().select("id").eq("username", SecurityContextHolder.getContext().getAuthentication().getName()));
         blog.setUserId(user.getId());
         blog.setCreated(LocalDateTime.now());
         blog.setStatus(0);
+        blog.setReadCount(0L);
         blog.setTitle("每天都有好心情");
         blog.setDescription("");
         blog.setContent("");

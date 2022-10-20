@@ -22,6 +22,7 @@ import org.springframework.stereotype.Component;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 @Component
 @Slf4j
@@ -108,6 +109,9 @@ public class CreateBlogIndexHandler implements BlogIndexHandler {
             if (keys != null) {
                 redisTemplate.unlink(keys);
             }
+
+            redisTemplate.opsForValue().setBit(Const.BLOOM_FILTER_BLOG, newBlog.getId(), true);
+            redisTemplate.opsForValue().set(Const.READ_RECENT + newBlog.getId(), 0, 7, TimeUnit.DAYS);
 
             //年份过滤bloom更新
             int year = newBlog.getCreated().getYear();

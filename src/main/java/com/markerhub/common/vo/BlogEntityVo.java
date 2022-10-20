@@ -14,10 +14,7 @@ import java.io.Serializable;
 @EqualsAndHashCode(callSuper=true)
 public class BlogEntityVo extends BlogEntity implements Serializable {
 
-    private Integer readSum;
-
     private Integer readRecent;
-
     //文章对应的用户名字
     private String username;
 }

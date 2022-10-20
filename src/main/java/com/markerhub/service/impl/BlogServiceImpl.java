@@ -19,6 +19,7 @@ import com.markerhub.service.BlogService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.markerhub.service.UserService;
 import com.markerhub.utils.MyUtils;
+import com.markerhub.utils.SpringUtils;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.elasticsearch.index.query.MultiMatchQueryBuilder;
@@ -32,6 +33,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.NestedRuntimeException;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.elasticsearch.core.ElasticsearchRestTemplate;
@@ -42,6 +44,7 @@ import org.springframework.data.redis.core.RedisOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.SessionCallback;
 import org.springframework.lang.NonNull;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -168,7 +171,7 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, BlogEntity> impleme
     public BlogEntity getBlogDetail(Long id) {
         BlogEntity blog = getOne(new QueryWrapper<BlogEntity>().eq("id", id).eq("status", 0));
         Assert.notNull(blog, "该博客不存在");
-        MyUtils.setReadCount(id);
+        setReadCount(id);
         return blog;
     }
 
@@ -176,7 +179,7 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, BlogEntity> impleme
     public BlogEntity getAuthorizedBlogDetail(Long id) {
         BlogEntity blog = getById(id);
         Assert.notNull(blog, "该博客不存在");
-        MyUtils.setReadCount(id);
+        setReadCount(id);
         return blog;
     }
 
@@ -325,7 +328,7 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, BlogEntity> impleme
         // 只能编辑自己的文章
         Assert.isTrue(Objects.equals(user.getUsername(), SecurityContextHolder.getContext().getAuthentication().getName()), "没有权限编辑");
 
-        BeanUtils.copyProperties(blog, temp, "id", "userId", "created");
+        BeanUtils.copyProperties(blog, temp, "id", "userId", "created", "readCount");
         boolean update = saveOrUpdate(temp);
 
         log.info("数据库更新{}号博客结果:{}", blog.getId(), update);
@@ -354,16 +357,6 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, BlogEntity> impleme
 
         log.info("初始化博客结果:{}", add);
         Assert.isTrue(add, "初始化博客失败");
-
-        //设置bloomFilter
-        redisTemplate.opsForValue().setBit(Const.BLOOM_FILTER_BLOG, blog.getId(), true);
-
-        //删除缓存
-        Set<String> keys = redisTemplate.keys(Const.HOT_BLOGS_PREFIX);
-
-        if (keys != null) {
-            redisTemplate.unlink(keys);
-        }
 
         //通知消息给mq，创建
         //防止重复消费
@@ -437,9 +430,6 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, BlogEntity> impleme
         log.info("恢复{}号日志结果:{}", id, recover);
 
         Assert.isTrue(recover, "恢复失败");
-
-        //设置bloomFilter
-        redisTemplate.opsForValue().setBit(Const.BLOOM_FILTER_BLOG, blog.getId(), true);
 
         redisTemplate.delete(key);
 
@@ -536,7 +526,6 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, BlogEntity> impleme
                 @Override
                 public List<Object> execute(@NonNull RedisOperations operations) throws DataAccessException {
                     operations.multi();
-                    operations.opsForHash().delete(Const.READ_SUM, blogEntity.getId().toString());
                     operations.delete(Const.READ_RECENT + blogEntity.getId());
                     operations.opsForValue().set(blogEntity.getUserId() + Const.QUERY_DELETED + blogEntity.getId(), blogEntity, 7 * 24 * 60, TimeUnit.MINUTES);
                     return operations.exec();
@@ -596,6 +585,29 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, BlogEntity> impleme
             out[i] = in.get(i);
         }
         return out;
+    }
+
+    @Override
+    public boolean setReadSum(Long id) {
+        return blogMapper.setReadSum(id);
+    }
+
+    @Async(value = "readCountThreadPoolExecutor")
+    public void setReadCount(Long id) {
+        setReadSum(id);
+        try {
+            redisTemplate.execute(new SessionCallback<>() {
+                @Override
+                public List<Object> execute(@NonNull RedisOperations operations) throws DataAccessException {
+                    operations.multi();
+                    operations.opsForValue().setIfAbsent(Const.READ_RECENT + id, 0, 7, TimeUnit.DAYS);
+                    operations.opsForValue().increment(Const.READ_RECENT + id, 1);
+                    return operations.exec();
+                }
+            });
+        } catch (NestedRuntimeException e) {
+            log.error(e.getMessage());
+        }
     }
 
 }
