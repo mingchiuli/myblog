@@ -82,7 +82,7 @@ public class UpdateBlogIndexHandler implements BlogIndexHandler {
                      */
             //删除博客的缓存（不用lua脚本也行，delete返回值是一个Long，加锁博客缓存中不存在也可以删）
             String builder = "::" + updateId;
-            String contentPrefix = Const.HOT_BLOG + "::BlogController::detail" + builder;
+            String contentPrefix = Const.HOT_BLOG + "::BlogServiceImpl::getBlogDetail" + builder;
             redisTemplate.delete(contentPrefix);
 
             //删除博客所在页的缓存

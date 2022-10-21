@@ -81,7 +81,7 @@ public class RemoveBlogIndexHandler implements BlogIndexHandler {
             builder.append("::");
             builder.append(deleteId);
 
-            String contentPrefix = Const.HOT_BLOG + "::BlogController::detail" + builder;
+            String contentPrefix = Const.HOT_BLOG + "::BlogServiceImpl::getBlogDetail" + builder;
             String statusPrefix = Const.BLOG_STATUS + "::BlogController::getBlogStatus" + builder;
 
             ArrayList<String> list = new ArrayList<>();

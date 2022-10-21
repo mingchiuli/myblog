@@ -1,9 +1,9 @@
 package com.markerhub.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.markerhub.common.cache.Cache;
 import com.markerhub.common.lang.Const;
 import com.markerhub.common.vo.BlogPostDocumentVo;
 import com.markerhub.common.vo.BlogEntityVo;
@@ -19,7 +19,6 @@ import com.markerhub.service.BlogService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.markerhub.service.UserService;
 import com.markerhub.utils.MyUtils;
-import com.markerhub.utils.SpringUtils;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.elasticsearch.index.query.MultiMatchQueryBuilder;
@@ -168,11 +167,9 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, BlogEntity> impleme
     }
 
     @Override
+    @Cache(name = Const.HOT_BLOG)
     public BlogEntity getBlogDetail(Long id) {
-        BlogEntity blog = getOne(new QueryWrapper<BlogEntity>().eq("id", id).eq("status", 0));
-        Assert.notNull(blog, "该博客不存在");
-        setReadCount(id);
-        return blog;
+        return getOne(new QueryWrapper<BlogEntity>().eq("id", id).eq("status", 0));
     }
 
     @Override
@@ -587,12 +584,12 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, BlogEntity> impleme
         return out;
     }
 
-    @Override
-    public boolean setReadSum(Long id) {
-        return blogMapper.setReadSum(id);
+    private void setReadSum(Long id) {
+        blogMapper.setReadSum(id);
     }
 
     @Async(value = "readCountThreadPoolExecutor")
+    @Override
     public void setReadCount(Long id) {
         setReadSum(id);
         try {

@@ -197,10 +197,10 @@ public class BlogController {
      */
 
     @GetMapping("/blog/{id}")
-    @Cache(name = Const.HOT_BLOG)
     @Bloom(name = DetailHandler.class)
     public Result detail(@PathVariable(name = "id") @BlogAuthentication Long id) {
         BlogEntity blog = blogService.getBlogDetail(id);
+        blogService.setReadCount(id);
         return Result.succ(blog);
     }
 

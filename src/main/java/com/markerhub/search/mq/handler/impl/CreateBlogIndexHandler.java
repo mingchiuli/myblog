@@ -82,7 +82,7 @@ public class CreateBlogIndexHandler implements BlogIndexHandler {
             StringBuilder builder = new StringBuilder();
             builder.append("::");
             builder.append(createId);
-            String contentPrefix = Const.HOT_BLOG + "::BlogController::detail" + builder;
+            String contentPrefix = Const.HOT_BLOG + "::BlogServiceImpl::getBlogDetail" + builder;
             String statusPrefix = Const.BLOG_STATUS + "::BlogController::getBlogStatus" + builder;
 
             ArrayList<String> list = new ArrayList<>();

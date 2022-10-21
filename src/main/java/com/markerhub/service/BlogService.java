@@ -59,5 +59,5 @@ public interface BlogService extends IService<BlogEntity> {
 
     int[] searchYears();
 
-    boolean setReadSum(Long id);
+    void setReadCount(Long id);
 }

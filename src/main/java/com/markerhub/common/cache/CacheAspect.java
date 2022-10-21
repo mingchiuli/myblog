@@ -2,6 +2,8 @@ package com.markerhub.common.cache;
 
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.markerhub.common.lang.Const;
+import com.markerhub.service.BlogService;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
@@ -33,6 +35,13 @@ import java.util.concurrent.TimeUnit;
 public class CacheAspect {
 
     private static final String LOCK = "lock:";
+
+    BlogService blogService;
+
+    @Autowired
+    public void setBlogService(BlogService blogService) {
+        this.blogService = blogService;
+    }
 
     RedisTemplate<String, Object> redisTemplate;
 
