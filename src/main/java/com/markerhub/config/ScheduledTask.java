@@ -71,7 +71,7 @@ public class ScheduledTask {
                 String statusPrefix = Const.BLOG_STATUS + "::BlogController::getBlogStatus" + builder;
 
 
-                redisTemplate.opsForValue().set(contentPrefix, Result.succ(blog), ThreadLocalRandom.current().nextInt(120) + 1, TimeUnit.MINUTES);
+                redisTemplate.opsForValue().set(contentPrefix, blog, ThreadLocalRandom.current().nextInt(120) + 1, TimeUnit.MINUTES);
                 redisTemplate.opsForValue().set(statusPrefix, Result.succ(blog.getStatus()), ThreadLocalRandom.current().nextInt(120) + 1, TimeUnit.MINUTES);
 
             });
