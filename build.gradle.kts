@@ -9,6 +9,7 @@ import org.gradle.internal.impldep.com.fasterxml.jackson.core.JsonPointer.compil
 plugins {
     java
     `maven-publish`
+    id("com.github.johnrengelman.shadow") version "7.1.2"
 }
 
 repositories {
