@@ -9,7 +9,8 @@ import org.gradle.internal.impldep.com.fasterxml.jackson.core.JsonPointer.compil
 plugins {
     java
     `maven-publish`
-    id("com.github.johnrengelman.shadow") version "7.1.2"
+    id("org.springframework.boot") version "2.7.4"
+    id("io.spring.dependency-management") version "1.1.0"
 }
 
 repositories {
@@ -21,23 +22,23 @@ repositories {
 
 dependencies {
     implementation("com.github.axet:kaptcha:0.0.9")
-    implementation("org.springframework.boot:spring-boot-starter-web:2.7.4")
-    implementation("org.springframework.boot:spring-boot-starter-aop:2.7.4")
+    implementation("org.springframework.boot:spring-boot-starter-web")
+    implementation("org.springframework.boot:spring-boot-starter-aop")
     implementation("org.projectlombok:lombok:1.18.24")
     implementation("com.baomidou:mybatis-plus-boot-starter:3.5.1")
-    implementation("org.springframework.boot:spring-boot-starter-security:2.7.4")
-    implementation("org.springframework.boot:spring-boot-starter-data-redis:2.7.4")
+    implementation("org.springframework.boot:spring-boot-starter-security")
+    implementation("org.springframework.boot:spring-boot-starter-data-redis")
     implementation("io.jsonwebtoken:jjwt-jackson:0.11.5")
     implementation("io.jsonwebtoken:jjwt-impl:0.11.5")
     implementation("io.jsonwebtoken:jjwt-api:0.11.5")
-    implementation("org.springframework.boot:spring-boot-starter-validation:2.7.4")
-    implementation("org.springframework.boot:spring-boot-configuration-processor:2.7.4")
-    implementation("org.springframework.boot:spring-boot-starter-amqp:2.7.4")
-    implementation("org.springframework.boot:spring-boot-starter-data-elasticsearch:2.7.4")
-    implementation("org.springframework.boot:spring-boot-starter-websocket:2.7.4")
-    runtimeOnly("org.springframework.boot:spring-boot-devtools:2.7.4")
+    implementation("org.springframework.boot:spring-boot-starter-validation")
+    implementation("org.springframework.boot:spring-boot-configuration-processor")
+    implementation("org.springframework.boot:spring-boot-starter-amqp")
+    implementation("org.springframework.boot:spring-boot-starter-data-elasticsearch")
+    implementation("org.springframework.boot:spring-boot-starter-websocket")
+    runtimeOnly("org.springframework.boot:spring-boot-devtools")
     runtimeOnly("mysql:mysql-connector-java:8.0.30")
-    testImplementation("org.springframework.boot:spring-boot-starter-test:2.7.4")
+    testImplementation("org.springframework.boot:spring-boot-starter-test")
     annotationProcessor("org.projectlombok:lombok:1.18.24")
 }
 
