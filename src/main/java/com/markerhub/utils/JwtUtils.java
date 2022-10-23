@@ -1,8 +1,10 @@
 package com.markerhub.utils;
 
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.security.Keys;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -37,17 +39,19 @@ public class JwtUtils {
                 .setSubject(username)
                 .setIssuedAt(nowDate)
                 .setExpiration(expireDate)
-                .signWith(SignatureAlgorithm.HS512, secret)
+                .signWith(Keys.hmacShaKeyFor(secret.getBytes()) ,SignatureAlgorithm.HS512)
                 .compact();
     }
 
     public Claims getClaimByToken(String token) {
         try {
-            return Jwts.parser()
-                    .setSigningKey(secret)
+            return Jwts
+                    .parserBuilder()
+                    .setSigningKey(Keys.hmacShaKeyFor(secret.getBytes()))
+                    .build()
                     .parseClaimsJws(token)
                     .getBody();
-        } catch (Exception e){
+        } catch (JwtException e){
             log.debug("validate is token error ", e);
             return null;
         }

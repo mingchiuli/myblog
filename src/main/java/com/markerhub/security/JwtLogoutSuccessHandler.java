@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.markerhub.common.lang.Result;
 import com.markerhub.utils.JwtUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.core.Authentication;
@@ -25,17 +26,10 @@ public class JwtLogoutSuccessHandler implements LogoutSuccessHandler {
 
 	RedisTemplate<String, Object> redisTemplate;
 
-	SecurityContextLogoutHandler securityContextLogoutHandler;
 
 	@Autowired
 	public void setObjectMapper(ObjectMapper objectMapper) {
 		this.objectMapper = objectMapper;
-	}
-
-	@Autowired
-	@Lazy
-	public void setSecurityContextLogoutHandler(SecurityContextLogoutHandler securityContextLogoutHandler) {
-		this.securityContextLogoutHandler = securityContextLogoutHandler;
 	}
 
 	@Autowired
@@ -52,7 +46,7 @@ public class JwtLogoutSuccessHandler implements LogoutSuccessHandler {
 	public void onLogoutSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException {
 
 		if (authentication != null) {
-			securityContextLogoutHandler.logout(request, response, authentication);
+			securityContextLogoutHandler().logout(request, response, authentication);
 		}
 
 		response.setContentType("application/json;charset=UTF-8");
@@ -66,5 +60,9 @@ public class JwtLogoutSuccessHandler implements LogoutSuccessHandler {
 
 		outputStream.flush();
 		outputStream.close();
+	}
+
+	private SecurityContextLogoutHandler securityContextLogoutHandler() {
+		return new SecurityContextLogoutHandler();
 	}
 }
