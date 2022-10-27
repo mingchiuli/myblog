@@ -584,14 +584,11 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, BlogEntity> impleme
         return out;
     }
 
-    private void setReadSum(Long id) {
-        blogMapper.setReadSum(id);
-    }
 
     @Async(value = "readCountThreadPoolExecutor")
     @Override
     public void setReadCount(Long id) {
-        setReadSum(id);
+        blogMapper.setReadSum(id);
         try {
             redisTemplate.execute(new SessionCallback<>() {
                 @Override
