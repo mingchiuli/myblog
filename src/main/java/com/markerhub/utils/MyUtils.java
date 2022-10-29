@@ -216,12 +216,4 @@ public class MyUtils {
         blog.setContent("");
         blog.setLink("");
     }
-
-    @SneakyThrows
-    public static <B, T> T transferToDto(Class<B> bClass, Class<T> tClass, Object[] args, Class<?>[] argsType) {
-        B bInstance = bClass.getDeclaredConstructor(argsType).newInstance(args);
-        Container<B> container = new Container<>();
-        container.setData(bInstance);
-        return tClass.getDeclaredConstructor(container.getClass()).newInstance(container);
-    }
 }

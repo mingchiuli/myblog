@@ -1,4 +1,4 @@
-package com.markerhub.cooperate.controller;
+package com.markerhub.cooperate.handler;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.markerhub.common.valid.CooperateBlogId;
@@ -7,6 +7,7 @@ import com.markerhub.common.lang.Const;
 import com.markerhub.common.lang.Result;
 import com.markerhub.common.vo.UserEntityVo;
 import com.markerhub.config.RabbitConfig;
+import com.markerhub.cooperate.dto.Container;
 import com.markerhub.entity.*;
 import com.markerhub.service.BlogService;
 import com.markerhub.service.UserService;
@@ -14,6 +15,7 @@ import com.markerhub.utils.JwtUtils;
 import com.markerhub.utils.MyUtils;
 import com.markerhub.cooperate.dto.impl.*;
 import io.jsonwebtoken.Claims;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.BeanUtils;
@@ -44,7 +46,7 @@ import java.util.concurrent.TimeUnit;
 @Controller
 @Slf4j
 @Validated
-public class CooperateController {
+public class CooperateHandler {
 
     RabbitTemplate rabbitTemplate;
 
@@ -104,7 +106,7 @@ public class CooperateController {
         });
 
         String idStr = blogId.toString();
-        PushUserDto dto = MyUtils.transferToDto(PushUserDto.Bind.class, PushUserDto.class,
+        PushUserDto dto = transferToDto(PushUserDto.Bind.class, PushUserDto.class,
                 new Object[]{idStr, users}, new Class[]{idStr.getClass(), users.getClass()});
 
         rabbitTemplate.convertAndSend(
@@ -136,7 +138,7 @@ public class CooperateController {
             });
 
             String idStr = blogId.toString();
-            DestroyDto dto = MyUtils.transferToDto(DestroyDto.Bind.class, DestroyDto.class,
+            DestroyDto dto = transferToDto(DestroyDto.Bind.class, DestroyDto.class,
                     new Object[]{idStr, users}, new Class[]{idStr.getClass(), users.getClass()});
 
             rabbitTemplate.convertAndSend(
@@ -155,7 +157,7 @@ public class CooperateController {
             String toServerIpHost = userEntityVo.getServerIpHost();
             String idStr = blogId.toString();
             String toStr = to.toString();
-            ChatDto dto = MyUtils.transferToDto(ChatDto.Message.class, ChatDto.class, new Object[]{msg, from, toStr, idStr},
+            ChatDto dto = transferToDto(ChatDto.Message.class, ChatDto.class, new Object[]{msg, from, toStr, idStr},
                     new Class[]{msg.getClass(), from.getClass(), toStr.getClass(), idStr.getClass()});
             rabbitTemplate.convertAndSend(
                     RabbitConfig.WS_TOPIC_EXCHANGE,RabbitConfig.WS_BINDING_KEY + toServerIpHost,
@@ -168,7 +170,7 @@ public class CooperateController {
     public void syncContent(@DestinationVariable Long from, String content, @DestinationVariable Long blogId) {
         String fromStr = from.toString();
         String idStr = blogId.toString();
-        SyncContentDto dto = MyUtils.transferToDto(SyncContentDto.Content.class, SyncContentDto.class,
+        SyncContentDto dto = transferToDto(SyncContentDto.Content.class, SyncContentDto.class,
                 new Object[]{fromStr, content, idStr}, new Class[]{fromStr.getClass(), content.getClass(), idStr.getClass()});
         rabbitTemplate.convertAndSend(
                 RabbitConfig.WS_FANOUT_EXCHANGE,RabbitConfig.WS_BINDING_KEY  + RabbitConfig.serverIpHost,
@@ -179,7 +181,7 @@ public class CooperateController {
     @MessageMapping("/taskOver/{from}")
     public void taskOver(@DestinationVariable Long from) {
         String fromStr = from.toString();
-        TaskOverDto dto = MyUtils.transferToDto(String.class, TaskOverDto.class, new Object[]{fromStr}, new Class[]{fromStr.getClass()});
+        TaskOverDto dto = transferToDto(String.class, TaskOverDto.class, new Object[]{fromStr}, new Class[]{fromStr.getClass()});
         rabbitTemplate.convertAndSend(
                 RabbitConfig.WS_FANOUT_EXCHANGE,RabbitConfig.WS_BINDING_KEY  + RabbitConfig.serverIpHost,
                 dto);
@@ -246,7 +248,7 @@ public class CooperateController {
         users.sort(Comparator.comparingInt(UserEntityVo::getNumber));
 
         String idStr = blogId.toString();
-        InitDto dto = MyUtils.transferToDto(InitDto.Bind.class, InitDto.class,
+        InitDto dto = transferToDto(InitDto.Bind.class, InitDto.class,
                 new Object[]{idStr, users}, new Class[]{idStr.getClass(), users.getClass()});
         rabbitTemplate.convertAndSend(
                 RabbitConfig.WS_FANOUT_EXCHANGE,RabbitConfig.WS_BINDING_KEY  + RabbitConfig.serverIpHost,
@@ -258,6 +260,15 @@ public class CooperateController {
         map.put("blog", blog);
         map.put("users", users);
         return Result.succ(map);
+    }
+
+
+    @SneakyThrows
+    private  <B, T> T transferToDto(Class<B> bClass, Class<T> tClass, Object[] args, Class<?>[] argsType) {
+        B bInstance = bClass.getDeclaredConstructor(argsType).newInstance(args);
+        Container<B> container = new Container<>();
+        container.setData(bInstance);
+        return tClass.getDeclaredConstructor(container.getClass()).newInstance(container);
     }
 
 
