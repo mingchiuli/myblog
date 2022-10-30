@@ -181,10 +181,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserEntity> impleme
     @Override
     @Cache(name = "getUserRole")
     public List<String> getUserRole(String username) {
-        String role = getOne(new QueryWrapper<UserEntity>().select("role").eq("username", username).eq("status", 0)).getRole();
-        if (!StringUtils.hasLength(role)) {
+        UserEntity user = getOne(new QueryWrapper<UserEntity>().select("role").eq("username", username).eq("status", 0));
+        if (user == null) {
             throw new AuthenticationException("已被踢下线");
         }
+        String role = user.getRole();
         String[] rs = role.split(",");
         ArrayList<String> roles = new ArrayList<>(rs.length);
         for (String r : rs) {
