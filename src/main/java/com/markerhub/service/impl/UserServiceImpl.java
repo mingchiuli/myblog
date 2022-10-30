@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.markerhub.common.cache.Cache;
 import com.markerhub.common.dto.PasswordDto;
+import com.markerhub.common.exception.AuthenticationException;
 import com.markerhub.common.lang.Const;
 import com.markerhub.common.vo.UserEntityVo;
 import com.markerhub.entity.RoleEntity;
@@ -14,6 +15,7 @@ import com.markerhub.service.RoleService;
 import com.markerhub.service.UserService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.markerhub.utils.JwtUtils;
+import io.jsonwebtoken.JwtException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -179,7 +181,10 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserEntity> impleme
     @Override
     @Cache(name = "getUserRole")
     public List<String> getUserRole(String username) {
-        String role = getOne(new QueryWrapper<UserEntity>().select("role").eq("username", username)).getRole();
+        String role = getOne(new QueryWrapper<UserEntity>().select("role").eq("username", username).eq("status", 0)).getRole();
+        if (!StringUtils.hasLength(role)) {
+            throw new AuthenticationException("已被踢下线");
+        }
         String[] rs = role.split(",");
         ArrayList<String> roles = new ArrayList<>(rs.length);
         for (String r : rs) {
