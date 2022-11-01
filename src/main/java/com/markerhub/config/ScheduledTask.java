@@ -153,7 +153,6 @@ public class ScheduledTask {
             CompletableFuture.allOf(var1, var2, var3, var4, var5).get();
 
             log.info("定时任务执行完毕");
-            redisTemplate.delete(scheduledLock);
         }
     }
 }
