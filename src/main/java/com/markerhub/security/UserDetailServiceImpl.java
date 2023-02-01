@@ -3,7 +3,6 @@ package com.markerhub.security;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.markerhub.entity.UserEntity;
 import com.markerhub.service.UserService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.AuthorityUtils;
@@ -21,13 +20,8 @@ public class UserDetailServiceImpl implements UserDetailsService {
 
 	UserService sysUserService;
 
-	@Autowired
-	public void setRedisTemplate(RedisTemplate<String, Object> redisTemplate) {
+	public UserDetailServiceImpl(RedisTemplate<String, Object> redisTemplate, UserService sysUserService) {
 		this.redisTemplate = redisTemplate;
-	}
-
-	@Autowired
-	public void setSysUserService(UserService sysUserService) {
 		this.sysUserService = sysUserService;
 	}
 

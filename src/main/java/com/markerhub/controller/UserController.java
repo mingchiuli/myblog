@@ -10,7 +10,6 @@ import com.markerhub.entity.UserEntity;
 import com.markerhub.service.UserService;
 import com.markerhub.utils.JwtUtils;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -28,15 +27,10 @@ public class UserController {
 
     UserService userService;
 
-    @Autowired
-    public void setUserService(UserService userService) {
-        this.userService = userService;
-    }
-
     JwtUtils jwtUtils;
 
-    @Autowired
-    private void setJwtUtils(JwtUtils jwtUtils) {
+    public UserController(UserService userService, JwtUtils jwtUtils) {
+        this.userService = userService;
         this.jwtUtils = jwtUtils;
     }
 

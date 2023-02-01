@@ -29,7 +29,6 @@ import org.elasticsearch.search.sort.SortOrder;
 import org.springframework.amqp.rabbit.connection.CorrelationData;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.NestedRuntimeException;
@@ -76,61 +75,32 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, BlogEntity> impleme
 
     UserService userService;
 
-    @Autowired
-    public void setUserService(UserService userService) {
-        this.userService = userService;
-    }
-
     ObjectMapper objectMapper;
-
-    @Autowired
-    public void setObjectMapper(ObjectMapper objectMapper) {
-        this.objectMapper = objectMapper;
-    }
 
     ThreadPoolExecutor executor;
 
-    @Autowired
-    @Qualifier("pageThreadPoolExecutor")
-    public void setExecutor(ThreadPoolExecutor executor) {
-        this.executor = executor;
-    }
-
     RabbitTemplate rabbitTemplate;
-
-    @Autowired
-    public void setRabbitTemplate(RabbitTemplate RabbitTemplate) {
-        this.rabbitTemplate = RabbitTemplate;
-    }
 
     ElasticsearchRestTemplate elasticsearchRestTemplate;
 
-    @Autowired
-    public void setElasticsearchRestTemplate(ElasticsearchRestTemplate elasticsearchRestTemplate) {
-        this.elasticsearchRestTemplate = elasticsearchRestTemplate;
-    }
-
     RedisTemplate<String, Object> redisTemplate;
 
-    @Autowired
-    private void setRedisTemplateImpl(RedisTemplate<String, Object> redisTemplate) {
-        this.redisTemplate = redisTemplate;
-    }
 
     BlogMapper blogMapper;
 
-    @Autowired
-    private void setBlogMapper(BlogMapper blogMapper) {
-        this.blogMapper = blogMapper;
-    }
 
     UserMapper userMapper;
 
-    @Autowired
-    public void setUserMapper(UserMapper userMapper) {
+    public BlogServiceImpl(UserService userService, ObjectMapper objectMapper, RabbitTemplate rabbitTemplate, ElasticsearchRestTemplate elasticsearchRestTemplate, RedisTemplate<String, Object> redisTemplate, BlogMapper blogMapper, UserMapper userMapper, @Qualifier("pageThreadPoolExecutor") ThreadPoolExecutor executor) {
+        this.userService = userService;
+        this.objectMapper = objectMapper;
+        this.rabbitTemplate = rabbitTemplate;
+        this.elasticsearchRestTemplate = elasticsearchRestTemplate;
+        this.redisTemplate = redisTemplate;
+        this.blogMapper = blogMapper;
         this.userMapper = userMapper;
+        this.executor = executor;
     }
-
 
     @Override
     public Integer getYearCount(Integer year) {
@@ -335,12 +305,12 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, BlogEntity> impleme
         //通知消息给mq,更新并删除缓存
         CorrelationData correlationData = new CorrelationData();
         //防止重复消费
-        redisTemplate.opsForValue().set(Const.CONSUME_MONITOR + correlationData.getId(), BlogIndexEnum.UPDATE.name() + "_" + blog.getId(), 30, TimeUnit.MINUTES);
-
-        rabbitTemplate.convertAndSend(
-                RabbitConfig.ES_EXCHANGE,
-                RabbitConfig.ES_BINDING_KEY,
-                new PostMQIndexMessage(blog.getId(), BlogIndexEnum.UPDATE), correlationData);
+//        redisTemplate.opsForValue().set(Const.CONSUME_MONITOR + correlationData.getId(), BlogIndexEnum.UPDATE.name() + "_" + blog.getId(), 30, TimeUnit.MINUTES);
+//
+//        rabbitTemplate.convertAndSend(
+//                RabbitConfig.ES_EXCHANGE,
+//                RabbitConfig.ES_BINDING_KEY,
+//                new PostMQIndexMessage(blog.getId(), BlogIndexEnum.UPDATE), correlationData);
 
     }
 

@@ -7,7 +7,6 @@ import com.markerhub.entity.RoleEntity;
 import com.markerhub.service.RoleMenuService;
 import com.markerhub.service.RoleService;
 import com.markerhub.service.UserService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -25,22 +24,13 @@ public class RoleController {
 
     UserService userService;
 
-    @Autowired
-    public void setUserService(UserService userService) {
-        this.userService = userService;
-    }
-
     RoleService roleService;
-
-    @Autowired
-    public void setRoleService(RoleService roleService) {
-        this.roleService = roleService;
-    }
 
     RoleMenuService roleMenuService;
 
-    @Autowired
-    public void setRoleMenuService(RoleMenuService roleMenuService) {
+    public RoleController(UserService userService, RoleService roleService, RoleMenuService roleMenuService) {
+        this.userService = userService;
+        this.roleService = roleService;
         this.roleMenuService = roleMenuService;
     }
 

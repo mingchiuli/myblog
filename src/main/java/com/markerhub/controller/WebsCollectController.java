@@ -10,7 +10,6 @@ import com.markerhub.service.WebsCollectService;
 import com.markerhub.utils.JwtUtils;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.elasticsearch.core.ElasticsearchRestTemplate;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
@@ -28,29 +27,17 @@ public class WebsCollectController {
 
     UserService userService;
 
-    @Autowired
-    public void setUserService(UserService userService) {
-        this.userService = userService;
-    }
 
     JwtUtils jwtUtils;
 
-    @Autowired
-    public void setJwtUtils(JwtUtils jwtUtils) {
-        this.jwtUtils = jwtUtils;
-    }
-
     ElasticsearchRestTemplate elasticsearchRestTemplate;
-
-    @Autowired
-    public void setElasticsearchRestTemplate(ElasticsearchRestTemplate elasticsearchRestTemplate) {
-        this.elasticsearchRestTemplate = elasticsearchRestTemplate;
-    }
 
     WebsCollectService websCollectService;
 
-    @Autowired
-    public void setWebsCollectService(WebsCollectService websCollectService) {
+    public WebsCollectController(UserService userService, JwtUtils jwtUtils, ElasticsearchRestTemplate elasticsearchRestTemplate, WebsCollectService websCollectService) {
+        this.userService = userService;
+        this.jwtUtils = jwtUtils;
+        this.elasticsearchRestTemplate = elasticsearchRestTemplate;
         this.websCollectService = websCollectService;
     }
 

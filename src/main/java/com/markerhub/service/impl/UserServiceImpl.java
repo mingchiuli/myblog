@@ -15,11 +15,8 @@ import com.markerhub.service.RoleService;
 import com.markerhub.service.UserService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.markerhub.utils.JwtUtils;
-import io.jsonwebtoken.JwtException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -48,29 +45,19 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserEntity> impleme
 
     BCryptPasswordEncoder bCryptPasswordEncoder;
 
-    @Autowired
-    public void setBCryptPasswordEncoder(BCryptPasswordEncoder bCryptPasswordEncoder) {
-        this.bCryptPasswordEncoder = bCryptPasswordEncoder;
-    }
 
     RoleService roleService;
 
-    @Autowired
-    public void setRoleService(RoleService roleService) {
-        this.roleService = roleService;
-    }
 
     JwtUtils jwtUtils;
 
-    @Autowired
-    public void setJwtUtils(JwtUtils jwtUtils) {
-        this.jwtUtils = jwtUtils;
-    }
 
     RedisTemplate<String, Object> redisTemplate;
 
-    @Autowired
-    public void setRedisTemplate(RedisTemplate<String, Object> redisTemplate) {
+    public UserServiceImpl(BCryptPasswordEncoder bCryptPasswordEncoder, RoleService roleService, JwtUtils jwtUtils, RedisTemplate<String, Object> redisTemplate) {
+        this.bCryptPasswordEncoder = bCryptPasswordEncoder;
+        this.roleService = roleService;
+        this.jwtUtils = jwtUtils;
         this.redisTemplate = redisTemplate;
     }
 

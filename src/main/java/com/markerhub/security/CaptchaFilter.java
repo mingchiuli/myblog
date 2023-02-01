@@ -5,7 +5,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.markerhub.common.exception.CaptchaException;
 import com.markerhub.common.lang.Const;
 import com.markerhub.common.lang.Result;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -24,18 +23,10 @@ public class CaptchaFilter extends OncePerRequestFilter {
 
 	LoginFailureHandler loginFailureHandler;
 
-	@Autowired
-	public void setObjectMapper(ObjectMapper objectMapper) {
+
+	public CaptchaFilter(ObjectMapper objectMapper, RedisTemplate<String, Object> redisTemplate, LoginFailureHandler loginFailureHandler) {
 		this.objectMapper = objectMapper;
-	}
-
-	@Autowired
-	public void setRedisTemplate(RedisTemplate<String, Object> redisTemplate) {
 		this.redisTemplate = redisTemplate;
-	}
-
-	@Autowired
-	public void setLoginFailureHandler(LoginFailureHandler loginFailureHandler) {
 		this.loginFailureHandler = loginFailureHandler;
 	}
 

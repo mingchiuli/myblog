@@ -8,7 +8,6 @@ import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
 import org.springframework.amqp.rabbit.listener.adapter.MessageListenerAdapter;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -25,19 +24,12 @@ public class WSMessageHandler {
     }
 
     RedisTemplate<String, Object> redisTemplate;
-
-    @Autowired
-    public void setRedisTemplate(RedisTemplate<String, Object> redisTemplate) {
-        this.redisTemplate = redisTemplate;
-    }
-
     SimpMessagingTemplate simpMessagingTemplate;
 
-    @Autowired
-    public void setSimpMessagingTemplate(SimpMessagingTemplate simpMessagingTemplate) {
+    public WSMessageHandler(RedisTemplate<String, Object> redisTemplate, SimpMessagingTemplate simpMessagingTemplate) {
+        this.redisTemplate = redisTemplate;
         this.simpMessagingTemplate = simpMessagingTemplate;
     }
-
 
     @Bean("WSMessageListener")
     //processMessage作为listener

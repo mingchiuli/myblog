@@ -5,7 +5,6 @@ import com.rabbitmq.client.Channel;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Component;
 import java.io.IOException;
@@ -21,13 +20,11 @@ public class LogMessageHandler {
 
     SimpMessagingTemplate simpMessagingTemplate;
 
-    @Autowired
-    public void setSimpMessagingTemplate(SimpMessagingTemplate simpMessagingTemplate) {
+    public LogMessageHandler(SimpMessagingTemplate simpMessagingTemplate) {
         this.simpMessagingTemplate = simpMessagingTemplate;
     }
 
     @RabbitListener(id = "log", queues = RabbitConfig.LOG_QUEUE, autoStartup = "false")
-//    @RabbitListener(id = "log", queues = RabbitConfig.LOG_QUEUE)
     public void processMessage(String msg, Channel channel, Message message) {
         simpMessagingTemplate.convertAndSend("/logs/log", msg);
         long deliveryTag = message.getMessageProperties().getDeliveryTag();
@@ -40,8 +37,5 @@ public class LogMessageHandler {
             //出现异常说明网络中断
             log.info("rabbitmq处理后台日志投递消息确认出现异常", e);
         }
-
-        //退货，重新入队列
-//        channel.basicNack(deliveryTag, false, true);
     }
 }

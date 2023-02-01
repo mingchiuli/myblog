@@ -2,7 +2,6 @@ package com.markerhub.security;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.markerhub.common.lang.Result;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.stereotype.Component;
@@ -17,8 +16,7 @@ public class LoginFailureHandler implements AuthenticationFailureHandler {
 
 	ObjectMapper objectMapper;
 
-	@Autowired
-	public void setObjectMapper(ObjectMapper objectMapper) {
+	public LoginFailureHandler(ObjectMapper objectMapper) {
 		this.objectMapper = objectMapper;
 	}
 

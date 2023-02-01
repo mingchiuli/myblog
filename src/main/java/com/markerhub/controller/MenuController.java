@@ -5,7 +5,6 @@ import com.markerhub.entity.MenuEntity;
 import com.markerhub.service.MenuService;
 import com.markerhub.service.RoleMenuService;
 import com.markerhub.service.UserService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -22,22 +21,13 @@ public class MenuController {
 
     RoleMenuService roleMenuService;
 
-    @Autowired
-    public void setRoleMenuService(RoleMenuService roleMenuService) {
-        this.roleMenuService = roleMenuService;
-    }
-
     UserService userService;
-
-    @Autowired
-    public void setUserService(UserService userService) {
-        this.userService = userService;
-    }
 
     MenuService menuService;
 
-    @Autowired
-    public void setMenuService(MenuService menuService) {
+    public MenuController(RoleMenuService roleMenuService, UserService userService, MenuService menuService) {
+        this.roleMenuService = roleMenuService;
+        this.userService = userService;
         this.menuService = menuService;
     }
 

@@ -6,7 +6,6 @@ import com.markerhub.common.lang.Result;
 import com.markerhub.service.UserService;
 import com.markerhub.utils.JwtUtils;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -28,32 +27,18 @@ public class AccountController {
 
     Producer producer;
 
-    @Autowired
-    public void setProducer(Producer producer) {
-        this.producer = producer;
-    }
-
     UserService userService;
-
-    @Autowired
-    private void setUserServiceImpl(UserService userService) {
-        this.userService = userService;
-    }
 
     JwtUtils jwtUtils;
 
-    @Autowired
-    private void setJwtUtils(JwtUtils jwtUtils) {
-        this.jwtUtils = jwtUtils;
-    }
-
     RedisTemplate<String, Object> redisTemplate;
 
-    @Autowired
-    private void setRedisTemplateImpl(RedisTemplate<String, Object> redisTemplate) {
+    public AccountController(Producer producer, UserService userService, JwtUtils jwtUtils, RedisTemplate<String, Object> redisTemplate) {
+        this.producer = producer;
+        this.userService = userService;
+        this.jwtUtils = jwtUtils;
         this.redisTemplate = redisTemplate;
     }
-
 
     @GetMapping("/captcha")
     public Result captcha() throws IOException {

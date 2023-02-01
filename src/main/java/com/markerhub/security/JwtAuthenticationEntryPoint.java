@@ -2,7 +2,6 @@ package com.markerhub.security;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.markerhub.common.lang.Result;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.stereotype.Component;
@@ -22,8 +21,7 @@ public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
 
 	ObjectMapper objectMapper;
 
-	@Autowired
-	public void setObjectMapper(ObjectMapper objectMapper) {
+	public JwtAuthenticationEntryPoint(ObjectMapper objectMapper) {
 		this.objectMapper = objectMapper;
 	}
 

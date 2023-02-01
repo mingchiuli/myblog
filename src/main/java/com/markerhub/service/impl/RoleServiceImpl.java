@@ -7,7 +7,6 @@ import com.markerhub.entity.RoleMenuEntity;
 import com.markerhub.service.RoleMenuService;
 import com.markerhub.service.RoleService;
 import com.markerhub.mapper.RoleMapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
@@ -27,8 +26,7 @@ public class RoleServiceImpl extends ServiceImpl<RoleMapper, RoleEntity>
 
     RoleMenuService roleMenuService;
 
-    @Autowired
-    public void setRoleMenuService(RoleMenuService roleMenuService) {
+    public RoleServiceImpl(RoleMenuService roleMenuService) {
         this.roleMenuService = roleMenuService;
     }
 

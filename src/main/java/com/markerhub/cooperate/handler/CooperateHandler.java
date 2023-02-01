@@ -19,7 +19,6 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
@@ -50,50 +49,31 @@ public class CooperateHandler {
 
     RabbitTemplate rabbitTemplate;
 
-    @Autowired
-    public void setRabbitTemplate(RabbitTemplate rabbitTemplate) {
-        this.rabbitTemplate = rabbitTemplate;
-    }
-
     @Value("${vueblog.serverIpHost}")
     private String serverIpHost;
 
     BlogService blogService;
 
-    @Autowired
-    public void setBlogService(BlogService blogService) {
-        this.blogService = blogService;
-    }
 
     UserService userService;
 
-    @Autowired
-    public void setUserService(UserService userService) {
-        this.userService = userService;
-    }
 
     RedisTemplate<String, Object> redisTemplate;
-
-    @Autowired
-    public void setRedisTemplate(RedisTemplate<String, Object> redisTemplate) {
-        this.redisTemplate = redisTemplate;
-    }
-
     SimpMessagingTemplate simpMessagingTemplate;
-
-    @Autowired
-    public void setSimpMessagingTemplate(SimpMessagingTemplate simpMessagingTemplate) {
-        this.simpMessagingTemplate = simpMessagingTemplate;
-    }
 
     JwtUtils jwtUtils;
 
-    @Autowired
-    public void setJwtUtils(JwtUtils jwtUtils) {
+    public CooperateHandler(RabbitTemplate rabbitTemplate, BlogService blogService, UserService userService, RedisTemplate<String, Object> redisTemplate, SimpMessagingTemplate simpMessagingTemplate, JwtUtils jwtUtils) {
+        this.rabbitTemplate = rabbitTemplate;
+        this.blogService = blogService;
+        this.userService = userService;
+        this.redisTemplate = redisTemplate;
+        this.simpMessagingTemplate = simpMessagingTemplate;
         this.jwtUtils = jwtUtils;
     }
 
     @MessageMapping("/pushUser/{blogId}")
+    @PreAuthorize("hasAnyRole('admin', 'boy', 'girl')")
     public void pushUser(@DestinationVariable Long blogId) {
 
         Map<Object, Object> entries = redisTemplate.opsForHash().entries(Const.CO_PREFIX + blogId);
@@ -117,6 +97,7 @@ public class CooperateHandler {
 
 
     @MessageMapping("/destroy/{blogId}")
+    @PreAuthorize("hasAnyRole('admin', 'boy', 'girl')")
     public void destroy(@Headers Map<String, Object> headers, @DestinationVariable Long blogId) {
         LinkedMultiValueMap<String, String> map = (LinkedMultiValueMap<String, String>) headers.get("nativeHeaders");
         List<String> authorization = map.get("Authorization");
@@ -151,6 +132,7 @@ public class CooperateHandler {
     }
 
     @MessageMapping("/chat/{from}/{to}/{blogId}")
+    @PreAuthorize("hasAnyRole('admin', 'boy', 'girl')")
     public void chat(String msg, @DestinationVariable String from, @DestinationVariable Long to, @DestinationVariable Long blogId) {
         UserEntityVo userEntityVo = MyUtils.jsonToObj(redisTemplate.opsForHash().get(Const.CO_PREFIX + blogId, to.toString()), UserEntityVo.class);
         if (userEntityVo != null) {
@@ -167,6 +149,7 @@ public class CooperateHandler {
 
 
     @MessageMapping("/sync/{from}/{blogId}")
+    @PreAuthorize("hasAnyRole('admin', 'boy', 'girl')")
     public void syncContent(@DestinationVariable Long from, String content, @DestinationVariable Long blogId) {
         String fromStr = from.toString();
         String idStr = blogId.toString();
@@ -179,6 +162,7 @@ public class CooperateHandler {
 
 
     @MessageMapping("/taskOver/{from}")
+    @PreAuthorize("hasAnyRole('admin', 'boy', 'girl')")
     public void taskOver(@DestinationVariable Long from) {
         String fromStr = from.toString();
         TaskOverDto dto = transferToDto(String.class, TaskOverDto.class, new Object[]{fromStr}, new Class[]{fromStr.getClass()});

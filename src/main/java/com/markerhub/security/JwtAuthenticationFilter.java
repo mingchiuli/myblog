@@ -37,11 +37,6 @@ public class JwtAuthenticationFilter extends BasicAuthenticationFilter {
 	}
 
 	@Autowired
-	public void setRedisTemplate(RedisTemplate<String, Object> redisTemplate) {
-		this.redisTemplate = redisTemplate;
-	}
-
-	@Autowired
 	public void setJwtUtils(JwtUtils jwtUtils) {
 		this.jwtUtils = jwtUtils;
 	}
@@ -49,6 +44,11 @@ public class JwtAuthenticationFilter extends BasicAuthenticationFilter {
 	@Autowired
 	public void setSysUserService(UserService sysUserService) {
 		this.sysUserService = sysUserService;
+	}
+
+	@Autowired
+	public void setRedisTemplate(RedisTemplate<String, Object> redisTemplate) {
+		this.redisTemplate = redisTemplate;
 	}
 
 	public JwtAuthenticationFilter(AuthenticationManager authenticationManager) {

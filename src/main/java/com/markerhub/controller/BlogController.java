@@ -15,7 +15,6 @@ import com.markerhub.entity.BlogEntity;
 import com.markerhub.service.BlogService;
 import lombok.extern.slf4j.Slf4j;
 import org.elasticsearch.ResourceNotFoundException;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -43,18 +42,12 @@ public class BlogController {
 
     RedisTemplate<String, Object> redisTemplate;
 
-    @Autowired
-    public void setRedisTemplate(RedisTemplate<String, Object> redisTemplate) {
-        this.redisTemplate = redisTemplate;
-    }
-
     BlogService blogService;
 
-    @Autowired
-    private void setBlogServiceImpl(BlogService blogService) {
+    public BlogController(RedisTemplate<String, Object> redisTemplate, BlogService blogService) {
+        this.redisTemplate = redisTemplate;
         this.blogService = blogService;
     }
-
 
     @Value("${vueblog.uploadPath}")
     private String baseFolderPath;

@@ -14,7 +14,6 @@ import com.rabbitmq.client.Channel;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.Message;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.elasticsearch.core.ElasticsearchRestTemplate;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
@@ -30,36 +29,21 @@ public class CreateBlogIndexHandler implements BlogIndexHandler {
 
     BlogMapper blogMapper;
 
-    @Autowired
-    public void setBlogMapper(BlogMapper blogMapper) {
-        this.blogMapper = blogMapper;
-    }
-
     ObjectMapper objectMapper;
-
-    @Autowired
-    public void setObjectMapper(ObjectMapper objectMapper) {
-        this.objectMapper = objectMapper;
-    }
 
     RedisTemplate<String, Object> redisTemplate;
 
-    @Autowired
-    public void setRedisTemplate(RedisTemplate<String, Object> redisTemplate) {
-        this.redisTemplate = redisTemplate;
-    }
 
     BlogService blogService;
 
-    @Autowired
-    public void setBlogService(BlogService blogService) {
-        this.blogService = blogService;
-    }
 
     ElasticsearchRestTemplate elasticsearchRestTemplate;
 
-    @Autowired
-    public void setElasticsearchRestTemplate(ElasticsearchRestTemplate elasticsearchRestTemplate) {
+    public CreateBlogIndexHandler(BlogMapper blogMapper, ObjectMapper objectMapper, RedisTemplate<String, Object> redisTemplate, BlogService blogService, ElasticsearchRestTemplate elasticsearchRestTemplate) {
+        this.blogMapper = blogMapper;
+        this.objectMapper = objectMapper;
+        this.redisTemplate = redisTemplate;
+        this.blogService = blogService;
         this.elasticsearchRestTemplate = elasticsearchRestTemplate;
     }
 

@@ -12,7 +12,6 @@ import com.markerhub.mapper.MenuMapper;
 import com.markerhub.service.RoleMenuService;
 import com.markerhub.service.UserService;
 import com.markerhub.utils.MyUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import javax.servlet.http.HttpServletRequest;
@@ -32,22 +31,15 @@ public class MenuServiceImpl extends ServiceImpl<MenuMapper, MenuEntity>
 
     RoleMenuService roleMenuService;
 
-    @Autowired
-    public void setRoleMenuService(RoleMenuService roleMenuService) {
-        this.roleMenuService = roleMenuService;
-    }
 
     UserService userService;
 
-    @Autowired
-    public void setUserService(UserService userService) {
-        this.userService = userService;
-    }
 
     UserMapper userMapper;
 
-    @Autowired
-    public void setUserMapper(UserMapper userMapper) {
+    public MenuServiceImpl(RoleMenuService roleMenuService, UserService userService, UserMapper userMapper) {
+        this.roleMenuService = roleMenuService;
+        this.userService = userService;
         this.userMapper = userMapper;
     }
 

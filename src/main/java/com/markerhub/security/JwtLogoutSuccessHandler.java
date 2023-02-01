@@ -3,9 +3,6 @@ package com.markerhub.security;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.markerhub.common.lang.Result;
 import com.markerhub.utils.JwtUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
@@ -26,19 +23,9 @@ public class JwtLogoutSuccessHandler implements LogoutSuccessHandler {
 
 	RedisTemplate<String, Object> redisTemplate;
 
-
-	@Autowired
-	public void setObjectMapper(ObjectMapper objectMapper) {
+	public JwtLogoutSuccessHandler(ObjectMapper objectMapper, JwtUtils jwtUtils, RedisTemplate<String, Object> redisTemplate) {
 		this.objectMapper = objectMapper;
-	}
-
-	@Autowired
-	public void setJwtUtils(JwtUtils jwtUtils) {
 		this.jwtUtils = jwtUtils;
-	}
-
-	@Autowired
-	public void setRedisTemplate(RedisTemplate<String, Object> redisTemplate) {
 		this.redisTemplate = redisTemplate;
 	}
 

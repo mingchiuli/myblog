@@ -1,8 +1,6 @@
 package com.markerhub.config;
 
-import com.markerhub.interceptor.LogInterceptor;
 import com.markerhub.interceptor.WebSocketInterceptor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.simp.config.ChannelRegistration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
@@ -19,17 +17,9 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
 @EnableWebSocketMessageBroker
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer{
 
-    LogInterceptor logInterceptor;
-
-    @Autowired
-    public void setLogInterceptor(LogInterceptor logInterceptor) {
-        this.logInterceptor = logInterceptor;
-    }
-
     WebSocketInterceptor webSocketInterceptor;
 
-    @Autowired
-    public void setWebsocketInterceptor(WebSocketInterceptor webSocketInterceptor) {
+    public WebSocketConfig(WebSocketInterceptor webSocketInterceptor) {
         this.webSocketInterceptor = webSocketInterceptor;
     }
 
@@ -54,7 +44,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer{
     //握手拦截器
     @Override
     public void configureClientInboundChannel(ChannelRegistration registration) {
-        registration.interceptors(webSocketInterceptor, logInterceptor);
+        registration.interceptors(webSocketInterceptor);
     }
 
 

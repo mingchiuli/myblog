@@ -16,7 +16,6 @@ import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.fetch.subphase.highlight.HighlightBuilder;
 import org.elasticsearch.search.sort.SortBuilders;
 import org.elasticsearch.search.sort.SortOrder;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.elasticsearch.core.ElasticsearchRestTemplate;
@@ -42,37 +41,23 @@ public class WebsCollectServiceImpl implements WebsCollectService {
 
     ObjectMapper objectMapper;
 
-    @Autowired
-    public void setObjectMapper(ObjectMapper objectMapper) {
-        this.objectMapper = objectMapper;
-    }
 
     ThreadPoolExecutor executor;
 
-    @Autowired
-    @Qualifier("pageThreadPoolExecutor")
-    public void setExecutor(ThreadPoolExecutor executor) {
-        this.executor = executor;
-    }
 
     UserService userService;
 
-    @Autowired
-    public void setUserService(UserService userService) {
-        this.userService = userService;
-    }
 
     JwtUtils jwtUtils;
 
-    @Autowired
-    public void setJwtUtils(JwtUtils jwtUtils) {
-        this.jwtUtils = jwtUtils;
-    }
 
     ElasticsearchRestTemplate elasticsearchRestTemplate;
 
-    @Autowired
-    public void setElasticsearchRestTemplate(ElasticsearchRestTemplate elasticsearchRestTemplate) {
+    public WebsCollectServiceImpl(ObjectMapper objectMapper, @Qualifier("pageThreadPoolExecutor") ThreadPoolExecutor executor, UserService userService, JwtUtils jwtUtils, ElasticsearchRestTemplate elasticsearchRestTemplate) {
+        this.objectMapper = objectMapper;
+        this.executor = executor;
+        this.userService = userService;
+        this.jwtUtils = jwtUtils;
         this.elasticsearchRestTemplate = elasticsearchRestTemplate;
     }
 
