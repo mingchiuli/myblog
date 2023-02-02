@@ -7,10 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.*;
 import org.springframework.amqp.rabbit.connection.CorrelationData;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
-import org.springframework.amqp.rabbit.listener.RabbitListenerEndpointRegistry;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -165,9 +162,7 @@ public class RabbitConfig {
 //            private final String exchange;
 //            //当时这个消息用哪个路由键
 //            private final String routingKey;
-        rabbitTemplate.setReturnsCallback(returned -> {
-            log.info("消息失败投递指定队列的回调{}", returned);
-        });
+        rabbitTemplate.setReturnsCallback(returned -> log.info("消息失败投递指定队列的回调{}", returned));
 
 
     }
