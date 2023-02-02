@@ -90,7 +90,7 @@ public class CooperateHandler {
                 new Object[]{idStr, users}, new Class[]{idStr.getClass(), users.getClass()});
 
         rabbitTemplate.convertAndSend(
-                RabbitConfig.WS_FANOUT_EXCHANGE,RabbitConfig.WS_BINDING_KEY + RabbitConfig.serverIpHost,
+                RabbitConfig.WS_FANOUT_EXCHANGE,RabbitConfig.WS_BINDING_KEY + RabbitConfig.serverMark,
                 dto);
 
     }
@@ -123,7 +123,7 @@ public class CooperateHandler {
                     new Object[]{idStr, users}, new Class[]{idStr.getClass(), users.getClass()});
 
             rabbitTemplate.convertAndSend(
-                    RabbitConfig.WS_FANOUT_EXCHANGE,RabbitConfig.WS_BINDING_KEY + RabbitConfig.serverIpHost,
+                    RabbitConfig.WS_FANOUT_EXCHANGE,RabbitConfig.WS_BINDING_KEY + RabbitConfig.serverMark,
                     dto);
 
             log.info("{}号用户退出{}号编辑室", userId, blogId);
@@ -156,7 +156,7 @@ public class CooperateHandler {
         SyncContentDto dto = transferToDto(SyncContentDto.Content.class, SyncContentDto.class,
                 new Object[]{fromStr, content, idStr}, new Class[]{fromStr.getClass(), content.getClass(), idStr.getClass()});
         rabbitTemplate.convertAndSend(
-                RabbitConfig.WS_FANOUT_EXCHANGE,RabbitConfig.WS_BINDING_KEY  + RabbitConfig.serverIpHost,
+                RabbitConfig.WS_FANOUT_EXCHANGE,RabbitConfig.WS_BINDING_KEY  + RabbitConfig.serverMark,
                 dto);
     }
 
@@ -167,7 +167,7 @@ public class CooperateHandler {
         String fromStr = from.toString();
         TaskOverDto dto = transferToDto(String.class, TaskOverDto.class, new Object[]{fromStr}, new Class[]{fromStr.getClass()});
         rabbitTemplate.convertAndSend(
-                RabbitConfig.WS_FANOUT_EXCHANGE,RabbitConfig.WS_BINDING_KEY  + RabbitConfig.serverIpHost,
+                RabbitConfig.WS_FANOUT_EXCHANGE,RabbitConfig.WS_BINDING_KEY  + RabbitConfig.serverMark,
                 dto);
 
     }
@@ -235,7 +235,7 @@ public class CooperateHandler {
         InitDto dto = transferToDto(InitDto.Bind.class, InitDto.class,
                 new Object[]{idStr, users}, new Class[]{idStr.getClass(), users.getClass()});
         rabbitTemplate.convertAndSend(
-                RabbitConfig.WS_FANOUT_EXCHANGE,RabbitConfig.WS_BINDING_KEY  + RabbitConfig.serverIpHost,
+                RabbitConfig.WS_FANOUT_EXCHANGE,RabbitConfig.WS_BINDING_KEY  + RabbitConfig.serverMark,
                 dto);
 
         log.info("{}号用户加入{}号编辑室", userId, blogId);

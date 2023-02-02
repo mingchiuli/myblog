@@ -15,6 +15,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.core.RedisTemplate;
 import javax.annotation.PostConstruct;
+import java.util.UUID;
 
 /**
  * RabbitMQ
@@ -29,11 +30,7 @@ import javax.annotation.PostConstruct;
 @Slf4j
 public class RabbitConfig {
 
-    public static String serverIpHost;
-    @Value("${vueblog.serverIpHost}")
-    public void setServerIpHost(String serverIpHost) {
-        RabbitConfig.serverIpHost = serverIpHost;
-    }
+    public static String serverMark;
 
     public static final String ES_QUEUE = "ex_queue";
     public static final String ES_EXCHANGE = "ex_exchange";
@@ -51,22 +48,18 @@ public class RabbitConfig {
 
     RedisTemplate<String, Object> redisTemplate;
 
-    @Autowired
-    public void setRedisTemplate(RedisTemplate<String, Object> redisTemplate) {
-        this.redisTemplate = redisTemplate;
-    }
-
     RabbitTemplate rabbitTemplate;
 
-    @Autowired
-    public void setRabbitTemplate(RabbitTemplate rabbitTemplate) {
+    public RabbitConfig(RedisTemplate<String, Object> redisTemplate, RabbitTemplate rabbitTemplate) {
+        this.redisTemplate = redisTemplate;
         this.rabbitTemplate = rabbitTemplate;
     }
 
     @Bean("WS_QUEUE")
     public Queue wsQueue() {
-        WS_QUEUE += serverIpHost;
-        return new Queue(WS_QUEUE);
+        serverMark = UUID.randomUUID().toString();
+        WS_QUEUE += serverMark;
+        return new Queue(WS_QUEUE, true, false, true);
     }
 
     @Bean("WS_FANOUT_EXCHANGE")
@@ -88,7 +81,7 @@ public class RabbitConfig {
     //绑定ES队列和ES交换机
     @Bean
     public Binding wsTopicBinding(@Qualifier("WS_QUEUE") Queue wsQueue, @Qualifier("WS_TOPIC_EXCHANGE") TopicExchange wsExchange) {
-        return BindingBuilder.bind(wsQueue).to(wsExchange).with(WS_BINDING_KEY + serverIpHost);
+        return BindingBuilder.bind(wsQueue).to(wsExchange).with(WS_BINDING_KEY + serverMark);
     }
 
     //ES队列
