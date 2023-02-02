@@ -19,8 +19,6 @@ spring:
     host: 127.0.0.1
     port: 5672
 
-logging:
-  config: classpath:logback-spring.xml
 
 vueblog:
   uploadPath: /users/mingchiuli/desktop/

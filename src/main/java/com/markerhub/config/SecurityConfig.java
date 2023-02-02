@@ -2,7 +2,6 @@ package com.markerhub.config;
 
 import com.markerhub.security.*;
 import com.markerhub.service.UserService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -15,7 +14,6 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.authentication.logout.LogoutFilter;
-import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 
 
 @Configuration
@@ -40,50 +38,17 @@ public class SecurityConfig {
 
     UserDetailsService userDetailsService;
 
-    @Autowired
-    public void setUserDetailsService(UserDetailsService userDetailsService) {
+    public SecurityConfig(LoginFailureHandler loginFailureHandler, LoginSuccessHandler loginSuccessHandler, CaptchaFilter captchaFilter, JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint, JwtLogoutSuccessHandler jwtLogoutSuccessHandler, RedisTemplate<String, Object> redisTemplate, UserService sysUserService, AuthenticationConfiguration authenticationConfiguration, UserDetailsService userDetailsService) {
+        this.loginFailureHandler = loginFailureHandler;
+        this.loginSuccessHandler = loginSuccessHandler;
+        this.captchaFilter = captchaFilter;
+        this.jwtAuthenticationEntryPoint = jwtAuthenticationEntryPoint;
+        this.jwtLogoutSuccessHandler = jwtLogoutSuccessHandler;
+        this.redisTemplate = redisTemplate;
+        this.sysUserService = sysUserService;
+        this.authenticationConfiguration = authenticationConfiguration;
         this.userDetailsService = userDetailsService;
     }
-
-    @Autowired
-    public void setAuthenticationConfiguration(AuthenticationConfiguration authenticationConfiguration) {
-        this.authenticationConfiguration = authenticationConfiguration;
-    }
-
-    @Autowired
-    public void setRedisTemplate(RedisTemplate<String, Object> redisTemplate) {
-        this.redisTemplate = redisTemplate;
-    }
-
-    @Autowired
-    public void setSysUserService(UserService sysUserService) {
-        this.sysUserService = sysUserService;
-    }
-
-    @Autowired
-    public void setLoginFailureHandler(LoginFailureHandler loginFailureHandler) {
-        this.loginFailureHandler = loginFailureHandler;
-    }
-    @Autowired
-    public void setLoginSuccessHandler(LoginSuccessHandler loginSuccessHandler) {
-        this.loginSuccessHandler = loginSuccessHandler;
-    }
-
-    @Autowired
-    public void setCaptchaFilter(CaptchaFilter captchaFilter) {
-        this.captchaFilter = captchaFilter;
-    }
-
-    @Autowired
-    public void setJwtAuthenticationEntryPoint(JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint) {
-        this.jwtAuthenticationEntryPoint = jwtAuthenticationEntryPoint;
-    }
-
-    @Autowired
-    public void setJwtLogoutSuccessHandler(JwtLogoutSuccessHandler jwtLogoutSuccessHandler) {
-        this.jwtLogoutSuccessHandler = jwtLogoutSuccessHandler;
-    }
-
 
     private static final String[] URL_WHITELIST = {
             "/captcha",

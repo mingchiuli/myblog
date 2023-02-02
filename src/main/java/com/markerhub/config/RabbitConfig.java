@@ -133,9 +133,6 @@ public class RabbitConfig {
                     String id = s[1];
                     //如果服务器没有收到，就重发
                     CorrelationData newCorrelationData = new CorrelationData();
-
-
-
                     redisTemplate.opsForValue().set(Const.CONSUME_MONITOR + newCorrelationData.getId(), method + "_" + id);
                     rabbitTemplate.convertAndSend(
                             RabbitConfig.ES_EXCHANGE,

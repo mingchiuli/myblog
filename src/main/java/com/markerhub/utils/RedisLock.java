@@ -39,10 +39,4 @@ public class RedisLock {
         RedisScript<Long> redisScript = new DefaultRedisScript<>(script, Long.class);
         redisTemplate.execute(redisScript, Collections.singletonList(key), val);
     }
-
-    public Long delete(String key, String val){
-        String script = "if redis.call('get', KEYS[1]) == ARGV[1] then return redis.call('del', KEYS[1]) else return 0 end";
-        RedisScript<Long> redisScript = new DefaultRedisScript<>(script, Long.class);
-        return redisTemplate.execute(redisScript, Collections.singletonList(key), val);
-    }
 }

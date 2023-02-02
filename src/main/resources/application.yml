@@ -34,7 +34,11 @@ server:
 mybatis-plus:
   mapper-locations: classpath*:/mapper/**Mapper.xml
 
-#配置自定义的线程池
+logging:
+  config: classpath:logback-spring.xml
+  level:
+    org.springframework.web.socket.config.WebSocketMessageBrokerStats: off
+
 vueblog:
   thread:
     core-size: 20
