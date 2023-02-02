@@ -25,7 +25,6 @@ logging:
 vueblog:
   uploadPath: /users/mingchiuli/desktop/
   addResourceLocations: file:/users/mingchiuli/desktop/
-  serverIpHost: 127.0.0.1
   jwt:
     secret: ti8n3439n439t43ld9nv9343ddfer09hti8n3439n439t43ld9nv9343ddfer09ti8n3439n439t43ld9nv9343ddfer09fti8n3439n439t43ld9nv9343ddfer09f
     #    七天

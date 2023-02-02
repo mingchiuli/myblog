@@ -19,7 +19,6 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.Headers;
@@ -48,9 +47,6 @@ import java.util.concurrent.TimeUnit;
 public class CooperateHandler {
 
     RabbitTemplate rabbitTemplate;
-
-    @Value("${vueblog.serverIpHost}")
-    private String serverIpHost;
 
     BlogService blogService;
 
@@ -211,7 +207,7 @@ public class CooperateHandler {
         BeanUtils.copyProperties(user, userVo);
 
         userVo.setNumber(coNumber);
-        userVo.setServerIpHost(serverIpHost);
+        userVo.setServerIpHost(RabbitConfig.serverMark);
 
         if (!redisTemplate.opsForHash().hasKey(Const.CO_PREFIX + blogId, userId.toString())) {
             redisTemplate.opsForHash().put(Const.CO_PREFIX + blogId, userId.toString(), userVo);

@@ -2,7 +2,6 @@ package com.markerhub.common.cache;
 
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.markerhub.common.lang.Const;
 import com.markerhub.service.BlogService;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -11,7 +10,6 @@ import org.aspectj.lang.Signature;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Pointcut;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.NestedRuntimeException;
 import org.springframework.core.annotation.Order;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -38,22 +36,13 @@ public class CacheAspect {
 
     BlogService blogService;
 
-    @Autowired
-    public void setBlogService(BlogService blogService) {
-        this.blogService = blogService;
-    }
-
     RedisTemplate<String, Object> redisTemplate;
-
-    @Autowired
-    private void setRedisTemplateImpl(RedisTemplate<String, Object> redisTemplate) {
-        this.redisTemplate = redisTemplate;
-    }
 
     ObjectMapper objectMapper;
 
-    @Autowired
-    public void setObjectMapper(ObjectMapper objectMapper) {
+    public CacheAspect(BlogService blogService, RedisTemplate<String, Object> redisTemplate, ObjectMapper objectMapper) {
+        this.blogService = blogService;
+        this.redisTemplate = redisTemplate;
         this.objectMapper = objectMapper;
     }
 
@@ -128,10 +117,10 @@ public class CacheAspect {
             return objectMapper.convertValue(o, javaType);
         }
 
-        String lock = (LOCK + className + methodName + params).intern();
+        String lock = LOCK + className + methodName + params;
 
         //防止缓存击穿
-        synchronized (lock) {
+        synchronized (lock.intern()) {
             //双重检查
             Object r = redisTemplate.opsForValue().get(redisKey);
 
