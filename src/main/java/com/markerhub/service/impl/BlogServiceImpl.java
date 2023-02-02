@@ -305,12 +305,12 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, BlogEntity> impleme
         //通知消息给mq,更新并删除缓存
         CorrelationData correlationData = new CorrelationData();
         //防止重复消费
-//        redisTemplate.opsForValue().set(Const.CONSUME_MONITOR + correlationData.getId(), BlogIndexEnum.UPDATE.name() + "_" + blog.getId(), 30, TimeUnit.MINUTES);
-//
-//        rabbitTemplate.convertAndSend(
-//                RabbitConfig.ES_EXCHANGE,
-//                RabbitConfig.ES_BINDING_KEY,
-//                new PostMQIndexMessage(blog.getId(), BlogIndexEnum.UPDATE), correlationData);
+        redisTemplate.opsForValue().set(Const.CONSUME_MONITOR + correlationData.getId(), BlogIndexEnum.UPDATE.name() + "_" + blog.getId(), 30, TimeUnit.MINUTES);
+
+        rabbitTemplate.convertAndSend(
+                RabbitConfig.ES_EXCHANGE,
+                RabbitConfig.ES_BINDING_KEY,
+                new PostMQIndexMessage(blog.getId(), BlogIndexEnum.UPDATE), correlationData);
 
     }
 
