@@ -3,6 +3,7 @@ package com.markerhub.common.cache;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.markerhub.service.BlogService;
+import com.markerhub.utils.RedisLock;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
@@ -19,6 +20,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 /**
  * 统一缓存处理
@@ -34,13 +36,16 @@ public class CacheAspect {
 
     private static final String LOCK = "lock:";
 
+    RedisLock redisLock;
+
     BlogService blogService;
 
     RedisTemplate<String, Object> redisTemplate;
 
     ObjectMapper objectMapper;
 
-    public CacheAspect(BlogService blogService, RedisTemplate<String, Object> redisTemplate, ObjectMapper objectMapper) {
+    public CacheAspect(RedisLock redisLock, BlogService blogService, RedisTemplate<String, Object> redisTemplate, ObjectMapper objectMapper) {
+        this.redisLock = redisLock;
         this.blogService = blogService;
         this.redisTemplate = redisTemplate;
         this.objectMapper = objectMapper;
@@ -120,8 +125,13 @@ public class CacheAspect {
         String lock = LOCK + className + methodName + params;
 
         //防止缓存击穿
-        synchronized (lock.intern()) {
-            //双重检查
+        boolean tryLock = redisLock.tryLock(lock, lock, 3000, 5000);
+
+        if (!tryLock) {
+            throw new TimeoutException("lock failure");
+        }
+
+        try {
             Object r = redisTemplate.opsForValue().get(redisKey);
 
             if (r != null) {
@@ -131,7 +141,8 @@ public class CacheAspect {
             Object proceed = pjp.proceed();
             redisTemplate.opsForValue().set(redisKey, proceed, expire, TimeUnit.SECONDS);
             return proceed;
+        } finally {
+            redisLock.unLock(lock, lock);
         }
-
     }
 }
