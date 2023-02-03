@@ -68,9 +68,21 @@ public class CooperateHandler {
         this.jwtUtils = jwtUtils;
     }
 
-    @MessageMapping("/pushUser/{blogId}")
+    @MessageMapping("/pushUser/{userId}/{blogId}")
     @PreAuthorize("hasAnyRole('admin', 'boy', 'girl')")
-    public void pushUser(@DestinationVariable Long blogId) {
+    public void pushUser(@DestinationVariable Long blogId, @DestinationVariable Long userId) {
+
+        UserEntity user = userService.getBaseMapper().selectOne(new QueryWrapper<UserEntity>().eq("id", userId).select("id", "username", "avatar", "role"));
+        UserEntityVo userVo = new UserEntityVo();
+        BeanUtils.copyProperties(user, userVo);
+        userVo.setServerIpHost(RabbitConfig.serverMark);
+        Object o = redisTemplate.opsForHash().get(Const.CO_PREFIX + blogId, userId.toString());
+        UserEntityVo userEntityVo = MyUtils.jsonToObj(o, UserEntityVo.class);
+        userVo.setNumber(userEntityVo.getNumber());
+
+        redisTemplate.opsForHash().put(Const.CO_PREFIX + blogId, userId.toString(), userVo);
+
+
 
         Map<Object, Object> entries = redisTemplate.opsForHash().entries(Const.CO_PREFIX + blogId);
 
@@ -207,7 +219,6 @@ public class CooperateHandler {
         BeanUtils.copyProperties(user, userVo);
 
         userVo.setNumber(coNumber);
-        userVo.setServerIpHost(RabbitConfig.serverMark);
 
         if (!redisTemplate.opsForHash().hasKey(Const.CO_PREFIX + blogId, userId.toString())) {
             redisTemplate.opsForHash().put(Const.CO_PREFIX + blogId, userId.toString(), userVo);
