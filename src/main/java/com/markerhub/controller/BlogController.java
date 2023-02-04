@@ -1,5 +1,9 @@
 package com.markerhub.controller;
 
+import com.aliyun.oss.ClientException;
+import com.aliyun.oss.OSS;
+import com.aliyun.oss.OSSClientBuilder;
+import com.aliyun.oss.OSSException;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.markerhub.common.bloom.Bloom;
@@ -13,16 +17,19 @@ import com.markerhub.common.vo.BlogPostDocumentVo;
 import com.markerhub.common.vo.BlogEntityVo;
 import com.markerhub.entity.BlogEntity;
 import com.markerhub.service.BlogService;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.elasticsearch.ResourceNotFoundException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.util.FileCopyUtils;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import javax.servlet.http.HttpServletRequest;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
@@ -49,22 +56,30 @@ public class BlogController {
         this.blogService = blogService;
     }
 
-    @Value("${vueblog.uploadPath}")
-    private String baseFolderPath;
+    @Value("${vueblog.oos.accessKeyId}")
+    private String keyId;
 
-    @Value("${vueblog.imgFoldName}")
-    private String img;
+    @Value("${vueblog.oos.accessKeySecret}")
+    private String keySecret;
+
+    @Value("${vueblog.oos.bucketName}")
+    private String bucket;
+
+    @Value("${vueblog.oos.endpoint}")
+    private String ep;
+
+    private static final String host = "https://bloglmc.oss-cn-hangzhou.aliyuncs.com";
 
 
     /**
      * 图片上传OOS
+     *
      * @param image
      * @param request
      * @param created
      * @return
      */
-    @PreAuthorize("hasAnyRole('admin', 'boy', 'girl')")
-    @PostMapping("/upload")
+    @Deprecated
     public Result upload(@RequestParam MultipartFile image, HttpServletRequest request, @RequestParam String created) {
         if (image != null) {
 
@@ -75,7 +90,7 @@ public class BlogController {
                     .replaceAll(":", "")
                     .replaceAll("T", "");
 
-            File baseFolder = new File(baseFolderPath + img + "/" + filePath);
+            File baseFolder = new File("baseFolderPath" + "img" + "/" + filePath);
 
             if (!baseFolder.exists()) {
                 boolean b = baseFolder.mkdirs();
@@ -122,18 +137,75 @@ public class BlogController {
 
 
     /**
+     * 图片阿里云OOS
+     *
+     * @param image
+     * @param request
+     * @param created
+     * @return
+     */
+    @SneakyThrows
+    @PreAuthorize("hasAnyRole('admin', 'boy', 'girl')")
+    @PostMapping("/upload")
+    public Result uploadAliOos(@RequestParam MultipartFile image, HttpServletRequest request, @RequestParam String created) {
+        if (image != null) {
+
+            String username = SecurityContextHolder.getContext().getAuthentication().getName();
+
+            String originalFilename = image.getOriginalFilename();
+            String objectName = username + "/" + originalFilename;
+
+            // Endpoint以华东1（杭州）为例，其它Region请按实际情况填写。
+            String endpoint = ep;
+            // 阿里云账号AccessKey拥有所有API的访问权限，风险很高。强烈建议您创建并使用RAM用户进行API访问或日常运维，请登录RAM控制台创建RAM用户。
+            String accessKeyId = keyId;
+            String accessKeySecret = keySecret;
+            // 填写Bucket名称，例如examplebucket。
+            String bucketName = bucket;
+            // 填写Object完整路径，例如exampledir/exampleobject.txt。Object完整路径中不能包含Bucket名称。
+
+            // 创建OSSClient实例。
+            OSS ossClient = new OSSClientBuilder().build(endpoint, accessKeyId, accessKeySecret);
+
+            try {
+                ossClient.putObject(bucketName, objectName, new ByteArrayInputStream(image.getBytes()));
+            } catch (OSSException oe) {
+                log.info("Caught an OSSException, which means your request made it to OSS, "
+                        + "but was rejected with an error response for some reason.");
+                log.info("Error Message:" + oe.getErrorMessage());
+                log.info("Error Code:" + oe.getErrorCode());
+                log.info("Request ID:" + oe.getRequestId());
+                log.info("Host ID:" + oe.getHostId());
+            } catch (ClientException ce) {
+                log.info("Caught an ClientException, which means the client encountered "
+                        + "a serious internal problem while trying to communicate with OSS, "
+                        + "such as not being able to access the network.");
+                log.info("Error Message:" + ce.getMessage());
+            } finally {
+                if (ossClient != null) {
+                    ossClient.shutdown();
+                }
+            }
+
+            //https://bloglmc.oss-cn-hangzhou.aliyuncs.com/admin/42166d224f4a20a45eca28b691529822730ed0ee.jpeg
+            return Result.succ(host + "/" + username + "/" + originalFilename);
+        }
+        return Result.fail(null);
+    }
+
+
+    /**
      * 图片删除
      * @param url
      * @return
      */
-    @PreAuthorize("hasAnyRole('admin', 'boy', 'girl')")
-    @DeleteMapping("/delfile")
+    @Deprecated
     public Result deleteFile(@RequestParam String url) {
         //常量是有关url的
         int index = url.indexOf(Const.UPLOAD_IMG_PATH) + Const.UPLOAD_IMG_PATH.length() - 1;
         String dest = url.substring(index);
         //配置文件里的是上传服务器的路径
-        String finalDest = baseFolderPath + img + dest;
+        String finalDest = "baseFolderPath" + "img" + dest;
         File file = new File(finalDest);
         if (file.exists()) {
             boolean b = file.delete();
@@ -143,6 +215,51 @@ public class BlogController {
             return Result.succ("删除结果：" + b);
         }
         return Result.fail("文件不存在");
+    }
+
+    /**
+     * 图片删除
+     * @param url
+     * @return
+     */
+    @PreAuthorize("hasAnyRole('admin', 'boy', 'girl')")
+    @DeleteMapping("/delfile")
+    public Result deleteFileAliOos(@RequestParam String url) {
+
+        String objectName = url.replace(host + "/", "");
+
+        // Endpoint以华东1（杭州）为例，其它Region请按实际情况填写。
+        String endpoint = ep;
+        // 阿里云账号AccessKey拥有所有API的访问权限，风险很高。强烈建议您创建并使用RAM用户进行API访问或日常运维，请登录RAM控制台创建RAM用户。
+        String accessKeyId = keyId;
+        String accessKeySecret = keySecret;
+        // 填写Bucket名称，例如examplebucket。
+        String bucketName = bucket;
+        // 填写Object完整路径，例如exampledir/exampleobject.txt。Object完整路径中不能包含Bucket名称。
+
+        // 创建OSSClient实例。
+        OSS ossClient = new OSSClientBuilder().build(endpoint, accessKeyId, accessKeySecret);
+
+        try {
+            ossClient.deleteObject(bucketName, objectName);
+        } catch (OSSException oe) {
+            log.info("Caught an OSSException, which means your request made it to OSS, "
+                    + "but was rejected with an error response for some reason.");
+            log.info("Error Message:" + oe.getErrorMessage());
+            log.info("Error Code:" + oe.getErrorCode());
+            log.info("Request ID:" + oe.getRequestId());
+            log.info("Host ID:" + oe.getHostId());
+        } catch (ClientException ce) {
+            log.info("Caught an ClientException, which means the client encountered "
+                    + "a serious internal problem while trying to communicate with OSS, "
+                    + "such as not being able to access the network.");
+            log.info("Error Message:" + ce.getMessage());
+        } finally {
+            if (ossClient != null) {
+                ossClient.shutdown();
+            }
+        }
+        return Result.succ(null);
     }
 
 

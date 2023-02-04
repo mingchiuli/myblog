@@ -21,6 +21,7 @@ repositories {
 }
 
 dependencies {
+    implementation("com.aliyun.oss:aliyun-sdk-oss:3.15.2")
     implementation("com.github.axet:kaptcha:0.0.9")
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("org.springframework.boot:spring-boot-starter-aop")

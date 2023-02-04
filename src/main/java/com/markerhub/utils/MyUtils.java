@@ -163,6 +163,7 @@ public class MyUtils {
      * 删除图片文件夹
      * @param file
      */
+    @Deprecated
     public static void deleteAllImg(File file) {
         if (file.exists()) {
             if (file.isFile()) {

@@ -16,7 +16,5 @@ public class UserEntityVo extends UserEntity implements Serializable {
 
     private Integer monitor;
 
-    private Integer number;
-
     private String serverIpHost;
 }

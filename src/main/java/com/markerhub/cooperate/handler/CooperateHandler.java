@@ -2,7 +2,6 @@ package com.markerhub.cooperate.handler;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.markerhub.common.valid.CooperateBlogId;
-import com.markerhub.common.vo.CoNumberList;
 import com.markerhub.common.lang.Const;
 import com.markerhub.common.lang.Result;
 import com.markerhub.common.vo.UserEntityVo;
@@ -76,9 +75,6 @@ public class CooperateHandler {
         UserEntityVo userVo = new UserEntityVo();
         BeanUtils.copyProperties(user, userVo);
         userVo.setServerIpHost(RabbitConfig.serverMark);
-        Object o = redisTemplate.opsForHash().get(Const.CO_PREFIX + blogId, userId.toString());
-        UserEntityVo userEntityVo = MyUtils.jsonToObj(o, UserEntityVo.class);
-        userVo.setNumber(userEntityVo.getNumber());
 
         redisTemplate.opsForHash().put(Const.CO_PREFIX + blogId, userId.toString(), userVo);
 
@@ -175,40 +171,16 @@ public class CooperateHandler {
         String fromStr = from.toString();
         TaskOverDto dto = transferToDto(String.class, TaskOverDto.class, new Object[]{fromStr}, new Class[]{fromStr.getClass()});
         rabbitTemplate.convertAndSend(
-                RabbitConfig.WS_FANOUT_EXCHANGE,RabbitConfig.WS_BINDING_KEY  + RabbitConfig.serverMark,
+                RabbitConfig.WS_FANOUT_EXCHANGE, RabbitConfig.WS_BINDING_KEY + RabbitConfig.serverMark,
                 dto);
 
     }
 
-    @GetMapping("/coStatus/{blogId}")
+
+    @GetMapping("/blogWSCooperate/{blogId}")
     @PreAuthorize("hasAnyRole('admin', 'boy', 'girl')")
     @ResponseBody
-    public Result coStatus(@PathVariable Long blogId) {
-        Map<Object, Object> entries = redisTemplate.opsForHash().entries(Const.CO_PREFIX + blogId);
-        CoNumberList number = new CoNumberList();
-
-        number.setIndex0(Boolean.FALSE);
-        number.setIndex1(Boolean.FALSE);
-        number.setIndex2(Boolean.FALSE);
-
-
-        entries.forEach((k, v) -> {
-            UserEntityVo user = MyUtils.jsonToObj(v, UserEntityVo.class);
-            switch (user.getNumber()) {
-                case 0 -> number.setIndex0(Boolean.TRUE);
-                case 1 -> number.setIndex1(Boolean.TRUE);
-                case 2 -> number.setIndex2(Boolean.TRUE);
-            }
-        });
-
-        return Result.succ(number);
-    }
-
-
-    @GetMapping("/blogWSCooperate/{blogId}/{coNumber}")
-    @PreAuthorize("hasAnyRole('admin', 'boy', 'girl')")
-    @ResponseBody
-    public Result init(@PathVariable @CooperateBlogId Long blogId, @PathVariable Integer coNumber, HttpServletRequest request) {
+    public Result init(@PathVariable @CooperateBlogId Long blogId, HttpServletRequest request) {
 
         Long userId = MyUtils.reqToUserId(request);
         BlogEntity blog = blogService.getById(blogId);
@@ -218,7 +190,6 @@ public class CooperateHandler {
         UserEntityVo userVo = new UserEntityVo();
         BeanUtils.copyProperties(user, userVo);
 
-        userVo.setNumber(coNumber);
 
         if (!redisTemplate.opsForHash().hasKey(Const.CO_PREFIX + blogId, userId.toString())) {
             redisTemplate.opsForHash().put(Const.CO_PREFIX + blogId, userId.toString(), userVo);
@@ -235,8 +206,6 @@ public class CooperateHandler {
             value.setServerIpHost(null);
             users.add(value);
         });
-
-        users.sort(Comparator.comparingInt(UserEntityVo::getNumber));
 
         String idStr = blogId.toString();
         InitDto dto = transferToDto(InitDto.Bind.class, InitDto.class,

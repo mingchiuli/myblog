@@ -1,9 +1,7 @@
 package com.markerhub.config;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
-import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 /**
@@ -12,22 +10,6 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
  */
 @Configuration
 public class WebMvcConfig implements WebMvcConfigurer {
-    /**
-     * 文件上传处理，URL映射到本地磁盘路径
-     */
-
-    @Value("${vueblog.addResourceHandler}")
-    private String addResourceHandler;
-
-    @Value("${vueblog.addResourceLocations}")
-    private String addResourceLocations;
-
-
-    @Override
-    public void addResourceHandlers(ResourceHandlerRegistry registry) {
-        //环境
-        registry.addResourceHandler(addResourceHandler).addResourceLocations(addResourceLocations);
-    }
 
     /**
      * 解决跨域问题，经过测试，websocket和Spring Security的配置不兼容，采用原始配置，此时响应头无法添加Authorization，

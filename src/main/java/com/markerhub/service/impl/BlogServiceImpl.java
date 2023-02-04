@@ -30,7 +30,6 @@ import org.springframework.amqp.rabbit.connection.CorrelationData;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.NestedRuntimeException;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.domain.PageRequest;
@@ -48,7 +47,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
-import java.io.File;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
@@ -67,11 +65,6 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 public class BlogServiceImpl extends ServiceImpl<BlogMapper, BlogEntity> implements BlogService {
 
-    @Value("${vueblog.uploadPath}")
-    private String baseFolderPath;
-
-    @Value("${vueblog.imgFoldName}")
-    private String img;
 
     UserService userService;
 
@@ -499,20 +492,6 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, BlogEntity> impleme
                 }
             });
 
-
-            /*
-             * 直接删除对应的文件夹，提高效率
-             */
-
-            String createdTime = blogEntity.getCreated().toString();
-            String created = createdTime
-                    .replaceAll("-", "")
-                    .replaceAll("T", "")
-                    .replaceAll(":", "");
-            String finalDest = baseFolderPath + img + "/" + created;
-            File file = new File(finalDest);
-
-            MyUtils.deleteAllImg(file);
 
             //通知消息给mq,更新并删除缓存
             CorrelationData correlationData = new CorrelationData();
