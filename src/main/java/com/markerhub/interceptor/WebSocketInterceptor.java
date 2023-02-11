@@ -7,6 +7,7 @@ import com.markerhub.service.UserService;
 import com.markerhub.utils.JwtUtils;
 import io.jsonwebtoken.Claims;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.lang.NonNull;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.simp.stomp.StompCommand;
@@ -36,7 +37,7 @@ public class WebSocketInterceptor implements ChannelInterceptor {
     }
 
     @Override
-    public Message<?> preSend(Message<?> message, MessageChannel channel) {
+    public Message<?> preSend(@NonNull Message<?> message, @NonNull MessageChannel channel) {
         StompHeaderAccessor accessor = MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class);
 
         if (accessor != null) {
@@ -56,10 +57,8 @@ public class WebSocketInterceptor implements ChannelInterceptor {
                 accessor.setUser(new PreAuthenticatedAuthenticationToken(username,
                         null,
                         AuthorityUtils.createAuthorityList("ROLE_" + role)));
-
             }
-            return message;
         }
-        return null;
+        return message;
     }
 }

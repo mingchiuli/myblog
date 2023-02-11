@@ -32,12 +32,10 @@ public class WSMessageHandler {
     }
 
     @Bean("WSMessageListener")
-    //processMessage作为listener
     MessageListenerAdapter wSMessageListener(WSMessageHandler wSMessageHandler) {
         return new MessageListenerAdapter(wSMessageHandler, "processMessage");
     }
 
-    //在container内将queue和listener绑定
     @Bean("WSMessageListenerContainer")
     SimpleMessageListenerContainer wSMessageListenerContainer(ConnectionFactory connectionFactory,
                                                                      @Qualifier("WSMessageListener") MessageListenerAdapter listenerAdapter,
@@ -50,6 +48,7 @@ public class WSMessageHandler {
     }
 
 
+    @SuppressWarnings("unused")
     public void processMessage(MessageDto msg) {
         for (WSHandler handler : CacheHandlers.cacheHandlers.values()) {
             if (handler.supports(msg)) {

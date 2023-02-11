@@ -52,7 +52,6 @@ public class SecurityConfig {
 
     private static final String[] URL_WHITELIST = {
             "/captcha",
-            "/favicon.ico",
             "/blogsByYear/**",
             "/getCountByYear/**",
             "/blogs/**",
@@ -68,8 +67,6 @@ public class SecurityConfig {
             "/searchWebsite/**",
             "/sysLog/**",
             "/cooperate/**",
-            "/upload/img/**"
-
     };
 
     @Bean
@@ -102,7 +99,6 @@ public class SecurityConfig {
                 .and()
                 .exceptionHandling()
                 .authenticationEntryPoint(jwtAuthenticationEntryPoint)
-//                .accessDeniedHandler()配置权限失败的处理器，因为权限失败会被全局异常捕获，不走这个逻辑，所以想要启用需要关闭全局异常捕获的相关异常逻辑
 
                 // 配置自定义的过滤器
                 .and()
