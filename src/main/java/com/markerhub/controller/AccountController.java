@@ -33,7 +33,10 @@ public class AccountController {
 
     RedisTemplate<String, Object> redisTemplate;
 
-    public AccountController(Producer producer, UserService userService, JwtUtils jwtUtils, RedisTemplate<String, Object> redisTemplate) {
+    public AccountController(Producer producer,
+                             UserService userService,
+                             JwtUtils jwtUtils,
+                             RedisTemplate<String, Object> redisTemplate) {
         this.producer = producer;
         this.userService = userService;
         this.jwtUtils = jwtUtils;

@@ -20,6 +20,7 @@ import com.markerhub.service.BlogService;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.elasticsearch.ResourceNotFoundException;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -33,6 +34,7 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.ThreadPoolExecutor;
 
 /**
  * <p>
@@ -51,9 +53,14 @@ public class BlogController {
 
     BlogService blogService;
 
-    public BlogController(RedisTemplate<String, Object> redisTemplate, BlogService blogService) {
+    ThreadPoolExecutor executor;
+
+    public BlogController(RedisTemplate<String, Object> redisTemplate,
+                          BlogService blogService,
+                          @Qualifier("imgUploadThreadPoolExecutor") ThreadPoolExecutor executor) {
         this.redisTemplate = redisTemplate;
         this.blogService = blogService;
+        this.executor = executor;
     }
 
     @Value("${vueblog.oos.accessKeyId}")
@@ -140,14 +147,12 @@ public class BlogController {
      * 图片阿里云OOS
      *
      * @param image
-     * @param request
-     * @param created
      * @return
      */
     @SneakyThrows
     @PreAuthorize("hasAnyRole('admin', 'boy', 'girl')")
     @PostMapping("/upload")
-    public Result uploadAliOos(@RequestParam MultipartFile image, HttpServletRequest request, @RequestParam String created) {
+    public Result uploadAliOSS(@RequestParam MultipartFile image) {
         if (image != null) {
 
             String username = SecurityContextHolder.getContext().getAuthentication().getName();
@@ -163,29 +168,32 @@ public class BlogController {
             // 填写Bucket名称，例如examplebucket。
             String bucketName = bucket;
             // 填写Object完整路径，例如exampledir/exampleobject.txt。Object完整路径中不能包含Bucket名称。
-
             // 创建OSSClient实例。
             OSS ossClient = new OSSClientBuilder().build(endpoint, accessKeyId, accessKeySecret);
 
-            try {
-                ossClient.putObject(bucketName, objectName, new ByteArrayInputStream(image.getBytes()));
-            } catch (OSSException oe) {
-                log.info("Caught an OSSException, which means your request made it to OSS, "
-                        + "but was rejected with an error response for some reason.");
-                log.info("Error Message:" + oe.getErrorMessage());
-                log.info("Error Code:" + oe.getErrorCode());
-                log.info("Request ID:" + oe.getRequestId());
-                log.info("Host ID:" + oe.getHostId());
-            } catch (ClientException ce) {
-                log.info("Caught an ClientException, which means the client encountered "
-                        + "a serious internal problem while trying to communicate with OSS, "
-                        + "such as not being able to access the network.");
-                log.info("Error Message:" + ce.getMessage());
-            } finally {
-                if (ossClient != null) {
-                    ossClient.shutdown();
+            executor.execute(() -> {
+                try {
+                    ossClient.putObject(bucketName, objectName, new ByteArrayInputStream(image.getBytes()));
+                } catch (OSSException oe) {
+                    log.info("Caught an OSSException, which means your request made it to OSS, "
+                            + "but was rejected with an error response for some reason.");
+                    log.info("Error Message:" + oe.getErrorMessage());
+                    log.info("Error Code:" + oe.getErrorCode());
+                    log.info("Request ID:" + oe.getRequestId());
+                    log.info("Host ID:" + oe.getHostId());
+                } catch (ClientException ce) {
+                    log.info("Caught an ClientException, which means the client encountered "
+                            + "a serious internal problem while trying to communicate with OSS, "
+                            + "such as not being able to access the network.");
+                    log.info("Error Message:" + ce.getMessage());
+                } catch (Exception e) {
+                    log.info(String.valueOf(e));
+                } finally {
+                    if (ossClient != null) {
+                        ossClient.shutdown();
+                    }
                 }
-            }
+            });
 
             //https://bloglmc.oss-cn-hangzhou.aliyuncs.com/admin/42166d224f4a20a45eca28b691529822730ed0ee.jpeg
             return Result.succ(host + "/" + username + "/" + originalFilename);
