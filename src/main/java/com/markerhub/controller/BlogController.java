@@ -171,9 +171,11 @@ public class BlogController {
             // 创建OSSClient实例。
             OSS ossClient = new OSSClientBuilder().build(endpoint, accessKeyId, accessKeySecret);
 
+            byte[] imageBytes = image.getBytes();
+
             executor.execute(() -> {
                 try {
-                    ossClient.putObject(bucketName, objectName, new ByteArrayInputStream(image.getBytes()));
+                    ossClient.putObject(bucketName, objectName, new ByteArrayInputStream(imageBytes));
                 } catch (OSSException oe) {
                     log.info("Caught an OSSException, which means your request made it to OSS, "
                             + "but was rejected with an error response for some reason.");
