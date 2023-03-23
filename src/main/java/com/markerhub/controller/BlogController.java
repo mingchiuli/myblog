@@ -144,7 +144,7 @@ public class BlogController {
 
 
     /**
-     * 图片阿里云OOS
+     * 图片阿里云OSS
      *
      * @param image
      * @return
@@ -158,24 +158,27 @@ public class BlogController {
             String username = SecurityContextHolder.getContext().getAuthentication().getName();
 
             String originalFilename = image.getOriginalFilename();
+            originalFilename = originalFilename.replace(" ", "");
             String objectName = username + "/" + originalFilename;
-
-            // Endpoint以华东1（杭州）为例，其它Region请按实际情况填写。
-            String endpoint = ep;
-            // 阿里云账号AccessKey拥有所有API的访问权限，风险很高。强烈建议您创建并使用RAM用户进行API访问或日常运维，请登录RAM控制台创建RAM用户。
-            String accessKeyId = keyId;
-            String accessKeySecret = keySecret;
-            // 填写Bucket名称，例如examplebucket。
-            String bucketName = bucket;
-            // 填写Object完整路径，例如exampledir/exampleobject.txt。Object完整路径中不能包含Bucket名称。
-            // 创建OSSClient实例。
-            OSS ossClient = new OSSClientBuilder().build(endpoint, accessKeyId, accessKeySecret);
-
             byte[] imageBytes = image.getBytes();
+
+            var ref = new Object() {
+                OSS ossClient;
+            };
 
             executor.execute(() -> {
                 try {
-                    ossClient.putObject(bucketName, objectName, new ByteArrayInputStream(imageBytes));
+                    // Endpoint以华东1（杭州）为例，其它Region请按实际情况填写。
+                    String endpoint = ep;
+                    // 阿里云账号AccessKey拥有所有API的访问权限，风险很高。强烈建议您创建并使用RAM用户进行API访问或日常运维，请登录RAM控制台创建RAM用户。
+                    String accessKeyId = keyId;
+                    String accessKeySecret = keySecret;
+                    // 填写Bucket名称，例如examplebucket。
+                    String bucketName = bucket;
+                    // 填写Object完整路径，例如exampledir/exampleobject.txt。Object完整路径中不能包含Bucket名称。
+                    // 创建OSSClient实例。
+                    ref.ossClient = new OSSClientBuilder().build(endpoint, accessKeyId, accessKeySecret);
+                    ref.ossClient.putObject(bucketName, objectName, new ByteArrayInputStream(imageBytes));
                 } catch (OSSException oe) {
                     log.info("Caught an OSSException, which means your request made it to OSS, "
                             + "but was rejected with an error response for some reason.");
@@ -191,14 +194,14 @@ public class BlogController {
                 } catch (Exception e) {
                     log.info(String.valueOf(e));
                 } finally {
-                    if (ossClient != null) {
-                        ossClient.shutdown();
+                    if (ref.ossClient != null) {
+                        ref.ossClient.shutdown();
                     }
                 }
             });
 
             //https://bloglmc.oss-cn-hangzhou.aliyuncs.com/admin/42166d224f4a20a45eca28b691529822730ed0ee.jpeg
-            return Result.succ(host + "/" + username + "/" + originalFilename);
+            return Result.succ(host + "/" + objectName);
         }
         return Result.fail(null);
     }
