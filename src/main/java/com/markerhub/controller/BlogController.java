@@ -155,8 +155,7 @@ public class BlogController {
     public Result uploadAliOSS(@RequestParam MultipartFile image) {
         if (image != null) {
 
-            String username = SecurityContextHolder.getContext().getAuthentication().getName();
-
+            String username = UUID.randomUUID().toString();
             String originalFilename = image.getOriginalFilename();
             originalFilename = originalFilename.replace(" ", "");
             String objectName = username + "/" + originalFilename;
